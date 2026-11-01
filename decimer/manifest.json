@@ -1,0 +1,24 @@
+{
+ "files": {
+  "encoder.onnx": {
+   "size": 54056597,
+   "parts": [
+    "encoder.onnx.part1",
+    "encoder.onnx.part2",
+    "encoder.onnx.part3",
+    "encoder.onnx.part4",
+    "encoder.onnx.part5",
+    "encoder.onnx.part6"
+   ]
+  },
+  "decoder_step.onnx": {
+   "size": 29645479,
+   "parts": [
+    "decoder_step.onnx.part1",
+    "decoder_step.onnx.part2",
+    "decoder_step.onnx.part3",
+    "decoder_step.onnx.part4"
+   ]
+  }
+ }
+}
