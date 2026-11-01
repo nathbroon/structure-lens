@@ -1,0 +1,1773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F3F5F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1419" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Structure Lens">
+<title>Structure Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one screen per tab. Scan pairs the photo plate with the detected-structure plate;
+   the other tabs are quiet readouts. Bottom tab bar, gear opens a settings sheet. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5B6773; --line:#D9DFE5;
+  --accent:#2148C0; --accent-ink:#FFFFFF; --accent-soft:#E6ECFB;
+  --good:#1E7A4C; --good-soft:#E3F3EA; --warn:#A35C00; --warn-soft:#FBEFD9; --bad:#B4232C; --bad-soft:#FBE4E5;
+  --el-c:#16202B; --el-n:#2148C0; --el-o:#C8202B; --el-s:#A88A00; --el-hal:#1E8A3A; --el-p:#D46A00;
+  --plate:#FFFFFF; --dot:#8A96A3; --band:#E9EEF8;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:12px; --tabh:58px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1419; --surface:#171E26; --ink:#E5EAF0; --muted:#93A0AD; --line:#2A3440;
+  --accent:#7D9BFF; --accent-ink:#0F1419; --accent-soft:#1D2742;
+  --good:#5CCB8F; --good-soft:#15291F; --warn:#F0B35A; --warn-soft:#2C2214; --bad:#FF7A80; --bad-soft:#331A1C;
+  --el-c:#E5EAF0; --el-n:#8EA8FF; --el-o:#FF7A80; --el-s:#E8CF4A; --el-hal:#6FD38A; --el-p:#FFA24D;
+  --plate:#F7F9FB; --dot:#5E6B78; --band:#1D2742; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0F1419; --surface:#171E26; --ink:#E5EAF0; --muted:#93A0AD; --line:#2A3440;
+  --accent:#7D9BFF; --accent-ink:#0F1419; --accent-soft:#1D2742;
+  --good:#5CCB8F; --good-soft:#15291F; --warn:#F0B35A; --warn-soft:#2C2214; --bad:#FF7A80; --bad-soft:#331A1C;
+  --el-c:#E5EAF0; --el-n:#8EA8FF; --el-o:#FF7A80; --el-s:#E8CF4A; --el-hal:#6FD38A; --el-p:#FFA24D;
+  --plate:#F7F9FB; --dot:#5E6B78; --band:#1D2742; color-scheme:dark; }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+img,svg,canvas{max-width:100%}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;color:inherit}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:6;padding-top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.bar-in,.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar-in{display:flex;align-items:center;gap:10px;height:52px}
+.logo{display:flex;align-items:center;gap:9px;font:700 1.2rem/1 var(--f-display);letter-spacing:-.01em}
+.logo svg{width:26px;height:26px;flex:none}
+.bar-in .sp{flex:1}
+.gear{appearance:none;border:none;background:none;width:44px;height:44px;margin-right:-10px;display:grid;place-items:center;border-radius:50%;cursor:pointer;color:var(--ink)}
+.gear svg{width:24px;height:24px}
+
+.wrap{padding-top:4px;padding-bottom:calc(var(--tabh) + 28px + env(safe-area-inset-bottom,0px))}
+.tab{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ch{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ch h2{margin:0;font:700 1.05rem/1.2 var(--f-display)}
+.ch .src{font-size:.8rem;color:var(--muted)}
+.st{margin-left:auto;font-size:.8rem;color:var(--muted)}
+.st.ok{color:var(--good)} .st.err{color:var(--bad)}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+
+/* buttons */
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-height:46px;padding:8px 12px;font:700 .92rem var(--f-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.15}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.slim{min-height:38px;font-weight:400;font-size:.85rem;padding:6px 10px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* scan: the paired plates */
+.plates{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.pl{position:relative;background:var(--plate);min-height:120px}
+.pl-cap{position:absolute;left:10px;top:8px;z-index:2;font:500 .75rem var(--f-body);color:#5B6773;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:999px}
+.stage{position:relative;overflow:hidden;touch-action:none;display:flex;justify-content:center}
+.stage canvas{display:block;max-width:100%;max-height:34vh;width:auto;height:auto}
+.empty-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:150px;color:#5B6773;font-size:.9rem;text-align:center;padding:0 24px}
+.empty-photo svg{width:34px;height:34px;opacity:.6}
+.imgtools{position:absolute;right:8px;bottom:8px;display:flex;gap:6px;z-index:2}
+.imgtools button,.imgtools label{appearance:none;border:none;background:rgba(22,32,43,.72);color:#fff;border-radius:999px;height:32px;padding:0 11px;font:500 .78rem var(--f-body);display:flex;align-items:center;gap:6px;cursor:pointer}
+.imgtools input{accent-color:#7D9BFF;margin:0}
+.plates .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line)}
+.seam{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);font-size:.82rem;color:var(--muted);min-height:38px}
+.seam svg{width:16px;height:16px;flex:none;color:var(--accent)}
+.seam .conf{margin-left:auto;font-weight:700}
+.seam .conf.ok{color:var(--good)} .seam .conf.err{color:var(--bad)}
+#depict{display:flex;align-items:center;justify-content:center;min-height:200px}
+#depict svg{width:100%;height:auto;max-height:300px}
+.actions{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
+.actions .btn{flex-direction:column;gap:4px;min-height:64px;font-size:.82rem}
+.actions .btn svg{width:22px;height:22px}
+.engine{font-size:.8rem;color:var(--muted);margin:-4px 2px 0}
+
+.name{font:700 1.55rem/1.12 var(--f-display);margin:0;text-wrap:balance;overflow-wrap:anywhere;letter-spacing:-.01em}
+.subname{margin:2px 0 0;color:var(--muted);font-size:.9rem;overflow-wrap:anywhere}
+.formula{font:500 1.1rem var(--f-mono);letter-spacing:.02em}
+.formula sub{font-size:.7em}
+.e-C,.e-H{color:var(--el-c)} .e-N{color:var(--el-n)} .e-O{color:var(--el-o)} .e-S{color:var(--el-s)} .e-F,.e-Cl,.e-Br,.e-I{color:var(--el-hal)} .e-P{color:var(--el-p)}
+.ids{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:start;margin:0}
+.ids dt{font-size:.78rem;color:var(--muted);padding-top:2px}
+.ids dd{margin:0;font:400 .8rem/1.45 var(--f-mono);overflow-wrap:anywhere;min-width:0}
+.copy{appearance:none;border:none;background:none;color:var(--accent);font:500 .8rem var(--f-body);cursor:pointer;padding:2px 4px}
+details.fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font:700 .92rem var(--f-display);padding:2px 0}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-left:auto;transition:transform .2s}
+details.fold[open]>summary::after{transform:rotate(-135deg)}
+details.fold>div{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:400 .85rem/1.4 var(--f-mono);padding:10px}
+input[type=text],input[type=url],select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:400 .9rem var(--f-mono);padding:10px}
+.frags{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font:500 .8rem var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);text-decoration:none}
+button.chip{cursor:pointer}
+.chip.pass{background:var(--good-soft);color:var(--good);border-color:transparent}
+.chip.fail{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chip.mid{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+
+/* compound strip at the top of the other tabs */
+.mini{display:flex;align-items:center;gap:12px;min-width:0}
+.mini .th{width:64px;height:48px;flex:none;background:var(--plate);border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.mini .th svg{width:100%;height:100%}
+.mini b{display:block;font:700 1.1rem/1.15 var(--f-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini span{font-size:.82rem;color:var(--muted)}
+.mini>div{min-width:0}
+
+/* properties: glance */
+.glance{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.radar{width:100%;max-width:380px;margin:0 auto;display:block}
+.radar text{font-family:var(--f-body)}
+.scores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.score{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.score .k{font-size:.75rem;color:var(--muted)}
+.score .v{font:700 1.35rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.score .v small{display:block;font:400 .74rem var(--f-body);color:var(--muted);margin-top:2px}
+.meter{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.rules{display:flex;flex-direction:column;gap:6px}
+.rule{display:grid;grid-template-columns:10.5em 1fr;gap:8px;align-items:center;font-size:.88rem}
+.rule .why{font-size:.8rem;color:var(--muted);margin-left:6px}
+.props{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media (max-width:400px){.props{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.prop{background:var(--surface);padding:9px 11px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.prop .k{font-size:.74rem;color:var(--muted)}
+.prop .v{font:500 1.02rem var(--f-mono);font-variant-numeric:tabular-nums}
+.prop .u{font-size:.7rem;color:var(--muted);margin-left:3px}
+
+/* drug space */
+.space{position:relative}
+.space svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.space text{font-family:var(--f-body)}
+.tip{position:absolute;z-index:3;background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 10px;font-size:.82rem;max-width:230px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.tip b{display:block;font-family:var(--f-display);font-size:.95rem;overflow-wrap:anywhere}
+.tip button{appearance:none;border:none;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:4px 10px;margin-top:6px;font:700 .78rem var(--f-body);cursor:pointer}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.nn{display:flex;flex-direction:column}
+.nn button{appearance:none;border:none;border-top:1px solid var(--line);background:none;padding:8px 0;display:grid;grid-template-columns:22px 56px 1fr auto;gap:10px;align-items:center;text-align:left;cursor:pointer;min-width:0}
+.nn .n{width:20px;height:20px;border-radius:50%;background:var(--warn);color:var(--surface);font:700 .72rem var(--f-body);display:grid;place-items:center}
+.nn .th{width:56px;height:40px;background:var(--plate);border-radius:6px;overflow:hidden}
+.nn .th svg{width:100%;height:100%}
+.nn .t{min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nn .s{font:500 .82rem var(--f-mono);color:var(--muted)}
+
+/* 3D */
+.mol3d{position:relative;width:100%;aspect-ratio:1/1;max-height:62vh;background:var(--plate);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.mol3d .msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#5B6773;font-size:.9rem}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{appearance:none;flex:1;border:none;background:none;border-radius:8px;min-height:36px;padding:4px 8px;font:500 .84rem var(--f-body);cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--ink)}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* sources */
+.srcbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}
+.srcbar::-webkit-scrollbar{display:none}
+.srcbar button{appearance:none;flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font:700 .86rem var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.srcbar button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.srcbar i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.srcbar i[data-s="busy"]{background:var(--warn);animation:pulse 1s ease-in-out infinite alternate}
+.srcbar i[data-s="ok"]{background:var(--good)} .srcbar i[data-s="err"]{background:var(--bad)} .srcbar i[data-s="none"]{background:var(--dot)}
+@keyframes pulse{to{opacity:.3}}
+.lede{margin:0;max-width:65ch;font-size:.95rem}
+.kv{display:grid;grid-template-columns:minmax(7em,auto) 1fr;gap:4px 12px;margin:0;font-size:.9rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+.tbl th{text-align:left;font:500 .76rem var(--f-body);color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tblwrap{overflow-x:auto}
+.links,.syn{display:flex;gap:6px;flex-wrap:wrap}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+.wiki{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.wiki img{width:84px;border-radius:6px;background:var(--plate)}
+.skel{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--line),var(--bg),var(--line));background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.banner{background:var(--bad-soft);border:1px solid var(--bad);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.banner b{color:var(--bad);font-family:var(--f-display);font-size:1.02rem}
+.banner p{margin:0;font-size:.9rem}
+
+/* history */
+.hist{display:flex;flex-direction:column}
+.hitem{display:grid;grid-template-columns:84px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.hitem:first-child{border-top:none}
+.hitem .th{width:84px;height:62px;background:var(--plate);border-radius:8px;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center}
+.hitem .th svg{width:100%;height:100%}
+.hitem .open{appearance:none;border:none;background:none;text-align:left;cursor:pointer;min-width:0;padding:0;display:contents}
+.hitem .tx{min-width:0;cursor:pointer}
+.hitem .tx b{display:block;font:700 1rem/1.2 var(--f-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hitem .tx span{display:block;font:400 .74rem var(--f-mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hitem .tx em{font-style:normal;font-size:.76rem;color:var(--muted)}
+.del{appearance:none;border:none;background:none;width:36px;height:36px;border-radius:50%;cursor:pointer;color:var(--muted);display:grid;place-items:center}
+.del svg{width:18px;height:18px}
+
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--tabh)}
+.tabbar button{appearance:none;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:500 .7rem var(--f-body);color:var(--muted);cursor:pointer}
+.tabbar svg{width:23px;height:23px}
+.tabbar button[aria-selected="true"]{color:var(--accent)}
+
+/* settings sheet */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+.sheet-h{position:sticky;top:0;background:var(--bg);z-index:2}
+.sheet-h .bar-in{justify-content:space-between}
+.sheet-h h2{margin:0;font:700 1.2rem var(--f-display)}
+.done{appearance:none;border:none;background:none;color:var(--accent);font:700 1rem var(--f-body);cursor:pointer;padding:10px 0 10px 12px}
+.sheet .wrap{padding-bottom:24px;display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;color:var(--muted)}
+.diag{margin:0;font:400 .76rem/1.5 var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+.lic{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.lic li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.lic li:first-child{border-top:none}
+.lic b{font-weight:700}
+.lic .what{grid-column:1/-1;font-size:.82rem;color:var(--muted)}
+.lic a{font-size:.85rem;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + 14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+.busy{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.skel,.srcbar i,.busy{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="bar-in">
+  <div class="logo" aria-label="Structure Lens">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,3 27.3,9.5 27.3,22.5 16,29 4.7,22.5 4.7,9.5" fill="none" stroke="var(--ink)" stroke-width="2.2"/><circle cx="16" cy="16" r="5.2" fill="none" stroke="var(--accent)" stroke-width="2.2"/></svg>
+    Structure Lens
+  </div>
+  <span class="sp"></span>
+  <button class="gear" id="gearBtn" type="button" aria-label="Settings and licences">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</div></header>
+
+<main class="wrap">
+
+<!-- ============ SCAN ============ -->
+<section class="tab" id="tab-scan" role="tabpanel" aria-label="Scan">
+  <div class="plates">
+    <div class="pl" id="photoPl">
+      <span class="pl-cap">Photo</span>
+      <div class="empty-photo" id="noPhoto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Photograph a drawn structure, then drag across it to crop.
+      </div>
+      <div id="imgBox" hidden>
+        <div class="stage" id="stage"><canvas id="view" width="10" height="10" aria-label="Captured image. Drag to crop."></canvas></div>
+        <div class="imgtools">
+          <button type="button" id="rotBtn" aria-label="Rotate 90 degrees">Rotate</button>
+          <button type="button" id="clrCrop">Clear crop</button>
+          <label><input type="checkbox" id="enh" checked> Contrast</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <label class="btn primary" for="camIn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      Take photo
+    </label>
+    <input id="camIn" type="file" accept="image/*" capture="environment">
+    <label class="btn" for="libIn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+      Choose image
+    </label>
+    <input id="libIn" type="file" accept="image/*">
+    <button class="btn" type="button" id="exampleBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/></svg>
+      Example
+    </button>
+  </div>
+  <button class="btn primary" type="button" id="recBtn" disabled>Recognise structure</button>
+  <p class="engine" id="engineLine"></p>
+  <p class="hint" id="capSt" hidden></p>
+
+  <div class="plates" id="strPanel">
+    <div class="seam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/></svg>
+      <span id="strSrc">example</span>
+      <span class="conf" id="strSt"></span>
+    </div>
+    <div class="pl">
+            <div id="depict"></div>
+    </div>
+      <div class="body">
+    <div>
+      <p class="name" id="cName">—</p>
+      <p class="subname" id="cSub"></p>
+    </div>
+    <div class="frags" id="frags" hidden></div>
+    <div class="formula" id="formula"></div>
+    <dl class="ids">
+      <dt>InChIKey</dt><dd id="ikey">—</dd><button class="copy" type="button" data-copy="ikey">Copy</button>
+      <dt>SMILES</dt><dd id="csmi">—</dd><button class="copy" type="button" data-copy="csmi">Copy</button>
+    </dl>
+    <details class="fold">
+      <summary>Edit SMILES</summary>
+      <div>
+        <p class="hint">Fix a recognition error here, then recalculate.</p>
+        <textarea id="smiIn" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="SMILES"></textarea>
+        <button class="btn" type="button" id="recalc">Recalculate and look up</button>
+      </div>
+    </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROPERTIES ============ -->
+<section class="tab" id="tab-props" role="tabpanel" aria-label="Properties" hidden>
+  <div class="mini" data-mini></div>
+  <div class="card">
+    <div class="ch"><h2>Drug-likeness at a glance</h2></div>
+    <svg class="radar" id="radar" viewBox="0 0 360 300" role="img" aria-label="Property radar"></svg>
+    <p class="hint">The shaded band is the range typical of oral drugs. Points outside it are marked in red.</p>
+    <div class="scores" id="scores"></div>
+    <div class="rules" id="rules"></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Drug space</h2><span class="src">approved drugs, PCA of 8 properties</span></div>
+    <div class="space" id="space"><svg id="spaceSvg" viewBox="0 0 340 250" role="img" aria-label="Map of approved drugs with this compound placed on it"></svg><div class="tip" id="tip" hidden></div></div>
+    <div class="legend"><span><i style="background:var(--dot)"></i>Approved drug</span><span><i style="background:var(--warn)"></i>Most similar (Morgan)</span><span><i style="background:var(--accent)"></i>This compound</span></div>
+    <p class="hint" id="spaceNote">Tap any point to see which drug it is.</p>
+    <details class="fold"><summary style="font:500 .85rem var(--f-body);color:var(--muted)">How this map is made</summary><div><p class="hint">PC1 rises with polar surface area, H-bond donors and acceptors and size. PC2 rises with size, aromatic rings and cLogP, and falls with Fsp3. The axes come from a principal component analysis of eight RDKit properties over 1,294 FDA-approved drugs, so any new structure can be placed on the same map.</p></div></details>
+    <div class="nn" id="nn"></div>
+  </div>
+  <div class="card">
+    <details class="fold">
+      <summary>All descriptors <span class="src" id="rdv" style="font-weight:400;font-family:var(--f-body);font-size:.8rem;color:var(--muted)">RDKit.js</span></summary>
+      <div><div class="props" id="props"></div></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 3D ============ -->
+<section class="tab" id="tab-3d" role="tabpanel" aria-label="3D" hidden>
+  <div class="mini" data-mini></div>
+  <div class="mol3d" id="mol3d"><div class="msg" id="msg3d" style="z-index:2">Preparing 3D model…</div></div>
+  <div class="seg" id="style3d" role="group" aria-label="Display style">
+    <button type="button" data-s="stick" aria-pressed="false">Sticks</button>
+    <button type="button" data-s="ball" aria-pressed="true">Ball and stick</button>
+    <button type="button" data-s="sphere" aria-pressed="false">Space-filling</button>
+  </div>
+  <div class="row">
+    <label class="toggle"><input type="checkbox" id="h3d" checked> Hydrogens</label>
+    <label class="toggle"><input type="checkbox" id="spin3d"> Spin</label>
+    <span style="flex:1"></span>
+    <button class="btn slim" type="button" id="reset3d">Reset view</button>
+    <button class="btn slim" type="button" id="new3d">New conformer</button>
+  </div>
+  <p class="hint">Drag to rotate, pinch to zoom, two fingers to move. One low-energy conformer from OpenChemLib, minimised with MMFF94s. It is not a bound or crystal pose.</p>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section class="tab" id="tab-src" role="tabpanel" aria-label="Sources" hidden>
+  <div class="mini" data-mini></div>
+  <div class="banner" id="netBanner" hidden role="alert">
+    <b>The database lookups are being blocked</b>
+    <p id="netBannerText"></p>
+    <button class="btn" type="button" id="bannerCheck">Run connection check</button>
+  </div>
+  <div class="srcbar" role="tablist" aria-label="Data source">
+    <button type="button" role="tab" data-src="pc" aria-selected="true"><i id="dot-pc"></i>PubChem</button>
+    <button type="button" role="tab" data-src="ch" aria-selected="false"><i id="dot-ch"></i>ChEMBL</button>
+    <button type="button" role="tab" data-src="wk" aria-selected="false"><i id="dot-wk"></i>Wikipedia</button>
+    <button type="button" role="tab" data-src="sc" aria-selected="false"><i id="dot-sc"></i>Patents</button>
+    <button type="button" role="tab" data-src="xr" aria-selected="false"><i id="dot-xr"></i>Other databases</button>
+  </div>
+  <div class="card" data-pane="pc"><div class="ch"><h2>PubChem</h2><span class="src">NCBI</span><span class="st" id="pcSt"></span></div><div id="pcBody"></div></div>
+  <div class="card" data-pane="ch" hidden><div class="ch"><h2>ChEMBL</h2><span class="src">EMBL-EBI</span><span class="st" id="chSt"></span></div><div id="chBody"></div></div>
+  <div class="card" data-pane="wk" hidden><div class="ch"><h2>Wikipedia</h2><span class="src">matched through Wikidata</span><span class="st" id="wkSt"></span></div><div id="wkBody"></div></div>
+  <div class="card" data-pane="sc" hidden><div class="ch"><h2>SureChEMBL</h2><span class="src">patents</span><span class="st" id="scSt"></span></div><div id="scBody"></div></div>
+  <div class="card" data-pane="xr" hidden><div class="ch"><h2>Other databases</h2><span class="src">UniChem cross-references</span><span class="st" id="xrSt"></span></div><div id="xrBody"></div></div>
+</section>
+
+<!-- ============ HISTORY ============ -->
+<section class="tab" id="tab-hist" role="tabpanel" aria-label="History" hidden>
+  <div class="card">
+    <div class="ch"><h2>History</h2><span class="src">kept on this phone only</span></div>
+    <div class="hist" id="recent"></div>
+    <button class="btn slim" type="button" id="clearHist" hidden>Clear history</button>
+  </div>
+</section>
+
+</main>
+
+<nav class="tabbar" aria-label="Sections"><div class="tabbar-in" role="tablist">
+  <button type="button" role="tab" data-tab="scan" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><polygon points="12,7.5 16,9.75 16,14.25 12,16.5 8,14.25 8,9.75"/></svg>Scan</button>
+  <button type="button" role="tab" data-tab="props" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12,3 20.5,9.2 17.3,19.2 6.7,19.2 3.5,9.2"/><polygon points="12,8 15.5,10.5 14.2,15 9.4,14.6 8.3,10.7" fill="currentColor" fill-opacity=".25"/></svg>Properties</button>
+  <button type="button" role="tab" data-tab="3d" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="16" r="2.5"/><circle cx="17" cy="17.5" r="2"/><circle cx="12" cy="6" r="3"/><path d="M7.4 14l3.2-5.4M13.6 8.6l2.6 7M8.5 16.4l6.6.9"/></svg>3D</button>
+  <button type="button" role="tab" data-tab="src" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Sources</button>
+  <button type="button" role="tab" data-tab="hist" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>History</button>
+</div></nav>
+
+<!-- ============ SETTINGS SHEET ============ -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH" hidden>
+  <div class="sheet-h"><div class="bar-in"><h2 id="sheetH">Settings</h2><button class="done" type="button" id="sheetDone">Done</button></div></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="ch"><h2>Appearance</h2></div>
+      <div class="seg" id="themeSeg" role="group" aria-label="Theme">
+        <button type="button" data-t="system" aria-pressed="true">Match phone</button>
+        <button type="button" data-t="light" aria-pressed="false">Light</button>
+        <button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><h2>Recognition</h2></div>
+      <div class="field">
+        <label for="sMode">Service</label>
+        <select id="sMode">
+          <option value="device">DECIMER on this phone</option>
+          <option value="multipart">Own DECIMER server: multipart file upload</option>
+          <option value="json">Own DECIMER server: JSON with base64 image</option>
+        </select>
+      </div>
+      <div id="devBox" style="display:flex;flex-direction:column;gap:12px">
+        <div class="field">
+          <label for="sModel">Model folder (relative to this page, or a full URL)</label>
+          <input type="text" id="sModel" autocapitalize="off" spellcheck="false">
+        </div>
+        <p class="hint" id="modelInfo">The model downloads once (about 84 MB) and is kept on the phone.</p>
+        <div class="row">
+          <button class="btn slim" type="button" id="dlModel">Download model now</button>
+          <label class="btn slim" for="modelFiles">Load model files from phone</label>
+          <input id="modelFiles" type="file" multiple accept=".onnx,.json,application/json,application/octet-stream">
+          <button class="btn slim" type="button" id="dropModel">Remove stored model</button>
+        </div>
+      </div>
+      <div id="apiBox" style="display:flex;flex-direction:column;gap:12px">
+        <div class="field">
+          <label for="sUrl">Endpoint URL</label>
+          <input type="url" id="sUrl" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field" id="sFieldBox">
+          <label for="sField">Field name for the image</label>
+          <input type="text" id="sField" autocapitalize="off" spellcheck="false">
+        </div>
+        <p class="hint">For a DECIMER server you run. It must send CORS headers and use HTTPS. The reply can be any JSON with a <code>smiles</code> field.</p>
+      </div>
+      <button class="btn slim" type="button" id="sReset">Restore defaults</button>
+    </div>
+
+    <div class="card" id="diagPanel">
+      <div class="ch"><h2>Connection check</h2></div>
+      <p class="hint">Tests this browser against every service the app uses and lists what failed and why.</p>
+      <div class="row">
+        <button class="btn slim" type="button" id="diagRun">Run connection check</button>
+        <button class="btn slim" type="button" id="diagCopy" hidden>Copy report</button>
+      </div>
+      <pre class="diag" id="diagOut" hidden></pre>
+    </div>
+
+    <div class="card">
+      <div class="ch"><h2>About and licences</h2></div>
+      <p class="hint">Structure Lens reads a drawn chemical structure from a photo on the phone, then describes it and looks it up in public databases. <span id="verLine"></span></p>
+      <ul class="lic">
+        <li><b>Structure Lens</b><a href="https://github.com/nathbroon/structure-lens/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">This app. Source on <a href="https://github.com/nathbroon/structure-lens" target="_blank" rel="noopener">GitHub</a>.</span></li>
+        <li><b>DECIMER Image Transformer</b><a href="https://github.com/Kohulan/DECIMER-Image_Transformer/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Structure recognition model, converted to run in the browser. Rajan, Brinkhaus, Steinbeck et al., <a href="https://doi.org/10.1038/s41467-023-40782-0" target="_blank" rel="noopener">Nat. Commun. 2023</a>.</span></li>
+        <li><b>RDKit</b><a href="https://github.com/rdkit/rdkit/blob/master/license.txt" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Depictions, descriptors, fingerprints and InChI, via <a href="https://www.npmjs.com/package/@rdkit/rdkit" target="_blank" rel="noopener">RDKit.js</a>. QED follows RDKit's implementation of Bickerton et al. 2012.</span></li>
+        <li><b>ONNX Runtime Web</b><a href="https://github.com/microsoft/onnxruntime/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Runs the DECIMER model on the phone.</span></li>
+        <li><b>3Dmol.js</b><a href="https://github.com/3dmol/3Dmol.js/blob/master/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Interactive 3D viewer.</span></li>
+        <li><b>OpenChemLib JS</b><a href="https://github.com/cheminfo/openchemlib-js/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">3D conformer generation and MMFF94s minimisation.</span></li>
+        <li><b>ClinTox dataset</b><a href="https://moleculenet.org/datasets-1" target="_blank" rel="noopener">MoleculeNet</a><span class="what">FDA-approved drug structures behind the drug-space map. Wu et al., Chem. Sci. 2018; Gayvert et al., Cell Chem. Biol. 2016.</span></li>
+        <li><b>PubChem</b><a href="https://www.ncbi.nlm.nih.gov/home/about/policies/" target="_blank" rel="noopener">NCBI policies</a><span class="what">Names, descriptions and similar compounds.</span></li>
+        <li><b>ChEMBL and SureChEMBL</b><a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a><span class="what">Bioactivity, mechanisms, indications and patents, from EMBL-EBI.</span></li>
+        <li><b>UniChem</b><a href="https://www.ebi.ac.uk/about/terms-of-use/" target="_blank" rel="noopener">EMBL-EBI terms</a><span class="what">Cross-references to other databases.</span></li>
+        <li><b>Wikidata and Wikipedia</b><a href="https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use" target="_blank" rel="noopener">CC0 / CC BY-SA 4.0</a><span class="what">Article summaries, matched by InChIKey.</span></li>
+        <li><b>Fonts</b><a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL OFL 1.1</a><span class="what">Familjen Grotesk, Atkinson Hyperlegible and IBM Plex Mono, from Google Fonts.</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@rdkit/rdkit@2026.3.6/dist/RDKit_minimal.js"></script>
+<script>
+"use strict";
+const RDKIT_WASM = "https://cdn.jsdelivr.net/npm/@rdkit/rdkit@2026.3.6/dist/RDKit_minimal.wasm";
+const DEFAULTS = {
+  mode: "device",
+  url: "",
+  field: "file",
+  modelBase: "decimer/"
+};
+const EXAMPLE = { smiles: "Cn1c(=O)c2c(ncn2C)n(C)c1=O", label: "example · caffeine" };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, Math.min(9000, 2200 + msg.length * 45)); }
+const DOTS = { "#pcSt": "pc", "#chSt": "ch", "#wkSt": "wk", "#scSt": "sc", "#xrSt": "xr" };
+function setSt(id, text, cls) {
+  const e = $(id); e.textContent = text || ""; e.className = (e.dataset.base || "st") + (cls ? " " + cls : "");
+  if (id === "#capSt") e.hidden = !text;
+  if (DOTS[id]) $("#dot-" + DOTS[id]).dataset.s = cls === "ok" ? "ok" : cls === "err" ? "err" : /search/.test(text || "") ? "busy" : "none";
+}
+const skel = n => Array.from({ length: n }, (_, i) => `<div class="skel" style="width:${90 - i * 18}%;margin:6px 0"></div>`).join("");
+
+// Plain fetch options only (method, headers as a plain object, string body). No AbortSignal:
+// some in-app browsers and preview frames relay fetch through postMessage and cannot clone a signal.
+const isNetErr = e => !!e && (e.name === "TypeError" || /load failed|failed to fetch|networkerror|cloned|network connection/i.test(e.message || ""));
+async function getJSONOnce(url, opts, ms) {
+  let timer;
+  const timeout = new Promise((_, rej) => { timer = setTimeout(() => { const e = new Error("The service took too long to answer"); e.timeout = true; rej(e); }, ms); });
+  try {
+    const r = await Promise.race([fetch(url, opts), timeout]);
+    if (r.status === 404) return null;
+    if (!r.ok) { const e = new Error("The service replied with an error (HTTP " + r.status + ")"); e.status = r.status; throw e; }
+    const text = await r.text();
+    try { return JSON.parse(text); } catch { throw new Error("Unexpected reply from the service"); }
+  } finally { clearTimeout(timer); }
+}
+async function getJSON(url, opts = {}, ms = 30000) {
+  for (let attempt = 0; ; attempt++) {
+    try { return await getJSONOnce(url, opts, ms); }
+    catch (e) {
+      try { e.host = new URL(url).host; } catch {}
+      const transient = isNetErr(e) || e.timeout || e.status === 429 || e.status >= 500;
+      if (attempt === 0 && transient) { await new Promise(r => setTimeout(r, 900)); continue; }
+      noteFailure(e); throw e;
+    }
+  }
+}
+
+/* ---------- blocked-network detection ---------- */
+const netFailHosts = new Set();
+function noteFailure(e) {
+  if (!isNetErr(e)) return;
+  netFailHosts.add(e.host || "?");
+  if (netFailHosts.size >= 2) {
+    const viewer = window.top !== window.self || location.protocol === "file:" || location.origin === "null";
+    $("#netBannerText").textContent = (viewer
+      ? "This page is running inside another app's viewer, which does not allow it to connect to PubChem, ChEMBL or SureChEMBL. "
+      : "This browser could not connect to PubChem, ChEMBL or SureChEMBL. ")
+      + "Open the page from its web address in Safari (not from the Claude app or the Files app). If it is already open in Safari, check for a content blocker, a VPN or Lockdown Mode, then run the connection check in Settings.";
+    $("#netBanner").hidden = false;
+  }
+}
+
+/* ---------- settings ---------- */
+function settings() { const s = { ...DEFAULTS, ...store.get("sl.settings", {}) }; if (!["device", "multipart", "json"].includes(s.mode)) s.mode = "device"; return s; }
+function loadSettingsUI() {
+  const s = settings();
+  $("#sMode").value = s.mode; $("#sUrl").value = s.url; $("#sField").value = s.field; $("#sModel").value = s.modelBase;
+  $("#devBox").hidden = s.mode !== "device"; $("#apiBox").hidden = s.mode === "device";
+  updateEngineLine();
+}
+function saveSettingsUI() {
+  store.set("sl.settings", { mode: $("#sMode").value, url: $("#sUrl").value.trim(), field: $("#sField").value.trim() || "file", modelBase: $("#sModel").value.trim() || DEFAULTS.modelBase });
+  loadSettingsUI();
+}
+$("#sMode").addEventListener("change", () => {
+  if ($("#sMode").value === "json" && $("#sField").value === "file") $("#sField").value = "image";
+  saveSettingsUI();
+});
+["#sUrl", "#sField", "#sModel"].forEach(s => $(s).addEventListener("change", saveSettingsUI));
+$("#sReset").addEventListener("click", () => { store.set("sl.settings", {}); loadSettingsUI(); toast("Settings restored"); });
+
+/* ---------- RDKit ---------- */
+let RD = null;
+const rdReady = window.initRDKitModule({ locateFile: () => RDKIT_WASM })
+  .then(m => { RD = m; $("#rdv").textContent = "RDKit.js " + m.version(); $("#verLine").textContent = `Running RDKit.js ${m.version()} and ONNX Runtime Web 1.30.0.`; return m; })
+  .catch(e => { $("#rdv").textContent = "RDKit failed to load"; throw e; });
+
+/* ---------- image capture, crop, enhance ---------- */
+let srcCanvas = null;      // full image (downscaled, rotated)
+let crop = null;           // {x,y,w,h} in srcCanvas pixels
+const view = $("#view");
+const MAXPX = 1600;
+
+const freeCanvas = c => { if (c && c.width !== undefined && c !== srcCanvas && c !== view) { c.width = 0; c.height = 0; } };
+function loadImage(src) {
+  return new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => rej(new Error("decode failed")); img.src = src; });
+}
+function readAsDataURL(file) {
+  return new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(f.result); f.onerror = () => rej(f.error || new Error("read failed")); f.readAsDataURL(file); });
+}
+// Several routes, because iPhone Safari, in-app viewers and desktop browsers each refuse a different one.
+async function decodeFile(file) {
+  const tried = [];
+  try { return await loadImage(await readAsDataURL(file)); } catch (e) { tried.push("data URL: " + e.message); }
+  let url = null;
+  try { url = URL.createObjectURL(file); return await loadImage(url); } catch (e) { tried.push("blob URL: " + e.message); }
+  finally { if (url) setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  if (self.createImageBitmap) { try { return await createImageBitmap(file); } catch (e) { tried.push("bitmap: " + e.message); } }
+  const kind = (file.type || file.name.split(".").pop() || "unknown").toLowerCase();
+  const err = new Error(`This image could not be opened (${kind}, ${(file.size / 1048576).toFixed(1)} MB). ` +
+    (/hei[cf]/.test(kind) ? "HEIC photos need iOS 17 or later; take a screenshot of it or set Camera › Formats to Most Compatible." : "Try taking the photo again or use a screenshot."));
+  err.detail = tried.join("; "); throw err;
+}
+async function fileToCanvas(file) {
+  if (!file.size) throw new Error("The photo arrived empty. Please try again.");
+  const img = await decodeFile(file);
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  if (!iw || !ih) throw new Error("This image has no size. Please try another photo.");
+  const k = Math.min(1, MAXPX / Math.max(iw, ih));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(iw * k)); c.height = Math.max(1, Math.round(ih * k));
+  const g = c.getContext("2d");
+  if (!g) throw new Error("The browser is out of image memory. Close other tabs and try again.");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(img, 0, 0, c.width, c.height);
+  if (img.close) img.close();
+  return c;
+}
+function drawView() {
+  if (!srcCanvas) return;
+  view.width = srcCanvas.width; view.height = srcCanvas.height;
+  const g = view.getContext("2d"); g.drawImage(srcCanvas, 0, 0);
+  if (crop && crop.w > 4 && crop.h > 4) {
+    g.fillStyle = "rgba(15,20,25,.55)";
+    g.fillRect(0, 0, view.width, crop.y);
+    g.fillRect(0, crop.y + crop.h, view.width, view.height - crop.y - crop.h);
+    g.fillRect(0, crop.y, crop.x, crop.h);
+    g.fillRect(crop.x + crop.w, crop.y, view.width - crop.x - crop.w, crop.h);
+    g.strokeStyle = "#2148C0"; g.lineWidth = Math.max(2, view.width / 300);
+    g.strokeRect(crop.x, crop.y, crop.w, crop.h);
+  }
+}
+async function takeFile(file) {
+  if (!file) return;
+  setSt("#capSt", "opening image…");
+  try {
+    const c = await fileToCanvas(file);
+    freeCanvas(srcCanvas); srcCanvas = c; crop = null;
+    showPhoto(); drawView(); setSt("#capSt", "");
+  } catch (e) { setSt("#capSt", "could not open image", "err"); toast(e.message); lastImageError = (e.message || "") + (e.detail ? " [" + e.detail + "]" : ""); }
+}
+let lastImageError = "";
+// iPhone Safari deletes the picked file as soon as the input is cleared, so clear it only after reading.
+for (const id of ["#camIn", "#libIn"]) $(id).addEventListener("change", async e => { const input = e.target; await takeFile(input.files && input.files[0]); input.value = ""; });
+
+(function cropping() {
+  let start = null;
+  const pt = e => { const r = view.getBoundingClientRect(); return { x: (e.clientX - r.left) * view.width / r.width, y: (e.clientY - r.top) * view.height / r.height }; };
+  view.addEventListener("pointerdown", e => { if (!srcCanvas) return; view.setPointerCapture(e.pointerId); start = pt(e); crop = { x: start.x, y: start.y, w: 0, h: 0 }; });
+  view.addEventListener("pointermove", e => {
+    if (!start) return; const p = pt(e);
+    crop = { x: Math.max(0, Math.min(start.x, p.x)), y: Math.max(0, Math.min(start.y, p.y)), w: Math.abs(p.x - start.x), h: Math.abs(p.y - start.y) };
+    crop.w = Math.min(crop.w, view.width - crop.x); crop.h = Math.min(crop.h, view.height - crop.y); drawView();
+  });
+  const end = () => { start = null; if (crop && (crop.w < 20 || crop.h < 20)) crop = null; drawView(); };
+  view.addEventListener("pointerup", end); view.addEventListener("pointercancel", end);
+})();
+$("#clrCrop").addEventListener("click", () => { crop = null; drawView(); });
+$("#rotBtn").addEventListener("click", () => {
+  if (!srcCanvas) return;
+  const c = document.createElement("canvas"); c.width = srcCanvas.height; c.height = srcCanvas.width;
+  const g = c.getContext("2d"); g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(srcCanvas, 0, 0);
+  srcCanvas = c; crop = null; drawView();
+});
+
+function prepared() {
+  const r = crop && crop.w > 20 ? crop : { x: 0, y: 0, w: srcCanvas.width, h: srcCanvas.height };
+  const pad = Math.round(Math.max(r.w, r.h) * 0.04);
+  const c = document.createElement("canvas"); c.width = Math.round(r.w + pad * 2); c.height = Math.round(r.h + pad * 2);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(srcCanvas, r.x, r.y, r.w, r.h, pad, pad, r.w, r.h);
+  if ($("#enh").checked) {
+    const d = g.getImageData(0, 0, c.width, c.height), p = d.data, hist = new Uint32Array(256);
+    for (let i = 0; i < p.length; i += 4) { const y = (p[i] * 299 + p[i + 1] * 587 + p[i + 2] * 114) / 1000 | 0; p[i] = y; hist[y]++; }
+    const n = p.length / 4; let acc = 0, lo = 0, hi = 255;
+    for (let i = 0; i < 256; i++) { acc += hist[i]; if (acc > n * 0.01) { lo = i; break; } }
+    acc = 0; for (let i = 255; i >= 0; i--) { acc += hist[i]; if (acc > n * 0.35) { hi = i; break; } } // paper is the bulk: push it to white
+    const span = Math.max(1, hi - lo);
+    for (let i = 0; i < p.length; i += 4) { let v = (p[i] - lo) * 255 / span; v = v < 0 ? 0 : v > 255 ? 255 : v; p[i] = p[i + 1] = p[i + 2] = v; }
+    g.putImageData(d, 0, 0);
+  }
+  return c;
+}
+const toBlob = (c, type = "image/png", q) => new Promise(r => c.toBlob(r, type, q));
+const blobToB64 = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(String(f.result).split(",")[1]); f.readAsDataURL(b); });
+
+function extractSmiles(x) {
+  if (x == null) return [];
+  if (typeof x === "string") {
+    const s = x.trim();
+    if (s.startsWith("{") || s.startsWith("[") || s.startsWith('"')) { try { return extractSmiles(JSON.parse(s)); } catch {} }
+    return s.split(/\s+/).filter(Boolean);
+  }
+  if (Array.isArray(x)) return x.flatMap(extractSmiles);
+  if (typeof x === "object") {
+    for (const k of ["smiles", "SMILES", "Smiles", "result", "results", "prediction", "predictions", "data", "output"]) if (k in x) return extractSmiles(x[k]);
+  }
+  return [];
+}
+
+async function recogniseOnline(s) {
+  if (!s.url) throw new Error("Add your DECIMER server's address in Settings.");
+  setSt("#capSt", "sending to your DECIMER server");
+  const blob = await toBlob(prepared(), "image/png");
+  let resp;
+  if (s.mode === "json") {
+    const b64 = await blobToB64(blob);
+    resp = await fetch(s.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [s.field || "image"]: b64 }) });
+  } else {
+    const fd = new FormData(); fd.append(s.field || "file", blob, "structure.png");
+    resp = await fetch(s.url, { method: "POST", body: fd });
+  }
+  const text = await resp.text();
+  if (!resp.ok) throw new Error(`Service replied ${resp.status}. ${text.slice(0, 140)}`);
+  const found = extractSmiles(text).filter(t => !/^none$|^null$/i.test(t));
+  if (!found.length) throw new Error("No structure was recognised. Try a tighter crop or a sharper photo.");
+  return { smiles: found.join("."), label: "DECIMER · your server" };
+}
+
+async function recognise() {
+  if (!srcCanvas) return;
+  const s = settings(); const btn = $("#recBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="busy"></span> Recognising…';
+  try {
+    let res = null;
+    if (s.mode === "device") {
+      try { await loadDecimer(); }
+      catch (e) { throw new Error("The DECIMER model could not be loaded (" + e.message.replace(/\.$/, "") + "). Check the model folder in Settings, or load the files from your phone."); }
+      setSt("#capSt", "reading structure on this phone");
+      const rc = rawCrop();
+      const r = await decimerPredict(rc, n => btn.innerHTML = `<span class="busy"></span> Reading… ${n} tokens`).finally(() => freeCanvas(rc));
+      res = { smiles: r.smiles, label: "DECIMER · on this phone", conf: r };
+    } else res = await recogniseOnline(s);
+    setSt("#capSt", "");
+    lastConf = res.conf || null;
+    await analyse(res.smiles, res.label);
+    document.querySelector(".plates").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    const msg = e.name === "TypeError" ? "Could not reach the recognition service (network or CORS). Check the endpoint in Settings." : e.message;
+    setSt("#capSt", "failed", "err"); toast(msg);
+  } finally { btn.disabled = false; btn.textContent = "Recognise structure"; }
+}
+$("#recBtn").addEventListener("click", recognise);
+
+$("#exampleBtn").addEventListener("click", async () => {
+  // Draw the example with RDKit onto a canvas so the full photo → DECIMER path can be tried without a camera.
+  await rdReady; const m = RD.get_mol(EXAMPLE.smiles);
+  const svg = m.get_svg(600, 420); m.delete();
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas"); c.width = 600; c.height = 420;
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 600, 420); g.drawImage(img, 0, 0);
+    srcCanvas = c; crop = null; showPhoto(); drawView(); setSt("#capSt", ""); toast("Example photo ready. Tap Recognise structure.");
+  };
+  img.onerror = () => toast("This browser could not draw the example image.");
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+});
+
+/* ---------- DECIMER on this phone (ONNX Runtime Web) ----------
+   The developer's TFLite model was split into an image encoder and a one-step
+   decoder (its TensorList/While ops cannot run in a browser) and converted to ONNX.
+   The token loop below replaces the model's internal while-loop. */
+const ORT_DIST = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
+const MODEL_FILES = ["encoder.onnx", "decoder_step.onnx", "vocab.json"];
+const CACHE_NAME = "structure-lens-decimer-v1";
+const TOK_START = 13, TOK_END = 14, MAX_TOKENS = 250;
+let deci = null, deciLoading = null, deciStored = null, lastConf = null;
+
+function modelURL(f) {
+  try { return new URL(f, new URL(settings().modelBase || DEFAULTS.modelBase, location.href)).href; }
+  catch { throw new Error("The model folder address is not valid."); }
+}
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const s = document.createElement("script"); s.src = src; s.onload = res;
+    s.onerror = () => rej(new Error("Could not load the ONNX runtime")); document.head.appendChild(s);
+  });
+}
+async function openCache() { try { return await caches.open(CACHE_NAME); } catch { return null; } }
+async function modelStored() {
+  const c = await openCache(); if (!c) return false;
+  const hits = await Promise.all(MODEL_FILES.map(f => c.match(modelURL(f))));
+  return hits.every(Boolean);
+}
+async function downloadBytes(url, onProgress) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Model file not found (${r.status}): ${url.split("/").pop()}`);
+  const total = +r.headers.get("content-length") || 0;
+  let buf;
+  if (r.body && r.body.getReader) {
+    const reader = r.body.getReader(), chunks = []; let got = 0;
+    for (;;) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); got += value.length; onProgress && onProgress(got, total); }
+    buf = new Uint8Array(got); let o = 0; for (const c of chunks) { buf.set(c, o); o += c.length; }
+  } else buf = new Uint8Array(await r.arrayBuffer());
+  return buf;
+}
+const joinParts = parts => { const n = parts.reduce((a, p) => a + p.length, 0), out = new Uint8Array(n); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; } return out; };
+let manifestP = null;
+// The model may be stored as parts under 25 MB (so it can be uploaded to GitHub through the browser);
+// manifest.json lists them with their sizes. Without a manifest, whole files are fetched.
+function modelManifest() {
+  if (!manifestP) manifestP = fetch(modelURL("manifest.json")).then(r => r.ok ? r.json() : null).catch(() => null);
+  return manifestP;
+}
+async function fetchModelFile(name, onProgress) {
+  const url = modelURL(name), cache = await openCache();
+  if (cache) { const hit = await cache.match(url); if (hit) return new Uint8Array(await hit.arrayBuffer()); }
+  const man = await modelManifest(), entry = man && man.files && man.files[name];
+  let buf;
+  if (entry && entry.parts) {
+    const total = entry.size || 0, done = [];
+    let base = 0;
+    for (const part of entry.parts) {
+      const b = await downloadBytes(modelURL(part), g => onProgress && onProgress(base + g, total));
+      done.push(b); base += b.length;
+    }
+    buf = joinParts(done);
+    if (entry.size && buf.length !== entry.size) throw new Error(`${name} is incomplete (${buf.length} of ${entry.size} bytes)`);
+  } else buf = await downloadBytes(url, onProgress);
+  if (cache) { try { await cache.put(url, new Response(buf, { headers: { "Content-Type": "application/octet-stream" } })); } catch {} }
+  return buf;
+}
+function loadDecimer() {
+  if (deci) return Promise.resolve(deci);
+  if (deciLoading) return deciLoading;
+  deciLoading = (async () => {
+    setEngine("loading the on-device model…");
+    await loadScript(ORT_DIST + "ort.wasm.min.js");
+    ort.env.wasm.wasmPaths = ORT_DIST;
+    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+    const prog = {};
+    const show = () => {
+      const got = Object.values(prog).reduce((a, p) => a + p[0], 0), tot = Object.values(prog).reduce((a, p) => a + p[1], 0);
+      setEngine(tot ? `downloading model… ${Math.round(100 * got / tot)}% of ${(tot / 1048576).toFixed(0)} MB` : `downloading model… ${(got / 1048576).toFixed(0)} MB`);
+    };
+    const [encB, decB, vocB] = await Promise.all(MODEL_FILES.map(f => fetchModelFile(f, (g, t) => { prog[f] = [g, t]; show(); })));
+    const vocab = JSON.parse(new TextDecoder().decode(vocB));
+    setEngine("starting the model…");
+    // Arena and memory pattern off: lower peak memory, which iPhone Safari enforces strictly.
+    const opt = { executionProviders: ["wasm"], graphOptimizationLevel: "all", enableCpuMemArena: false, enableMemPattern: false };
+    const enc = await ort.InferenceSession.create(encB, opt);
+    const dec = await ort.InferenceSession.create(decB, opt);
+    deci = { enc, dec, vocab }; deciStored = true; updateEngineLine();
+    return deci;
+  })();
+  deciLoading.catch(e => { deciLoading = null; setEngine("could not load the model. " + e.message, true); });
+  return deciLoading;
+}
+function setEngine(t, bad) { const el = $("#engineLine"); el.textContent = "On-device DECIMER: " + t; el.style.color = bad ? "var(--bad)" : ""; }
+async function updateEngineLine() {
+  const s = settings();
+  $("#engineLine").style.color = "";
+  if (s.mode !== "device") { $("#engineLine").textContent = "Recognition: your own DECIMER server."; return; }
+  if (deci) return setEngine("ready, running on this phone.");
+  try { deciStored = await modelStored(); } catch { deciStored = false; }
+  setEngine(deciStored ? "stored on this phone, starts on first use." : "downloads once (about 84 MB) on first use, then works offline.");
+}
+
+// Crop only, no contrast tweak: DECIMER applies its own preprocessing below.
+function rawCrop() {
+  const r = crop && crop.w > 20 ? crop : { x: 0, y: 0, w: srcCanvas.width, h: srcCanvas.height };
+  const c = document.createElement("canvas"); c.width = Math.round(r.w); c.height = Math.round(r.h);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(srcCanvas, r.x, r.y, r.w, r.h, 0, 0, c.width, c.height);
+  return c;
+}
+function grayCanvas(gray, w, h) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"), id = g.createImageData(w, h);
+  for (let i = 0; i < w * h; i++) { const v = gray[i]; id.data[4 * i] = id.data[4 * i + 1] = id.data[4 * i + 2] = v; id.data[4 * i + 3] = 255; }
+  g.putImageData(id, 0, 0); return c;
+}
+function scaled(src, w, h) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; g.drawImage(src, 0, 0, w, h); return c;
+}
+const grayOf = c => { const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data, o = new Uint8ClampedArray(c.width * c.height); for (let i = 0; i < o.length; i++) o[i] = d[4 * i]; return o; };
+
+// Mirrors DECIMER's pre_process.decode_image()
+function decimerInput(src) {
+  let w = src.width, h = src.height;
+  const d = src.getContext("2d").getImageData(0, 0, w, h).data;
+  let mn = 255; for (let i = 0; i < d.length; i += 4) { mn = Math.min(mn, d[i], d[i + 1], d[i + 2]); }
+  const span = Math.max(1, 255 - mn), lut = x => Math.floor((x - mn) * 255 / span);       // increase_contrast
+  let gray = new Uint8ClampedArray(w * h), sum = 0;
+  for (let i = 0; i < w * h; i++) {                                                       // cv2 BGR2GRAY on RGB data
+    const v = Math.round(0.114 * lut(d[4 * i]) + 0.587 * lut(d[4 * i + 1]) + 0.299 * lut(d[4 * i + 2]));
+    gray[i] = v; sum += v;
+  }
+  const mean = Math.floor(sum / (w * h) + 0.5);                                          // ImageEnhance.Contrast(1.8)
+  for (let i = 0; i < gray.length; i++) gray[i] = mean + 1.8 * (gray[i] - mean);
+  let c = grayCanvas(gray, w, h);
+  if (w === h && w < 512) { const c2 = scaled(c, 512, 512); freeCanvas(c); c = c2; }       // get_resize
+  else if (w < 512 && h < 512) { const k = 512 / Math.max(w, h); const c2 = scaled(c, Math.floor(w * k), Math.floor(h * k)); freeCanvas(c); c = c2; }
+  w = c.width; h = c.height; gray = grayOf(c);
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;                                                    // delete_empty_borders
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (gray[y * w + x] <= 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) throw new Error("The image looks blank. Try a closer photo.");
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const S = Math.max(512, Math.floor(1.2 * Math.max(cw, ch)));                             // central_square_image
+  const sq = document.createElement("canvas"); sq.width = sq.height = S;
+  const sg = sq.getContext("2d"); sg.fillStyle = "#fff"; sg.fillRect(0, 0, S, S);
+  sg.drawImage(c, x0, y0, cw, ch, Math.floor((S - cw) / 2), Math.floor((S - ch) / 2), cw, ch);
+  freeCanvas(c);
+  const sqg = grayOf(sq); freeCanvas(sq); for (let i = 0; i < sqg.length; i++) sqg[i] = sqg[i] * 1.6;  // increase_brightness
+  const gc = grayCanvas(sqg, S, S), sc = scaled(gc, 512, 512); freeCanvas(gc);
+  const fin = grayOf(sc); freeCanvas(sc);                                                  // resize to 512
+  const out = new Float32Array(512 * 512 * 3), M = [0.485, 0.456, 0.406], SD = [0.229, 0.224, 0.225];
+  for (let i = 0; i < fin.length; i++) { const v = fin[i] / 255; for (let k = 0; k < 3; k++) out[3 * i + k] = (v - M[k]) / SD[k]; }
+  return out;
+}
+const DECODE_MAP = { "!": "1", "$": "2", "^": "3", "<": "4", ">": "5", "?": "6", "£": "7", "¢": "8", "€": "9", "§": "0" };
+
+async function decimerPredict(canvas, onStep) {
+  const { enc, dec, vocab } = await loadDecimer();
+  const x = decimerInput(canvas);
+  const eo = await enc.run({ [enc.inputNames[0]]: new ort.Tensor("float32", x, [512, 512, 3]) });
+  const feat = eo[enc.outputNames[0]];
+  const tokName = dec.inputNames.find(n => /Stack|TensorList/.test(n)) || dec.inputNames[0];
+  const featName = dec.inputNames.find(n => n !== tokName);
+  const seq = [TOK_START], probs = [];
+  for (let step = 0; step < MAX_TOKENS; step++) {
+    const out = await dec.run({ [tokName]: new ort.Tensor("int32", Int32Array.from(seq), [seq.length, 1]), [featName]: feat });
+    const lg = out[dec.outputNames[0]].data, V = out[dec.outputNames[0]].dims.at(-1), off = lg.length - V;
+    let best = 0; for (let k = 1; k < V; k++) if (lg[off + k] > lg[off + best]) best = k;
+    // The decoder already ends in a softmax; fall back to computing one if a model returns raw logits.
+    let tot = 0, neg = false; for (let k = 0; k < V; k++) { tot += lg[off + k]; if (lg[off + k] < 0) neg = true; }
+    let pBest;
+    if (!neg && Math.abs(tot - 1) < 1e-2) pBest = lg[off + best];
+    else { let z = 0; for (let k = 0; k < V; k++) z += Math.exp(lg[off + k] - lg[off + best]); pBest = 1 / z; }
+    seq.push(best); probs.push(pBest);
+    if (best === TOK_END) break;
+    if (onStep) onStep(step + 1);
+  }
+  const ended = seq.at(-1) === TOK_END;
+  const ids = seq.slice(1, ended ? -1 : undefined);
+  const unknown = ids.filter(i => !(i in vocab)).length;
+  let smi = ids.map(i => vocab[i] ?? "*").join("");
+  smi = smi.replace(/[!$^<>?£¢€§]/g, ch => DECODE_MAP[ch]);
+  const p = probs.slice(0, ids.length);
+  return { smiles: smi, mean: p.reduce((a, b) => a + b, 0) / Math.max(1, p.length), min: Math.min(...p), unknown, ended };
+}
+
+$("#dlModel").addEventListener("click", async () => {
+  try { await loadDecimer(); toast("Model ready on this phone"); } catch (e) { setEngine("could not load. " + e.message); toast(e.message); }
+});
+$("#modelFiles").addEventListener("change", async e => {
+  const files = [...e.target.files]; e.target.value = "";
+  const cache = await openCache();
+  if (!cache) { toast("This browser can't store files for this page."); return; }
+  let n = 0;
+  for (const f of files) if (MODEL_FILES.includes(f.name)) { await cache.put(modelURL(f.name), new Response(f)); n++; }
+  // Also accept the split parts (encoder.onnx.part1 …) and join them.
+  for (const name of MODEL_FILES) {
+    const parts = files.filter(f => f.name.startsWith(name + ".part")).sort((a, b) => parseInt(a.name.split(".part")[1]) - parseInt(b.name.split(".part")[1]));
+    if (!parts.length) continue;
+    const bufs = []; for (const f of parts) bufs.push(new Uint8Array(await f.arrayBuffer()));
+    await cache.put(modelURL(name), new Response(joinParts(bufs))); n++;
+  }
+  toast(n ? `Stored ${n} model file${n > 1 ? "s" : ""}` : "Pick all files from the decimer folder");
+  deci = null; deciLoading = null; updateEngineLine();
+});
+$("#dropModel").addEventListener("click", async () => {
+  try { await caches.delete(CACHE_NAME); } catch {}
+  deci = null; deciLoading = null; toast("Stored model removed"); updateEngineLine();
+});
+
+/* ---------- connection check ---------- */
+async function connectionCheck() {
+  const out = $("#diagOut"); out.hidden = false; $("#diagCopy").hidden = true;
+  const lines = [];
+  const put = l => { lines.push(l); out.textContent = lines.join("\n"); };
+  const ua = navigator.userAgent;
+  put(`Page:      ${location.protocol}//${location.host}${location.pathname}`);
+  put(`Browser:   ${/CriOS/.test(ua) ? "Chrome (iOS)" : /FxiOS/.test(ua) ? "Firefox (iOS)" : /iPhone|iPad/.test(ua) ? (/Safari\//.test(ua) ? "Safari (iOS)" : "in-app viewer (iOS)") : /Chrome/.test(ua) ? "Chrome" : /Safari/.test(ua) ? "Safari" : "other"}`);
+  put(`Secure:    ${window.isSecureContext ? "yes" : "NO (needs https)"} · in frame: ${window.top !== window.self ? "YES" : "no"}`);
+  put(`Storage:   ${"caches" in self ? "available" : "not available"} · WebAssembly: ${typeof WebAssembly === "object" ? "yes" : "NO"}`);
+  put(`RDKit:     ${RD ? "loaded " + RD.version() : "not loaded"}`);
+  if (lastImageError) put(`Last image error: ${lastImageError}`);
+  put("");
+  const KEY = "RYYVLZVUVIJVGH-UHFFFAOYSA-N";
+  const tests = [
+    ["PubChem", `${PUG}/compound/inchikey/${KEY}/cids/JSON`, {}],
+    ["ChEMBL", `${CH}/molecule/CHEMBL113.json`, {}],
+    ["Wikidata", "https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(`SELECT ?i WHERE { ?i wdt:P235 "${KEY}" } LIMIT 1`), { headers: { Accept: "application/sparql-results+json" } }],
+    ["Wikipedia", "https://en.wikipedia.org/api/rest_v1/page/summary/Caffeine", {}],
+    ["UniChem", "https://www.ebi.ac.uk/unichem/api/v1/compounds", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "inchikey", compound: KEY }) }],
+    ["SureChEMBL", `${SC}/chemical/id?ids=5671`, { method: "POST" }],
+    ["Model", modelURLSafe("vocab.json"), {}]
+  ];
+  for (const [name, url, opts] of tests) {
+    const t0 = performance.now();
+    try {
+      const r = await Promise.race([fetch(url, opts), new Promise((_, rej) => setTimeout(() => rej(new Error("no answer in 20 s")), 20000))]);
+      const txt = await r.text();
+      put(`${r.ok ? "OK  " : "FAIL"} ${name.padEnd(10)} HTTP ${r.status} · ${Math.round(performance.now() - t0)} ms · ${txt.length} bytes`);
+    } catch (e) {
+      put(`FAIL ${name.padEnd(10)} ${e.name}: ${e.message}`);
+    }
+  }
+  put("");
+  put(lines.some(l => l.startsWith("FAIL")) ? "Some services failed. Copy this report and send it to whoever set the page up." : "All services reachable.");
+  $("#diagCopy").hidden = false;
+}
+function modelURLSafe(f) { try { return modelURL(f); } catch { return "about:blank"; } }
+$("#diagRun").addEventListener("click", connectionCheck);
+$("#diagCopy").addEventListener("click", async () => {
+  const el = $("#diagOut");
+  try { await navigator.clipboard.writeText(el.textContent); toast("Report copied"); }
+  catch { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selected. Use your phone's Copy."); }
+});
+
+/* ---------- analysis ---------- */
+let runId = 0, current = null;
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(d);
+
+function formulaHTML(f) {
+  if (!f) return "";
+  return f.split(".").map(part => {
+    const m = part.match(/^(\d*)(.*)$/); const mult = m[1] ? `<span>${m[1]}</span>` : "";
+    return mult + m[2].replace(/([A-Z][a-z]?)(\d*)|([+-]\d*)/g, (all, el, n, chg) =>
+      chg ? `<sup>${chg}</sup>` : `<span class="e-${el}">${el}</span>${n ? `<sub>${n}</sub>` : ""}`);
+  }).join(" · ");
+}
+
+function largestFragment(smi) {
+  const parts = smi.split(".").filter(Boolean);
+  if (parts.length < 2) return smi;
+  let best = parts[0], bestN = -1;
+  for (const p of parts) { const m = RD.get_mol(p); if (m && m.is_valid()) { const n = m.get_num_atoms(); if (n > bestN) { bestN = n; best = p; } } m && m.delete(); }
+  return best;
+}
+
+async function analyse(smiles, sourceLabel) {
+  await rdReady;
+  const id = ++runId;
+  smiles = smiles.trim();
+  $("#smiIn").value = smiles;
+  $("#strSrc").textContent = sourceLabel;
+
+  // multiple fragments → chips to pick one
+  const frags = smiles.split(".").filter(Boolean);
+  const fragBox = $("#frags");
+  if (frags.length > 1 && /^DECIMER/.test(sourceLabel) && !/fragment/.test(sourceLabel)) {
+    fragBox.hidden = false;
+    fragBox.innerHTML = `<span class="hint" style="width:100%">${frags.length} structures found. Pick one:</span>` +
+      frags.map((f, i) => `<button class="chip" type="button" data-f="${esc(f)}">Structure ${i + 1}</button>`).join("");
+    fragBox.querySelectorAll("button").forEach(b => b.addEventListener("click", () => analyse(b.dataset.f, "DECIMER · fragment")));
+  } else if (!/fragment/.test(sourceLabel)) fragBox.hidden = true;
+
+  const mol = RD.get_mol(smiles);
+  if (!mol || !mol.is_valid()) {
+    mol && mol.delete();
+    setSt("#strSt", "invalid SMILES", "err");
+    $("#depict").innerHTML = `<p class="empty" style="padding:24px">RDKit could not parse this SMILES. Edit it below and recalculate.</p>`;
+    return;
+  }
+  if (lastConf && /phone/.test(sourceLabel)) {
+    const c = lastConf;
+    setSt("#strSt", `confidence ${Math.round(100 * c.mean)}% · lowest ${Math.round(100 * c.min)}%` + (c.unknown ? ` · ${c.unknown} unknown token${c.unknown > 1 ? "s" : ""}` : ""), c.mean > 0.9 && !c.unknown ? "ok" : "err");
+  } else setSt("#strSt", "");
+  lastConf = null;
+  const svg = mol.get_svg_with_highlights(JSON.stringify({ width: 560, height: 340, bondLineWidth: 2, fixedBondLength: 34, padding: 0.08, clearBackground: false }));
+  const canon = mol.get_smiles();
+  const desc = JSON.parse(mol.get_descriptors());
+  const inchi = mol.get_inchi();
+  let extra = { qed: NaN, alerts: 0, logS: NaN }; try { extra = extras(mol, desc); } catch (e) { console.warn(e); }
+  mol.delete();
+  const key = inchi ? RD.get_inchikey_for_inchi(inchi) : "";
+  const formula = inchi ? (inchi.split("/")[1] || "") : "";
+
+  current = { smiles: canon, key, inchi, formula, desc, extra, name: "", thumb: thumbSVG(canon, 160, 120) };
+  $("#depict").innerHTML = svg;
+  $("#csmi").textContent = canon; $("#ikey").textContent = key || "—";
+  $("#formula").innerHTML = formulaHTML(formula);
+  $("#cName").textContent = formula || "Unnamed structure"; $("#cSub").textContent = "Looking up names…";
+
+  renderProps(desc);
+
+  // lookups (parent = largest fragment, for salts)
+  const parent = largestFragment(canon);
+  let pKey = key;
+  if (parent !== canon) { const pm = RD.get_mol(parent); const pi = pm.get_inchi(); pm.delete(); pKey = RD.get_inchikey_for_inchi(pi); }
+  current.parent = parent;
+  onCompound();
+
+  const names = { pubchem: null, chembl: null };
+  const pc = pubchem(id, pKey, parent).then(n => names.pubchem = n).catch(e => fail("#pcSt", "#pcBody", e));
+  const ch = chembl(id, pKey, parent).then(n => names.chembl = n).catch(e => fail("#chSt", "#chBody", e));
+  const uc = unichem(id, pKey).catch(e => { fail("#xrSt", "#xrBody", e); return null; });
+  surechembl(id, parent, uc).catch(e => fail("#scSt", "#scBody", e));
+  wikipedia(id, pKey, () => Promise.all([pc, ch]).then(() => names.chembl || names.pubchem)).catch(e => fail("#wkSt", "#wkBody", e));
+
+  Promise.all([pc, ch]).then(() => {
+    if (id !== runId) return;
+    const nm = names.pubchem || names.chembl;
+    if (nm) { current.name = nm; updateMini(); $("#cName").textContent = titleCase(nm); $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${fmt(desc.amw, 2)}` : ""; }
+    else $("#cSub").textContent = "No name found in PubChem or ChEMBL. This may be a novel structure.";
+    addRecent(canon, nm);
+  });
+}
+function titleCase(s) { return s && s === s.toUpperCase() ? s.charAt(0) + s.slice(1).toLowerCase() : s; }
+function fail(st, body, e) {
+  const msg = isNetErr(e) ? "Could not connect to the service. The browser blocked the request or there is no connection." : (e && e.message) || "Lookup failed";
+  const detail = e ? `${e.host ? e.host + " · " : ""}${e.name || "Error"}: ${e.message || ""}` : "";
+  setSt(st, "error", "err");
+  $(body).innerHTML = `<p class="empty">${esc(msg)}</p>${detail ? `<p class="hint" style="font-family:var(--f-mono);font-size:.75rem;overflow-wrap:anywhere">${esc(detail)}</p>` : ""}`;
+}
+
+function renderProps(d) {
+  const P = [
+    ["MW", fmt(d.amw, 2), "Da"], ["Exact mass", fmt(d.exactmw, 4), ""], ["cLogP", fmt(d.CrippenClogP, 2), "Crippen"],
+    ["TPSA", fmt(d.tpsa, 1), "Å²"], ["HBD", d.lipinskiHBD, ""], ["HBA", d.lipinskiHBA, ""],
+    ["Rot. bonds", d.NumRotatableBonds, ""], ["Heavy atoms", d.NumHeavyAtoms, ""], ["Fsp3", fmt(d.FractionCSP3, 2), ""],
+    ["Rings", d.NumRings, ""], ["Arom. rings", d.NumAromaticRings, ""], ["Stereocentres", d.NumAtomStereoCenters, d.NumUnspecifiedAtomStereoCenters ? `${d.NumUnspecifiedAtomStereoCenters} undefined` : ""],
+    ["Molar refr.", fmt(d.CrippenMR, 1), ""], ["Heteroatoms", d.NumHeteroatoms, ""], ["Amide bonds", d.NumAmideBonds, ""],
+    ["Heterocycles", d.NumHeterocycles, ""], ["Aliph. rings", d.NumAliphaticRings, ""], ["Labute ASA", fmt(d.labuteASA, 1), "Å²"]
+  ];
+  $("#props").innerHTML = P.map(([k, v, u]) => `<div class="prop"><span class="k">${k}</span><span class="v">${v}${u ? `<span class="u">${u}</span>` : ""}</span></div>`).join("");
+
+  const ro5 = [["MW ≤ 500", d.amw <= 500], ["cLogP ≤ 5", d.CrippenClogP <= 5], ["HBD ≤ 5", d.lipinskiHBD <= 5], ["HBA ≤ 10", d.lipinskiHBA <= 10]];
+  const veber = [["RotB ≤ 10", d.NumRotatableBonds <= 10], ["TPSA ≤ 140", d.tpsa <= 140]];
+  const ro3 = [["MW < 300", d.amw < 300], ["cLogP ≤ 3", d.CrippenClogP <= 3], ["HBD ≤ 3", d.lipinskiHBD <= 3], ["HBA ≤ 3", d.NumHBA <= 3], ["RotB ≤ 3", d.NumRotatableBonds <= 3]];
+  const bbb = [["TPSA < 90", d.tpsa < 90], ["MW < 450", d.amw < 450], ["HBD ≤ 3", d.lipinskiHBD <= 3]];
+  const row = (name, checks, allowOne) => {
+    const v = checks.filter(c => !c[1]).length;
+    const cls = v === 0 ? "pass" : (allowOne && v === 1) ? "mid" : "fail";
+    const verdict = v === 0 ? "passes" : v === 1 && allowOne ? "1 violation, allowed" : `${v} violation${v > 1 ? "s" : ""}`;
+    return `<div class="rule"><b>${name}</b><span><span class="chip ${cls}">${verdict}</span>${v ? `<span class="why">fails ${checks.filter(c => !c[1]).map(c => c[0]).join(", ")}</span>` : ""}</span></div>`;
+  };
+  $("#rules").innerHTML = row("Lipinski Ro5", ro5, true) + row("Veber", veber) + row("Rule of 3 (fragments)", ro3) + row("CNS-like (heuristic)", bbb);
+}
+
+/* ---------- PubChem ---------- */
+const PUG = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
+async function pubchem(id, key, smi) {
+  setSt("#pcSt", "searching"); $("#pcBody").innerHTML = skel(3);
+  let cids = null, exact = true;
+  if (key) { const r = await getJSON(`${PUG}/compound/inchikey/${key}/cids/JSON`); cids = r?.IdentifierList?.CID; }
+  if (!cids?.length) {
+    exact = false;
+    const r = await getJSON(`${PUG}/compound/fastsimilarity_2d/smiles/cids/JSON?Threshold=90&MaxRecords=5`,
+      { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "smiles=" + encodeURIComponent(smi) });
+    cids = r?.IdentifierList?.CID;
+  }
+  if (id !== runId) return null;
+  if (!cids?.length) { setSt("#pcSt", "not found"); $("#pcBody").innerHTML = `<p class="empty">No exact or close (≥90% Tanimoto) match in PubChem.</p>`; return null; }
+
+  if (!exact) {
+    const pr = await getJSON(`${PUG}/compound/cid/${cids.join(",")}/property/Title,MolecularFormula,MolecularWeight/JSON`);
+    if (id !== runId) return null;
+    const rows = pr?.PropertyTable?.Properties || [];
+    setSt("#pcSt", "similar only");
+    $("#pcBody").innerHTML = `<p class="empty">No exact match. Nearest compounds (≥90% similar):</p>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>Compound</th><th>Formula</th><th style="text-align:right">MW</th></tr></thead><tbody>
+      ${rows.map(p => `<tr><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/${p.CID}" target="_blank" rel="noopener">${esc(p.Title || "CID " + p.CID)}</a></td><td>${formulaHTML(p.MolecularFormula)}</td><td class="n">${fmt(p.MolecularWeight, 2)}</td></tr>`).join("")}
+      </tbody></table></div>`;
+    return null;
+  }
+
+  const cid = cids[0];
+  const [pr, syn, des] = await Promise.all([
+    getJSON(`${PUG}/compound/cid/${cid}/property/Title,IUPACName,MolecularFormula,MolecularWeight,XLogP,TPSA,Complexity,Charge/JSON`),
+    getJSON(`${PUG}/compound/cid/${cid}/synonyms/JSON`).catch(() => null),
+    getJSON(`${PUG}/compound/cid/${cid}/description/JSON`).catch(() => null)
+  ]);
+  if (id !== runId) return null;
+  const p = pr?.PropertyTable?.Properties?.[0] || {};
+  const syns = (syn?.InformationList?.Information?.[0]?.Synonym || []).filter(s => !/^[A-Z0-9-]{14,}$/.test(s) && s.length < 40).slice(0, 10);
+  const descs = (des?.InformationList?.Information || []).filter(i => i.Description);
+  const d0 = descs[0];
+  setSt("#pcSt", "CID " + cid, "ok");
+  $("#pcBody").innerHTML = `
+    ${d0 ? `<p class="lede">${esc(d0.Description)}</p><p class="hint">Description: ${esc(d0.DescriptionSourceName || "PubChem")}</p>` : ""}
+    <dl class="kv">
+      <dt>Title</dt><dd>${esc(p.Title || "—")}</dd>
+      ${p.IUPACName ? `<dt>IUPAC</dt><dd>${esc(p.IUPACName)}</dd>` : ""}
+      <dt>XLogP3</dt><dd>${p.XLogP ?? "—"}</dd>
+      <dt>Complexity</dt><dd>${p.Complexity ?? "—"}</dd>
+      ${p.Charge ? `<dt>Charge</dt><dd>${p.Charge}</dd>` : ""}
+    </dl>
+    ${syns.length ? `<div class="syn">${syns.map(s => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : ""}
+    <div class="links"><a class="chip" href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank" rel="noopener">Open in PubChem ↗</a>
+    <a class="chip" href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}#section=Patents" target="_blank" rel="noopener">Patents ↗</a>
+    <a class="chip" href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}#section=Safety-and-Hazards" target="_blank" rel="noopener">Safety ↗</a></div>`;
+  return p.Title || syns[0] || null;
+}
+
+/* ---------- ChEMBL ---------- */
+const CH = "https://www.ebi.ac.uk/chembl/api/data";
+const PHASE = { "4": "Approved drug", "3": "Phase 3", "2": "Phase 2", "1": "Phase 1", "0.5": "Early phase 1", "-1": "Clinical (phase unknown)" };
+async function chembl(id, key, smi) {
+  setSt("#chSt", "searching"); $("#chBody").innerHTML = skel(4);
+  const r = key ? await getJSON(`${CH}/molecule.json?molecule_structures__standard_inchi_key=${key}`) : null;
+  let m = r?.molecules?.[0];
+  if (id !== runId) return null;
+  if (!m) {
+    const s = await getJSON(`${CH}/similarity/${encodeURIComponent(smi)}/70.json?limit=5`).catch(() => null);
+    if (id !== runId) return null;
+    const hits = s?.molecules || [];
+    setSt("#chSt", hits.length ? "similar only" : "not found");
+    $("#chBody").innerHTML = hits.length ? `<p class="empty">Not in ChEMBL. Most similar compounds (≥70%):</p>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>ChEMBL ID</th><th>Name</th><th style="text-align:right">Sim.</th></tr></thead><tbody>
+      ${hits.map(h => `<tr><td><a href="https://www.ebi.ac.uk/chembl/explore/compound/${h.molecule_chembl_id}" target="_blank" rel="noopener">${h.molecule_chembl_id}</a></td><td>${esc(h.pref_name || "—")}</td><td class="n">${fmt(h.similarity, 0)}%</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="empty">No exact or ≥70% similar compound in ChEMBL.</p>`;
+    return null;
+  }
+  const cid = m.molecule_chembl_id, mp = m.molecule_properties || {};
+  const phaseKey = m.max_phase == null ? null : String(parseFloat(m.max_phase));
+  setSt("#chSt", cid, "ok");
+  $("#chBody").innerHTML = `
+    <dl class="kv">
+      <dt>Name</dt><dd>${esc(m.pref_name || "—")}</dd>
+      <dt>Max phase</dt><dd>${phaseKey ? `<span class="chip ${phaseKey === "4" ? "pass" : "mid"}">${PHASE[phaseKey] || "Phase " + phaseKey}</span>` : "Preclinical / research compound"}</dd>
+      ${m.first_approval ? `<dt>First approval</dt><dd>${m.first_approval}</dd>` : ""}
+      ${mp.qed_weighted ? `<dt>QED</dt><dd>${fmt(mp.qed_weighted, 2)}</dd>` : ""}
+      ${mp.cx_most_apka ? `<dt>Most acidic pKa</dt><dd>${fmt(mp.cx_most_apka, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
+      ${mp.cx_most_bpka ? `<dt>Most basic pKa</dt><dd>${fmt(mp.cx_most_bpka, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
+      ${mp.cx_logd ? `<dt>logD 7.4</dt><dd>${fmt(mp.cx_logd, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
+    </dl>
+    <div id="chMech">${skel(1)}</div>
+    <div id="chAct">${skel(2)}</div>
+    <div class="links"><a class="chip" href="https://www.ebi.ac.uk/chembl/explore/compound/${cid}" target="_blank" rel="noopener">Open in ChEMBL ↗</a></div>`;
+
+  // mechanisms, indications, activities in parallel
+  const [mech, ind, act] = await Promise.all([
+    getJSON(`${CH}/mechanism.json?molecule_chembl_id=${cid}&limit=10`).catch(() => null),
+    getJSON(`${CH}/drug_indication.json?molecule_chembl_id=${cid}&limit=12&order_by=-max_phase_for_ind`).catch(() => null),
+    getJSON(`${CH}/activity.json?molecule_chembl_id=${cid}&pchembl_value__isnull=false&limit=500&only=target_pref_name,target_chembl_id,target_organism,pchembl_value,standard_type`).catch(() => null)
+  ]);
+  if (id !== runId) return m.pref_name;
+
+  const mechs = mech?.mechanisms || [], inds = ind?.drug_indications || [];
+  $("#chMech").innerHTML = (mechs.length ? `<p class="hint" style="margin:0 0 4px">Mechanism of action</p><ul style="margin:0;padding-left:1.2em">${mechs.map(x => `<li>${esc(x.mechanism_of_action)}${x.action_type ? ` <span class="hint">(${esc(x.action_type.toLowerCase())})</span>` : ""}</li>`).join("")}</ul>` : "") +
+    (inds.length ? `<p class="hint" style="margin:10px 0 4px">Indications</p><div class="syn">${[...new Map(inds.map(i => [i.efo_term || i.mesh_heading, i])).values()].slice(0, 8).map(i => `<span class="chip">${esc(i.efo_term || i.mesh_heading)} · Ph${parseFloat(i.max_phase_for_ind) || "?"}</span>`).join("")}</div>` : "");
+
+  const acts = act?.activities || [], total = act?.page_meta?.total_count ?? acts.length;
+  const byT = new Map();
+  for (const a of acts) {
+    const k = a.target_chembl_id; const v = parseFloat(a.pchembl_value); if (!k || isNaN(v)) continue;
+    const t = byT.get(k) || { name: a.target_pref_name, org: a.target_organism, max: 0, n: 0, types: new Set(), vals: [] };
+    t.max = Math.max(t.max, v); t.n++; t.vals.push(v); t.types.add(a.standard_type); byT.set(k, t);
+  }
+  for (const t of byT.values()) { const v = t.vals.sort((a, b) => a - b); t.med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2; }
+  const top = [...byT.entries()].sort((a, b) => b[1].n - a[1].n || b[1].med - a[1].med).slice(0, 8);
+  $("#chAct").innerHTML = top.length ? `<p class="hint" style="margin:6px 0 4px">Targets with the most potency data · ${total} activities with a pChEMBL value</p>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>Target</th><th style="text-align:right">Median</th><th style="text-align:right">Best</th><th style="text-align:right">n</th></tr></thead><tbody>
+    ${top.map(([tid, t]) => `<tr><td><a href="https://www.ebi.ac.uk/chembl/explore/target/${tid}" target="_blank" rel="noopener">${esc(t.name)}</a><br><span class="hint">${esc(t.org || "")} · ${[...t.types].join(", ")}</span></td><td class="n">${t.med.toFixed(2)}</td><td class="n">${t.max.toFixed(2)}</td><td class="n">${t.n}</td></tr>`).join("")}
+    </tbody></table></div>` : `<p class="empty">No potency data (pChEMBL) recorded.</p>`;
+  return m.pref_name;
+}
+
+/* ---------- Wikipedia via Wikidata ---------- */
+async function wikipedia(id, key, nameLater) {
+  setSt("#wkSt", "searching"); $("#wkBody").innerHTML = skel(3);
+  let title = null, qid = null;
+  if (key) {
+    const q = `SELECT ?item ?article WHERE { ?item wdt:P235 "${key}". OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/> } } LIMIT 1`;
+    const r = await getJSON("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(q), { headers: { Accept: "application/sparql-results+json" } }).catch(() => null);
+    const b = r?.results?.bindings?.[0];
+    if (b) { qid = b.item.value.split("/").pop(); if (b.article) title = decodeURIComponent(b.article.value.split("/wiki/")[1]); }
+  }
+  let via = "exact InChIKey";
+  if (!title) {
+    const nm = await nameLater();
+    if (id !== runId) return;
+    if (nm) {
+      const s = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(nm)}`).catch(() => null);
+      title = s?.query?.search?.[0]?.title || null; via = "name search, check it matches";
+    }
+  }
+  if (id !== runId) return;
+  if (!title) {
+    setSt("#wkSt", qid ? qid : "not found");
+    $("#wkBody").innerHTML = qid ? `<p class="empty">On Wikidata but no English Wikipedia article.</p><div class="links"><a class="chip" href="https://www.wikidata.org/wiki/${qid}" target="_blank" rel="noopener">Wikidata ${qid} ↗</a></div>` : `<p class="empty">No Wikipedia article found.</p>`;
+    return;
+  }
+  const s = await getJSON(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`);
+  if (id !== runId) return;
+  if (!s) { setSt("#wkSt", "not found"); $("#wkBody").innerHTML = `<p class="empty">No Wikipedia article found.</p>`; return; }
+  setSt("#wkSt", via === "exact InChIKey" ? "matched" : "by name", via === "exact InChIKey" ? "ok" : "");
+  const url = s.content_urls?.mobile?.page || s.content_urls?.desktop?.page;
+  $("#wkBody").innerHTML = `<div class="wiki"><div style="min-width:0"><p class="name" style="font-size:1.15rem;margin:0 0 6px">${esc(s.title)}</p>
+    ${s.description ? `<p class="hint" style="margin:0 0 8px">${esc(s.description)}</p>` : ""}
+    <p class="lede">${esc(s.extract || "")}</p></div>
+    ${s.thumbnail ? `<img src="${esc(s.thumbnail.source)}" alt="">` : ""}</div>
+    <p class="hint">Matched by ${via}.</p>
+    <div class="links">${url ? `<a class="chip" href="${esc(url)}" target="_blank" rel="noopener">Read on Wikipedia ↗</a>` : ""}${qid ? `<a class="chip" href="https://www.wikidata.org/wiki/${qid}" target="_blank" rel="noopener">Wikidata ${qid} ↗</a>` : ""}</div>`;
+}
+
+/* ---------- UniChem → SureChEMBL + xrefs ---------- */
+const XLINK = {
+  chembl: id => `https://www.ebi.ac.uk/chembl/explore/compound/${id}`,
+  drugbank: id => `https://go.drugbank.com/drugs/${id}`,
+  chebi: id => `https://www.ebi.ac.uk/chebi/searchId.do?chebiId=${id}`,
+  pubchem: id => `https://pubchem.ncbi.nlm.nih.gov/compound/${id}`,
+  surechembl: id => `https://www.surechembl.org/chemical/SCHEMBL${String(id).replace(/^SCHEMBL/, "")}`,
+  zinc: id => `https://zinc.docking.org/substances/${id}/`,
+  pdb: id => `https://www.ebi.ac.uk/pdbe-srv/pdbechem/chemicalCompound/show/${id}`,
+  bindingdb: id => `https://www.bindingdb.org/rwd/bind/chemsearch/marvin/MolStructure.jsp?monomerid=${id}`,
+  gtopdb: id => `https://www.guidetopharmacology.org/GRAC/LigandDisplayForward?ligandId=${id}`
+};
+function xlink(src) {
+  const id = src.compoundId, sn = (src.shortName || "").toLowerCase();
+  if (XLINK[sn]) return XLINK[sn](id);
+  const u = src.url || "";
+  if (/^https?:/.test(u)) { if (u.includes(id)) return u; if (/[\/=]$/.test(u)) return u + id; }
+  return null;
+}
+async function unichem(id, key) {
+  setSt("#xrSt", "searching"); $("#xrBody").innerHTML = skel(2);
+  if (!key) { setSt("#xrSt", ""); $("#xrBody").innerHTML = `<p class="empty">No InChIKey.</p>`; return null; }
+  const r = await getJSON("https://www.ebi.ac.uk/unichem/api/v1/compounds", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "inchikey", compound: key })
+  });
+  if (id !== runId) return null;
+  const srcs = r?.compounds?.[0]?.sources || [];
+  const sure = srcs.filter(s => (s.shortName || "").toLowerCase() === "surechembl");
+  const others = srcs.filter(s => (s.shortName || "").toLowerCase() !== "surechembl");
+  const schembl = sure[0]?.compoundId || null;
+  const grouped = new Map();
+  for (const s of others) { const k = s.longName || s.shortName; if (!grouped.has(k)) grouped.set(k, []); grouped.get(k).push(s); }
+  setSt("#xrSt", srcs.length ? `${grouped.size} sources` : "not found", srcs.length ? "ok" : "");
+  $("#xrBody").innerHTML = grouped.size ? `<div class="syn">${[...grouped.entries()].slice(0, 30).map(([name, list]) => {
+      const s = list[0], u = xlink(s);
+      const lbl = `${esc(s.shortName || name)}: ${esc(s.compoundId)}${list.length > 1 ? ` +${list.length - 1}` : ""}`;
+      return u ? `<a class="chip" href="${esc(u)}" target="_blank" rel="noopener" title="${esc(name)}">${lbl}</a>` : `<span class="chip" title="${esc(name)}">${lbl}</span>`;
+    }).join("")}</div>` : `<p class="empty">This InChIKey is not in UniChem, so the structure is probably not in any public database.</p>`;
+  return schembl;
+}
+
+/* ---------- SureChEMBL patents ---------- */
+const SC = "https://surechembl.org/api";
+async function surechembl(id, smi, unichemId) {
+  setSt("#scSt", "searching"); $("#scBody").innerHTML = skel(3);
+  let cid = null, info = null;
+  const r = await getJSON(`${SC}/chemical/smiles/?smiles=${encodeURIComponent(smi)}`, { method: "POST" }).catch(() => null);
+  if (r?.data) { info = Object.values(r.data)[0] || null; cid = info?.chemical_id || null; }
+  if (!cid) { const u = await unichemId; if (u) cid = String(u).replace(/^SCHEMBL/, ""); }
+  if (id !== runId) return;
+  if (!cid) {
+    setSt("#scSt", "not found");
+    $("#scBody").innerHTML = `<p class="empty">This structure has not been found in any patent indexed by SureChEMBL.</p><div class="links"><a class="chip" href="https://www.surechembl.org/" target="_blank" rel="noopener">Similarity search on SureChEMBL ↗</a></div>`;
+    return;
+  }
+  const d = await getJSON(`${SC}/search/documents_for_structures?chemicalIds=${cid}&page=1&itemsPerPage=8`, { method: "POST" });
+  if (id !== runId) return;
+  const res = d?.data?.results || {}, docs = res.documents || [], total = res.total_hits ?? docs.length;
+  const title = doc => { const t = (doc.metadata?.titles || []).find(x => x.lang === "en") || (doc.metadata?.titles || [])[0]; return t?.titles?.[0] || ""; };
+  setSt("#scSt", "SCHEMBL" + cid, "ok");
+  $("#scBody").innerHTML = `
+    <dl class="kv"><dt>Patent documents</dt><dd><b>${Number(total).toLocaleString("en-GB")}</b></dd>
+    ${info?.name ? `<dt>Name in patents</dt><dd>${esc(info.name)}</dd>` : ""}</dl>
+    ${docs.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Document</th><th>Title</th></tr></thead><tbody>
+      ${docs.map(doc => `<tr><td style="white-space:nowrap"><a href="https://www.surechembl.org/patent/${encodeURIComponent(doc.docId)}" target="_blank" rel="noopener">${esc(doc.docId)}</a></td><td>${esc(titleCase(title(doc)))}</td></tr>`).join("")}
+    </tbody></table></div><p class="hint">First ${docs.length} documents as SureChEMBL lists them.</p>` : ""}
+    <div class="links"><a class="chip" href="https://www.surechembl.org/chemical/SCHEMBL${cid}" target="_blank" rel="noopener">Open in SureChEMBL ↗</a></div>`;
+}
+
+
+/* ================================================================
+   Interface: tabs, settings sheet, compound strip, glance, drug space, 3D, history
+   ================================================================ */
+
+/* ---------- tabs ---------- */
+let activeTab = "scan";
+function showTab(name) {
+  activeTab = name;
+  document.querySelectorAll(".tabbar button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  for (const t of ["scan", "props", "3d", "src", "hist"]) $("#tab-" + t).hidden = t !== name;
+  window.scrollTo(0, 0);
+  if (name === "3d") show3D();
+  if (name === "props") ensureNeighbours();
+}
+document.querySelectorAll(".tabbar button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+/* ---------- source sub-tabs ---------- */
+function showSource(k) {
+  document.querySelectorAll(".srcbar button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.src === k)));
+  document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== k);
+}
+document.querySelectorAll(".srcbar button").forEach(b => b.addEventListener("click", () => showSource(b.dataset.src)));
+
+/* ---------- settings sheet ---------- */
+function openSheet() { $("#sheet").hidden = false; document.body.style.overflow = "hidden"; $("#sheetDone").focus(); }
+function closeSheet() { $("#sheet").hidden = true; document.body.style.overflow = ""; $("#gearBtn").focus(); }
+$("#gearBtn").addEventListener("click", openSheet);
+$("#sheetDone").addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
+$("#bannerCheck").addEventListener("click", () => { openSheet(); $("#diagPanel").scrollIntoView({ block: "start" }); connectionCheck(); });
+
+/* ---------- theme: match phone / light / dark ---------- */
+function applyTheme(t) {
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+  document.querySelectorAll("#themeSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === (t || "system"))));
+  try { if (viewer3d) setTimeout(paint3D, 0); } catch {}
+}
+applyTheme(store.get("sl.theme", "system"));
+document.querySelectorAll("#themeSeg button").forEach(b => b.addEventListener("click", () => { store.set("sl.theme", b.dataset.t); applyTheme(b.dataset.t); }));
+
+/* ---------- photo plate ---------- */
+function showPhoto() { $("#imgBox").hidden = false; $("#noPhoto").hidden = true; $("#recBtn").disabled = false; }
+
+/* ---------- compound strip on the other tabs ---------- */
+function updateMini() {
+  if (!current) return;
+  const nm = current.name ? titleCase(current.name) : (current.formula || "Unnamed structure");
+  const sub = current.formula ? `${current.formula.replace(/\./g, " · ")} · MW ${fmt(current.desc.amw, 1)}` : "";
+  document.querySelectorAll("[data-mini]").forEach(el => {
+    el.innerHTML = `<div class="th">${current.thumb || ""}</div><div><b>${esc(nm)}</b><span>${esc(sub)}</span></div>`;
+  });
+}
+
+/* ---------- QED (RDKit's implementation of Bickerton et al. 2012) and ESOL ---------- */
+const QEDP = {"acceptors": ["[o&H0&X2]", "[O&H1&X2&v2]", "[O&H0&X2&v2]", "[O&H0&X1&v2]", "[O&-&X1]", "[S&H0&X2&v2]", "[S&H0&X1&v2]", "[S&-&X1]", "[n&H0&X2]", "[N&H0&X1&v3]", "[$([N&+0&X3&v3])&!$(N[C,S]=O)]"], "alerts": ["*1[O,S,N]*1", "[S,C](=[O,S])[F,Br,Cl,I]", "[C&X4][Cl,Br,I]", "[#6]S(=O)(=O)O[#6]", "[$([C&H1]),$(CC)]#CC(=O)[#6]", "[$([C&H1]),$(CC)]#CC(=O)O[#6]", "n[O&H1]", "[$([C&H1]),$(CC)]#CS(=O)(=O)[#6]", "C=C(C=O)C=O", "n1c([F,Cl,Br,I])cccc1", "[C&H1]=O", "[#8][#8]", "[C&!R]=[N&!R]", "[N&!R]=[N&!R]", "[#6](=O)[#6]=O", "[#16][#16]", "[#7][N&H2]", "C(=O)N[N&H2]", "[#6]=S", "[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]=[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]", "C1(=[O,N])C=CC(=[O,N])C=C1", "C1(=[O,N])C(=[O,N])C=CC=C1", "a12aa3a(aa1aaaa2)aaaa3", "a12a(a3a(aa1)aaaa3)aaaa2", "a1aa2a3a(a1)A=AA=A3=AA=A2", "c1cc([N&H2])ccc1", "[#80,#26,#33,#51,#30,#34,se,#52,B,#14,#11,#20,#32,#47,#12,#19,#56,#38,#4,#22,#42,#25,#44,#46,#28,#29,#79,#48,#13,#31,#50,#45,#81,#83,#41,#3,#82,#72,#67]", "I", "OS(=O)(=O)[O&-]", "[N&+](=O)[O&-]", "C(=O)N[O&H1]", "C1NC(=O)NC1=O", "[S&H1]", "[S&-]", "c1ccc([Cl,Br,I,F])c([Cl,Br,I,F])c1[Cl,Br,I,F]", "c1cc([Cl,Br,I,F])cc([Cl,Br,I,F])c1[Cl,Br,I,F]", "[C&R1]1[C&R1][C&R1][C&R1][C&R1][C&R1][C&R1]1", "[C&R1]1[C&R1][C&R1]cc[C&R1][C&R1]1", "[C&R2]1[C&R2][C&R2][C&R2][C&R2][C&R2][C&R2][C&R2]1", "[C&R2]1[C&R2][C&R2]cc[C&R2][C&R2][C&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "C#C", "[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]", "[$([N&+&R]),$([n&+&R]),$([N&+]=C)][O&-]", "[#6]=N[O&H1]", "[#6]=NOC=O", "[#6](=O)[C&X4,C&R0&X3,O][#6]=O", "c1ccc2c(c1)ccc(=O)o2", "[O&+,o&+,S&+,s&+]", "N=C=O", "[N&X3,N&X4][F,Cl,Br,I]", "c1ccccc1OC(=O)[#6]", "[C&R0]=[C&R0][C&R0]=[C&R0]", "[C&+,c&+,C&-,c&-]", "N=[N&+]=[N&-]", "C12C(NC(N1)=O)CSC2", "c1c([O&H1])c([O&H1,N&H2,N&H1])ccc1", "P", "[N,O,S]C#N", "C=C=O", "[#14][F,Cl,Br,I]", "[S&X2]O", "[#14&R0,C&R0](c1ccccc1)(c1ccccc1)c1ccccc1", "O1CCCCC1OC1CCC2CCCCC2C1", "N=[C&R0][N,n,O,S]", "[c&R2]1[c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2][c&R2]1[c&R2]1[c&R2][c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2]1", "C=[C&!R]C#N", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]c1[N&+0&X3&R0,n&X3&R0]", "[O&H1]c1ccc([O&H1,N&H2,N&H1])cc1", "c1ccccc1OC(=O)O", "[S&X2&H0]N", "c12ccccc1SC(S)=N2", "c12ccccc1SC(=S)N2", "c1nnnn1C=O", "s1c(S)nnc1NC=O", "S1C=CSC1=S", "C(=O)Onnn", "OS(=O)(=O)C(F)(F)F", "N#CC[O&H1]", "N#CC=O", "S(=O)(=O)C#N", "N[C&H2]C#N", "C1(=O)NCC1", "S(=O)(=O)[O&-,O&H1]", "NC[F,Cl,Br,I]", "C=[C&!R]O", "[N&X2&+0]=[O&+0]", "[O&R0,N&R0][O&R0,N&R0]", "C(=O)O[C,H1].C(=O)O[C,H1].C(=O)O[C,H1]", "[C&X2&R0][N&X3&R0]", "c1ccccc1[C&!R]=[C&!R]c1ccccc1", "[N&X3&R0,N&X4&R0,O&R0,S&X2&R0][C&X4][N&X3&R0,N&X4&R0,O&R0,S&X2&R0]", "[s,S,c,C,n,N,o,O]~[n&+,N&+](~[s,S,c,C,n,N,o,O])(~[s,S,c,C,n,N,o,O])~[s,S,c,C,n,N,o,O]", "[s,S,c,C,n,N,o,O]~[n&X3&+,N&X3&+](~[s,S,c,C,n,N])~[s,S,c,C,n,N]", "*=[N&+]=*", "[S&X3](=O)[O&-,O&H1]", "N#N", "F.F.F.F", "[R0&D2][R0&D2][R0&D2][R0&D2]", "[c&R,C&R]~C(=O)NC(=O)~[c&R,C&R]", "C=&!@CC=[O,S]", "[#6,#8,#16][#6](=O)O[#6]", "c[C&R0](=[O,S])[#6]", "c[S&X2][C&!R]", "C=C=C", "c1nc([F,Cl,Br,I,S])ncc1", "c1ncnc([F,Cl,Br,I,S])c1", "c1ncc2c(n1)nc(n2)[F,Cl,Br,I]", "[#6]S(=O)(=O)c1ccc(cc1)F", "[N&15*]", "[C&13*]", "[O&18*]", "[S&34*]"], "ads": {"MW": [2.817065973, 392.5754953, 290.7489764, 2.419764353, 49.22325677, 65.37051707, 104.9805561], "ALOGP": [3.172690585, 137.8624751, 2.534937431, 4.581497897, 0.822739154, 0.576295591, 131.3186604], "HBA": [2.948620388, 160.4605972, 3.615294657, 4.435986202, 0.290141953, 1.300669958, 148.7763046], "HBD": [1.618662227, 1010.051101, 0.985094388, 1e-09, 0.713820843, 0.920922555, 258.1632616], "PSA": [1.876861559, 125.2232657, 62.90773554, 87.83366614, 12.01999824, 28.51324732, 104.5686167], "ROTB": [0.01, 272.4121427, 2.55837997, 1.565547684, 1.271567166, 2.758063707, 105.4420403], "AROM": [3.21778897, 957.7374108, 2.274627939, 1e-09, 1.317690384, 0.375760881, 312.337261], "ALERTS": [0.01, 1199.094025, -0.09002883, 1e-09, 0.185904477, 0.875193782, 417.725314]}, "wmean": [0.66, 0.46, 0.05, 0.61, 0.06, 0.65, 0.48, 0.95], "keys": ["MW", "ALOGP", "HBA", "HBD", "PSA", "ROTB", "AROM", "ALERTS"]};
+let qedQ = null;
+function qedQueries() {
+  if (!qedQ) qedQ = { acc: QEDP.acceptors.map(s => RD.get_qmol(s)), alerts: QEDP.alerts.map(s => RD.get_qmol(s)), aliph: RD.get_qmol("[$([A;R][!a])]"), arom: RD.get_qmol("a") };
+  return qedQ;
+}
+const nMatches = (m, q) => { try { const r = JSON.parse(m.get_substruct_matches(q)); return Array.isArray(r) ? r.length : 0; } catch { return 0; } };
+function qedAromRings(mol, q) {
+  // RDKit QED removes aliphatic ring atoms, then counts rings in what is left (cyclomatic number).
+  const del = new Set(); try { const mm = JSON.parse(mol.get_substruct_matches(q.aliph)); if (Array.isArray(mm)) for (const x of mm) del.add(x.atoms[0]); } catch {}
+  const g = JSON.parse(mol.get_json()).molecules[0], n = g.atoms.length;
+  const keep = [...Array(n).keys()].filter(i => !del.has(i)), par = new Map(keep.map(i => [i, i]));
+  const f = x => { while (par.get(x) !== x) { par.set(x, par.get(par.get(x))); x = par.get(x); } return x; };
+  let E = 0; for (const b of (g.bonds || [])) { const [a, c] = b.atoms; if (del.has(a) || del.has(c)) continue; E++; par.set(f(a), f(c)); }
+  return E - keep.length + new Set(keep.map(f)).size;
+}
+function extras(mol, d) {
+  const q = qedQueries();
+  const props = {
+    MW: d.amw, ALOGP: d.CrippenClogP, HBA: q.acc.reduce((a, p) => a + nMatches(mol, p), 0), HBD: d.NumHBD,
+    PSA: d.tpsa, ROTB: d.NumRotatableBonds, AROM: qedAromRings(mol, q), ALERTS: q.alerts.reduce((a, p) => a + (nMatches(mol, p) ? 1 : 0), 0)
+  };
+  const ads = (x, [a, b, c, dd, e, f, dmax]) => (a + (b / (1 + Math.exp(-(x - c + dd / 2) / e)) * (1 - 1 / (1 + Math.exp(-(x - c - dd / 2) / f))))) / dmax;
+  let s = 0, w = 0;
+  QEDP.keys.forEach((k, i) => { s += QEDP.wmean[i] * Math.log(ads(props[k], QEDP.ads[k])); w += QEDP.wmean[i]; });
+  const aromAtoms = nMatches(mol, q.arom);
+  const ap = d.NumHeavyAtoms ? aromAtoms / d.NumHeavyAtoms : 0;
+  const logS = 0.16 - 0.63 * d.CrippenClogP - 0.0062 * d.amw + 0.066 * d.NumRotatableBonds - 0.74 * ap;   // ESOL, Delaney 2004
+  return { qed: Math.exp(s / w), alerts: props.ALERTS, logS };
+}
+
+/* ---------- radar ---------- */
+const AXES = [
+  { k: "LIPO", label: "Lipophilicity", v: c => c.desc.CrippenClogP, lo: -2, hi: 7, ok: [-0.7, 5], f: v => `cLogP ${fmt(v, 1)}` },
+  { k: "SIZE", label: "Size", v: c => c.desc.amw, lo: 0, hi: 800, ok: [150, 500], f: v => `MW ${fmt(v, 0)}` },
+  { k: "POLAR", label: "Polarity", v: c => c.desc.tpsa, lo: 0, hi: 200, ok: [20, 130], f: v => `TPSA ${fmt(v, 0)}` },
+  { k: "INSOLU", label: "Insolubility", v: c => -c.extra.logS, lo: -2, hi: 10, ok: [0, 6], f: v => `logS ${fmt(-v, 1)}` },
+  { k: "INSATU", label: "Unsaturation", v: c => 1 - c.desc.FractionCSP3, lo: 0, hi: 1, ok: [0, 0.75], f: v => `Fsp3 ${fmt(1 - v, 2)}` },
+  { k: "FLEX", label: "Flexibility", v: c => c.desc.NumRotatableBonds, lo: 0, hi: 15, ok: [0, 9], f: v => `${v} rot. bonds` }
+];
+function renderRadar(c) {
+  const W = 360, H = 300, cx = W / 2, cy = 150, R = 92, n = AXES.length;
+  const ang = i => -Math.PI / 2 + i * 2 * Math.PI / n;
+  const t = (a, v) => Math.max(0, Math.min(1, (v - a.lo) / (a.hi - a.lo)));
+  const pt = (i, r) => [cx + Math.cos(ang(i)) * r * R, cy + Math.sin(ang(i)) * r * R];
+  const poly = rs => rs.map((r, i) => pt(i, r).map(x => x.toFixed(1)).join(",")).join(" ");
+  const rings = [0.25, 0.5, 0.75, 1].map(r => `<polygon points="${poly(AXES.map(() => r))}" fill="none" stroke="var(--line)" stroke-width="1"/>`).join("");
+  const spokes = AXES.map((a, i) => { const [x, y] = pt(i, 1); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)"/>`; }).join("");
+  const hi = AXES.map(a => t(a, a.ok[1])), lo = AXES.map(a => t(a, a.ok[0]));
+  const band = `<path d="M${poly(hi).replace(/ /g, " L")} Z M${poly(lo).replace(/ /g, " L")} Z" fill="var(--accent)" fill-opacity=".14" fill-rule="evenodd"/>`;
+  const vals = AXES.map(a => a.v(c)), rs = AXES.map((a, i) => t(a, vals[i]));
+  const inside = AXES.map((a, i) => vals[i] >= a.ok[0] && vals[i] <= a.ok[1]);
+  const shape = `<polygon points="${poly(rs)}" fill="var(--accent)" fill-opacity=".22" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  const dots = rs.map((r, i) => { const [x, y] = pt(i, r); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${inside[i] ? "var(--accent)" : "var(--bad)"}" stroke="var(--surface)" stroke-width="1.5"/>`; }).join("");
+  const labels = AXES.map((a, i) => {
+    const [x, y] = pt(i, 1.2), anchor = Math.abs(x - cx) < 4 ? "middle" : x > cx ? "start" : "end";
+    const dy = y < cy - 60 ? -6 : y > cy + 60 ? 10 : 0;
+    return `<text x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${anchor}" font-size="12.5" font-weight="700" fill="${inside[i] ? "var(--ink)" : "var(--bad)"}">${a.label}</text>
+      <text x="${x.toFixed(1)}" y="${(y + dy + 14).toFixed(1)}" text-anchor="${anchor}" font-size="11" fill="var(--muted)">${a.f(vals[i])}</text>`;
+  }).join("");
+  $("#radar").innerHTML = rings + spokes + band + shape + dots + labels;
+  const outN = inside.filter(x => !x).length;
+  $("#radar").setAttribute("aria-label", `Property radar: ${outN ? outN + " of 6 properties outside the oral-drug range" : "all six properties inside the oral-drug range"}`);
+}
+function renderScores(c) {
+  const q = c.extra.qed;
+  const qc = q >= 0.67 ? "var(--good)" : q >= 0.49 ? "var(--warn)" : "var(--bad)";
+  $("#scores").innerHTML = `
+    <div class="score"><span class="k">QED</span><span class="v" style="color:${qc}">${fmt(q, 2)}</span><div class="meter"><i style="width:${(q * 100).toFixed(0)}%;background:${qc}"></i></div></div>
+    <div class="score"><span class="k">ESOL logS</span><span class="v">${fmt(c.extra.logS, 1)}<small>${c.extra.logS > -4 ? "soluble" : c.extra.logS > -6 ? "moderate" : "poor"}</small></span></div>
+    <div class="score"><span class="k">Structural alerts</span><span class="v" style="color:${c.extra.alerts ? "var(--warn)" : "var(--good)"}">${c.extra.alerts}<small>of 116</small></span></div>`;
+}
+
+/* ---------- drug space (PCA of 8 properties over approved drugs) ---------- */
+let SPACE = null, spaceP = null, drugFP = null, fpBusy = null;
+const SV = { W: 340, H: 250, x0: 24, x1: 334, y0: 8, y1: 222, xr: [-3.5, 9], yr: [-4, 5] };
+function loadSpace() { if (!spaceP) spaceP = fetch("data/drugspace.json").then(r => r.ok ? r.json() : null).then(j => (SPACE = j)).catch(() => null); return spaceP; }
+const sx = x => SV.x0 + (Math.max(SV.xr[0], Math.min(SV.xr[1], x)) - SV.xr[0]) / (SV.xr[1] - SV.xr[0]) * (SV.x1 - SV.x0);
+const sy = y => SV.y1 - (Math.max(SV.yr[0], Math.min(SV.yr[1], y)) - SV.yr[0]) / (SV.yr[1] - SV.yr[0]) * (SV.y1 - SV.y0);
+function project(d) {
+  const v = { mw: d.amw, clogp: d.CrippenClogP, tpsa: d.tpsa, hbd: d.lipinskiHBD, hba: d.lipinskiHBA, rotb: d.NumRotatableBonds, arom: d.NumAromaticRings, fsp3: d.FractionCSP3 };
+  const z = SPACE.descriptors.map((k, i) => (v[k] - SPACE.mean[i]) / SPACE.sd[i]);
+  return SPACE.loadings.map(L => L.reduce((a, l, i) => a + l * z[i], 0));
+}
+let spaceBase = "";
+function drawSpaceBase() {
+  const e = SPACE.explained;
+  const gx = [], gy = [];
+  for (let x = Math.ceil(SV.xr[0]); x <= SV.xr[1]; x += 2) gx.push(`<line x1="${sx(x)}" x2="${sx(x)}" y1="${SV.y0}" y2="${SV.y1}" stroke="var(--line)" stroke-width="${x === 0 ? 1.2 : .6}"/>`);
+  for (let y = Math.ceil(SV.yr[0]); y <= SV.yr[1]; y += 2) gy.push(`<line x1="${SV.x0}" x2="${SV.x1}" y1="${sy(y)}" y2="${sy(y)}" stroke="var(--line)" stroke-width="${y === 0 ? 1.2 : .6}"/>`);
+  const pts = SPACE.points.map(p => `<circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="2.1"/>`).join("");
+  spaceBase = gx.join("") + gy.join("") +
+    `<g fill="var(--dot)" fill-opacity=".5">${pts}</g>` +
+    `<text x="${SV.x1}" y="${SV.y1 + 18}" text-anchor="end" font-size="11.5" fill="var(--muted)">More polar →</text>` +
+    `<text x="${SV.x0}" y="${SV.y1 + 18}" font-size="11.5" font-weight="700" fill="var(--muted)">PC1 · ${(e[0] * 100).toFixed(0)}% of variance</text>` +
+    `<text transform="translate(${SV.x0 - 10} ${SV.y1}) rotate(-90)" font-size="11.5" fill="var(--muted)"><tspan font-weight="700">PC2 · ${(e[1] * 100).toFixed(0)}%</tspan>   Larger, more aromatic →</text>`;
+}
+let qPos = null, nnHits = [];
+async function renderSpace() {
+  if (!current) return;
+  await loadSpace();
+  if (!SPACE) { $("#spaceSvg").innerHTML = `<text x="170" y="135" text-anchor="middle" font-size="13" fill="var(--muted)">The drug-space data could not be loaded.</text>`; return; }
+  if (!spaceBase) drawSpaceBase();
+  qPos = project(current.desc);
+  const outside = qPos[0] < SV.xr[0] || qPos[0] > SV.xr[1] || qPos[1] < SV.yr[0] || qPos[1] > SV.yr[1];
+  const nn = nnHits.map((h, i) => { const p = SPACE.points[h.i]; return `<g><circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="7" fill="var(--warn)" stroke="var(--surface)" stroke-width="1.5"/><text x="${sx(p[0]).toFixed(1)}" y="${(sy(p[1]) + 3.6).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--surface)">${i + 1}</text></g>`; }).join("");
+  const X = sx(qPos[0]), Y = sy(qPos[1]);
+  $("#spaceSvg").innerHTML = spaceBase + nn +
+    `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="11" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="5" fill="var(--accent)"/>`;
+  $("#spaceNote").textContent = outside ? "This compound lies beyond the edge of the map; it is pinned to the nearest edge." : "Tap any point to see which drug it is.";
+}
+const POP = new Uint8Array(256).map((_, i) => { let c = 0, x = i; while (x) { c += x & 1; x >>= 1; } return c; });
+const FPOPT = JSON.stringify({ radius: 2, nBits: 2048 });
+function tanimoto(a, b, pa, pb) { let c = 0; for (let i = 0; i < a.length; i++) c += POP[a[i] & b[i]]; return c / (pa + pb - c || 1); }
+const popc = a => { let c = 0; for (let i = 0; i < a.length; i++) c += POP[a[i]]; return c; };
+function drugFingerprints() {
+  if (drugFP) return Promise.resolve(drugFP);
+  if (fpBusy) return fpBusy;
+  fpBusy = (async () => {
+    await rdReady; await loadSpace(); if (!SPACE) return null;
+    const out = new Array(SPACE.points.length);
+    for (let i = 0; i < out.length; i++) {
+      const m = RD.get_mol(SPACE.points[i][2]);
+      if (m && m.is_valid()) { const f = m.get_morgan_fp_as_uint8array(FPOPT); out[i] = [f, popc(f)]; } else out[i] = null;
+      m && m.delete();
+      if (i % 80 === 79) await new Promise(r => setTimeout(r, 0));   // keep the page responsive
+    }
+    return (drugFP = out);
+  })();
+  return fpBusy;
+}
+let nnFor = null;
+async function ensureNeighbours() {
+  if (!current || nnFor === current.smiles) return;
+  const want = current.smiles; nnFor = want;
+  if (!drugFP) $("#nn").innerHTML = `<p class="hint" style="padding-top:8px"><span class="busy"></span> Finding the most similar approved drugs…</p>`;
+  const fps = await drugFingerprints();
+  if (!fps || !current || current.smiles !== want) return;
+  const m = RD.get_mol(current.parent || current.smiles); const q = m.get_morgan_fp_as_uint8array(FPOPT); m.delete();
+  const pq = popc(q);
+  const sims = []; fps.forEach((f, i) => { if (f) sims.push({ i, s: tanimoto(q, f[0], pq, f[1]) }); });
+  sims.sort((a, b) => b.s - a.s);
+  nnHits = sims.slice(0, 3);
+  renderSpace();
+  $("#nn").innerHTML = `<p class="hint" style="margin:6px 0 2px">Most similar approved drugs (Morgan radius 2, Tanimoto)</p>` + nnHits.map((h, i) => {
+    const smi = SPACE.points[h.i][2];
+    return `<button type="button" data-i="${h.i}"><span class="n">${i + 1}</span><span class="th">${thumbSVG(smi, 112, 80)}</span><span class="t" data-name="${h.i}">${h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">${h.s.toFixed(2)}</span></button>`;
+  }).join("");
+  $("#nn").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { openStructure(SPACE.points[+b.dataset.i][2], "approved drug"); }));
+  for (const h of nnHits) drugName(h.i).then(n => { const el = $(`#nn [data-name="${h.i}"]`); if (el) el.textContent = (h.s > 0.999 ? "Same structure: " : "") + (n ? titleCase(n) : n === null ? "Approved drug (name lookup failed)" : "Approved drug, no PubChem name"); });
+}
+const nameCache = new Map();
+function drugName(i) {
+  if (nameCache.has(i)) return nameCache.get(i);
+  const p = getJSON(`${PUG}/compound/smiles/property/Title/JSON`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "smiles=" + encodeURIComponent(SPACE.points[i][2]) })
+    .then(r => r?.PropertyTable?.Properties?.[0]?.Title || "").catch(() => null);
+  nameCache.set(i, p); return p;
+}
+(function spaceTap() {
+  const svg = $("#spaceSvg"), tip = $("#tip");
+  svg.addEventListener("click", e => {
+    if (!SPACE) return;
+    const r = svg.getBoundingClientRect(), k = SV.W / r.width;
+    const x = (e.clientX - r.left) * k, y = (e.clientY - r.top) * k;
+    let best = -1, bd = 14 * 14;
+    SPACE.points.forEach((p, i) => { const dx = sx(p[0]) - x, dy = sy(p[1]) - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } });
+    if (best < 0) { tip.hidden = true; return; }
+    const p = SPACE.points[best];
+    tip.innerHTML = `<b data-tipname>…</b><span style="font-family:var(--f-mono);font-size:.72rem;opacity:.8;overflow-wrap:anywhere;display:block;max-height:3.2em;overflow:hidden">${esc(p[2])}</span><button type="button">Open this drug</button>`;
+    tip.hidden = false;
+    const px = sx(p[0]) / k, py = sy(p[1]) / k, tw = Math.min(230, r.width - 16);
+    tip.style.left = Math.max(4, Math.min(r.width - tw - 4, px - tw / 2)) + "px";
+    tip.style.top = (py > r.height / 2 ? py - 96 : py + 14) + "px";
+    tip.querySelector("button").addEventListener("click", ev => { ev.stopPropagation(); tip.hidden = true; openStructure(p[2], "approved drug"); });
+    drugName(best).then(n => { const el = tip.querySelector("[data-tipname]"); if (el) el.textContent = n ? titleCase(n) : n === null ? "Approved drug (name lookup failed)" : "Approved drug"; });
+  });
+  document.addEventListener("click", e => { if (!tip.hidden && !$("#space").contains(e.target)) tip.hidden = true; });
+})();
+
+/* ---------- 3D (OpenChemLib conformer + MMFF94s, shown with 3Dmol.js) ---------- */
+const OCL_URL = "https://cdn.jsdelivr.net/npm/openchemlib@9.25.2/dist/openchemlib.js";
+const OCL_RES = "https://cdn.jsdelivr.net/npm/openchemlib@9.25.2/dist/resources.json";
+const DMOL_URL = "https://cdn.jsdelivr.net/npm/3dmol@2.5.5/build/3Dmol-min.js";
+let OCLp = null, viewer3d = null, model3dFor = null, style3d = "ball", seed3d = 1;
+function loadOCL() {
+  if (!OCLp) OCLp = (async () => { const mod = await import(OCL_URL); const O = mod.default || mod; await O.Resources.registerFromUrl(OCL_RES); return O; })();
+  OCLp.catch(() => { OCLp = null; });
+  return OCLp;
+}
+function conformerMolfile(O, smi, seed) {
+  const m = O.Molecule.fromSmiles(smi);
+  m.addImplicitHydrogens();
+  const conf = new O.ConformerGenerator(seed, false).getOneConformerAsMolecule(m);
+  if (!conf) throw new Error("No conformer could be generated for this structure.");
+  try { const ff = new O.ForceFieldMMFF94(conf, "MMFF94s+", {}); ff.minimise({ maxIts: 600 }); } catch {}
+  return faceOn(conf.toMolfile());
+}
+// Turn the molecule so its broadest face points at the viewer (principal axes: x widest, z thinnest).
+function faceOn(mf) {
+  const L = mf.split("\n"), n = parseInt(L[3].slice(0, 3)), P = [];
+  for (let i = 0; i < n; i++) { const l = L[4 + i]; P.push([+l.slice(0, 10), +l.slice(10, 20), +l.slice(20, 30)]); }
+  if (n < 3) return mf;
+  const c = [0, 1, 2].map(k => P.reduce((a, p) => a + p[k], 0) / n);
+  const A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (const p of P) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) A[i][j] += (p[i] - c[i]) * (p[j] - c[j]);
+  const V = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  for (let sweep = 0; sweep < 30; sweep++) for (let p = 0; p < 2; p++) for (let q = p + 1; q < 3; q++) {   // Jacobi rotations
+    if (Math.abs(A[p][q]) < 1e-10) continue;
+    const th = 0.5 * Math.atan2(2 * A[p][q], A[q][q] - A[p][p]), co = Math.cos(th), si = Math.sin(th);
+    for (let k = 0; k < 3; k++) { const x = A[k][p], y = A[k][q]; A[k][p] = co * x - si * y; A[k][q] = si * x + co * y; }
+    for (let k = 0; k < 3; k++) { const x = A[p][k], y = A[q][k]; A[p][k] = co * x - si * y; A[q][k] = si * x + co * y; }
+    for (let k = 0; k < 3; k++) { const x = V[k][p], y = V[k][q]; V[k][p] = co * x - si * y; V[k][q] = si * x + co * y; }
+  }
+  const ord = [0, 1, 2].sort((i, j) => A[j][j] - A[i][i]);
+  const ax = ord.map(o => [V[0][o], V[1][o], V[2][o]]);
+  const cr = [ax[0][1] * ax[1][2] - ax[0][2] * ax[1][1], ax[0][2] * ax[1][0] - ax[0][0] * ax[1][2], ax[0][0] * ax[1][1] - ax[0][1] * ax[1][0]];
+  ax[2] = cr;                                                                        // keep a right-handed frame (no mirror image)
+  for (let i = 0; i < n; i++) {
+    const d = P[i].map((v, k) => v - c[k]), t = ax.map(a => a[0] * d[0] + a[1] * d[1] + a[2] * d[2]);
+    L[4 + i] = t.map(v => v.toFixed(4).padStart(10)).join("") + L[4 + i].slice(30);
+  }
+  return L.join("\n");
+}
+function msg3d(t) { const m = $("#msg3d"); m.hidden = !t; m.innerHTML = t || ""; }
+function paint3D() {
+  if (!viewer3d) return;
+  const v = viewer3d, h = $("#h3d").checked;
+  const st = style3d === "stick" ? { stick: { radius: 0.16, colorscheme: "Jmol" } }
+    : style3d === "sphere" ? { sphere: { scale: 1.0, colorscheme: "Jmol" } }
+    : { stick: { radius: 0.13, colorscheme: "Jmol" }, sphere: { scale: 0.26, colorscheme: "Jmol" } };
+  v.setStyle({}, st);
+  if (!h) v.setStyle({ elem: "H" }, {});
+  v.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue("--plate").trim() || "#ffffff");
+  v.render();
+}
+async function show3D(force) {
+  if (!current) return;
+  const smi = current.parent || current.smiles;
+  if (!force && model3dFor === smi && viewer3d) { viewer3d.resize(); viewer3d.render(); return; }
+  model3dFor = smi;
+  msg3d(`<span><span class="busy"></span> Building a 3D model…</span>`);
+  try {
+    await loadScript(DMOL_URL).catch(() => { throw new Error("Could not load the 3D viewer."); });
+    const O = await loadOCL().catch(() => { throw new Error("Could not load the conformer generator."); });
+    await new Promise(r => setTimeout(r, 30));
+    const mf = conformerMolfile(O, smi, seed3d);
+    if (model3dFor !== smi) return;
+    if (!viewer3d) viewer3d = $3Dmol.createViewer($("#mol3d"), { backgroundColor: "white", antialias: true });
+    viewer3d.clear(); viewer3d.addModel(mf, "sdf");
+    paint3D(); viewer3d.zoomTo(); viewer3d.zoom(0.92); viewer3d.render();
+    viewer3d.spin($("#spin3d").checked ? "y" : false);
+    msg3d("");
+  } catch (e) { model3dFor = null; msg3d(esc(e.message || "The 3D model could not be built.")); }
+}
+document.querySelectorAll("#style3d button").forEach(b => b.addEventListener("click", () => {
+  style3d = b.dataset.s; document.querySelectorAll("#style3d button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); paint3D();
+}));
+$("#h3d").addEventListener("change", paint3D);
+$("#spin3d").addEventListener("change", () => viewer3d && viewer3d.spin($("#spin3d").checked ? "y" : false));
+$("#reset3d").addEventListener("click", () => { if (viewer3d) { viewer3d.zoomTo(); viewer3d.zoom(0.92); viewer3d.render(); } });
+$("#new3d").addEventListener("click", () => { seed3d++; show3D(true); });
+window.addEventListener("resize", () => { if (viewer3d && activeTab === "3d") viewer3d.resize(); });
+
+/* ---------- everything that follows a new compound ---------- */
+function onCompound() {
+  updateMini();
+  renderRadar(current); renderScores(current);
+  nnHits = []; nnFor = null; $("#tip").hidden = true;
+  renderSpace();
+  if (activeTab === "props") ensureNeighbours();
+  else setTimeout(() => drugFingerprints(), 1500);           // warm up in the background
+  if (activeTab === "3d") show3D();
+}
+function openStructure(smi, label) { showTab("scan"); analyse(smi, label); }
+
+/* ---------- small depictions ---------- */
+function thumbSVG(smi, w = 168, h = 124) {
+  if (!RD) return "";
+  const m = RD.get_mol(smi); if (!m || !m.is_valid()) { m && m.delete(); return ""; }
+  const s = m.get_svg_with_highlights(JSON.stringify({ width: w, height: h, bondLineWidth: 1.4, padding: 0.06, clearBackground: false }));
+  m.delete(); return s;
+}
+
+/* ---------- history ---------- */
+function addRecent(smi, name) {
+  const list = store.get("sl.recent", []).filter(r => r.smi !== smi);
+  list.unshift({ smi, name: name || "", t: Date.now() }); store.set("sl.recent", list.slice(0, 40)); renderRecent();
+}
+function ago(t) {
+  const s = (Date.now() - t) / 1000;
+  if (!t || s < 0) return "";
+  if (s < 60) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago"; if (s < 86400) return Math.round(s / 3600) + " h ago";
+  return new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+function renderRecent() {
+  const list = store.get("sl.recent", []);
+  $("#clearHist").hidden = !list.length;
+  $("#recent").innerHTML = list.length ? list.map((r, i) => `<div class="hitem">
+      <div class="th" data-open="${i}">${thumbSVG(r.smi)}</div>
+      <div class="tx" data-open="${i}" role="button" tabindex="0"><b>${esc(titleCase(r.name) || "Unnamed structure")}</b><span>${esc(r.smi)}</span><em>${ago(r.t)}</em></div>
+      <button class="del" type="button" data-del="${i}" aria-label="Remove from history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>`).join("")
+    : `<p class="empty">Structures you recognise or look up are kept here, newest first.</p>`;
+  $("#recent").querySelectorAll("[data-open]").forEach(el => {
+    const go = () => openStructure(list[+el.dataset.open].smi, "history");
+    el.addEventListener("click", go); el.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  });
+  $("#recent").querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    const l = store.get("sl.recent", []); l.splice(+b.dataset.del, 1); store.set("sl.recent", l); renderRecent();
+  }));
+}
+$("#clearHist").addEventListener("click", () => { if (confirm("Clear the whole history?")) { store.set("sl.recent", []); renderRecent(); } });
+
+/* ---------- misc wiring ---------- */
+$("#recalc").addEventListener("click", () => { const s = $("#smiIn").value.trim(); if (s) analyse(s, "edited"); });
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
+  const el = $("#" + b.dataset.copy), txt = el.textContent;
+  try { await navigator.clipboard.writeText(txt); toast("Copied"); }
+  catch { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selected. Use your phone's Copy."); }
+}));
+
+$("#strSt").dataset.base = "conf";
+loadSettingsUI();
+rdReady.then(renderRecent);
+rdReady.then(() => analyse(EXAMPLE.smiles, EXAMPLE.label)).catch(() => {
+  $("#depict").innerHTML = `<p class="empty" style="padding:24px">RDKit could not load. Check your connection and reload.</p>`;
+});
+</script>
+</body>
+</html>
