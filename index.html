@@ -124,11 +124,14 @@ button.chip{cursor:pointer}
 
 /* compound strip at the top of the other tabs */
 #formula{display:none}
-.jump{display:flex;gap:6px;overflow-x:auto;margin:-2px -16px 10px;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.jump{display:flex;gap:6px;overflow-x:auto;margin:-6px -16px -4px;padding:8px 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  position:sticky;top:calc(52px + env(safe-area-inset-top,0px));z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.jump.stuck{box-shadow:0 6px 10px -8px rgba(0,0,0,.25)}
+.jump button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .jump::-webkit-scrollbar{display:none}
 .jump button{flex:none;appearance:none;border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 12px;font:600 .8rem var(--f-body);cursor:pointer}
 .jump button:active{background:var(--accent-soft)}
-#tab-props .card{scroll-margin-top:72px}
+#tab-props .card{scroll-margin-top:calc(108px + env(safe-area-inset-top,0px))}
 .mini{display:flex;align-items:center;gap:12px;min-width:0}
 .mini .th{width:64px;height:48px;flex:none;background:var(--plate);border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
 .mini .th svg{width:100%;height:100%}
@@ -1495,10 +1498,27 @@ function buildJump() {
     const t = (h.firstChild?.textContent || h.textContent).trim(), lab = JUMP_LABEL[t]; if (!lab) return;
     card.id ||= "pc-" + i;
     const b = document.createElement("button"); b.type = "button"; b.textContent = lab;
+    (buildJump.items ||= []).push({ card, b });
     b.addEventListener("click", () => { const d = card.querySelector("details"); if (lab === "All descriptors" && d) d.open = true; card.scrollIntoView({ behavior: "smooth", block: "start" }); });
     nav.appendChild(b);
   });
   tab.querySelector(".mini").after(nav);
+  let ticking = false, lastOn = null;
+  const spy = () => {
+    ticking = false;
+    if (tab.hidden) return;
+    const navBottom = nav.getBoundingClientRect().bottom;
+    nav.classList.toggle("stuck", nav.getBoundingClientRect().top <= parseFloat(getComputedStyle(nav).top) + 1 && window.scrollY > 0);
+    let on = buildJump.items[0];
+    for (const it of buildJump.items) if (it.card.getBoundingClientRect().top <= navBottom + 24) on = it;
+    if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 2) on = buildJump.items[buildJump.items.length - 1];
+    if (on === lastOn) return; lastOn = on;
+    for (const it of buildJump.items) it.b.setAttribute("aria-current", it === on ? "true" : "false");
+    const bl = on.b.offsetLeft - nav.offsetLeft, target = bl - (nav.clientWidth - on.b.offsetWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+  };
+  window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
+  buildJump.spy = () => { lastOn = null; spy(); };
 }
 function renderProps(d) {
   buildJump();
@@ -1808,6 +1828,7 @@ function showTab(name) {
   window.scrollTo(0, 0);
   if (name === "3d") show3D();
   if (name === "props" || name === "report") ensureNeighbours();
+  if (name === "props") requestAnimationFrame(() => buildJump.spy && buildJump.spy());
   if (name === "report") renderReport();
 }
 document.querySelectorAll(".tabbar button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -3378,7 +3399,7 @@ const RELEASES = [
       "<b>Release notes.</b> This page. Link to it with <code>#whats-new</code>.",
       "<b>Redesigned Properties tab.</b> A typicality score against approved drugs, a property profile showing where each property falls among 1,294 approved drugs, rule checks with every criterion, structural alerts highlighted on the structure, and descriptors grouped by kind.",
       "<b>Plane of best fit replaces Fsp3.</b> PBF (Firth, Brown and Blagg 2012) measures 3D shape from a conformer: the mean distance of the heavy atoms from their best-fit plane. It is used in the property profile, the typicality score and the drug-space map, with the reference drugs computed by the same method.",
-      "<b>Simpler to use.</b> Properties has jump links to each panel; rule checks and complexity measures are compact rows with explanations folded away; similar drugs show six at first with Show all. The Recognise button appears once there is a photo, and tapping the empty photo box opens the camera. Model files and the connection check are folded in Settings.",
+      "<b>Simpler to use.</b> Properties has jump links to each panel, pinned under the header as you scroll and highlighting the panel in view; rule checks and complexity measures are compact rows with explanations folded away; similar drugs show six at first with Show all. The Recognise button appears once there is a photo, and tapping the empty photo box opens the camera. Model files and the connection check are folded in Settings.",
       "<b>Shorter PDF.</b> Page 1 is a summary: structure (and the scanned drawing), twelve key numbers, typicality and rule verdicts, the main identifiers and links. Similar drugs are six to a row, and the full identifiers and descriptor list are in an appendix at the end.",
       "<b>Links checked.</b> Shared links, QR codes and links in the PDF now always point to the public site, even from a copy of the page saved on the phone. A failed lookup explains that the database may be busy and offers Try again; Wikipedia no longer waits for a slow ChEMBL. Sites that ask you to sign in are marked 🔒.",
       "<b>Salts and charged forms</b> are compared as their neutral parent (largest fragment, uncharged as RDKit's Uncharger does), the form the approved drugs are stored in. The Properties tab says so when it applies.",
