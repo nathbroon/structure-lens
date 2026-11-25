@@ -132,18 +132,61 @@ button.chip{cursor:pointer}
 
 /* properties: glance */
 .glance{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-.radar{width:100%;max-width:380px;margin:0 auto;display:block}
-.radar text{font-family:var(--f-body)}
+.profile{width:100%;height:auto;display:block}
+.profile text{font-family:var(--f-body)}
+.legend i.dash{width:14px;height:0;border-radius:0;border-top:2px dashed var(--bad);vertical-align:3px}
+.typ{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.typ .n{font:700 2.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.typ .n small{font-size:1.1rem;margin-left:1px}
+.typ .t b{display:block;font-size:1rem}
+.typ .t span{font-size:.82rem;color:var(--muted)}
+.typbar{grid-column:1/-1;position:relative;height:10px;border-radius:5px;margin:10px 0 2px;background:linear-gradient(90deg,var(--bad) 0%,var(--warn) 6%,var(--warn) 18%,var(--good) 30%,var(--good) 100%);opacity:.85}
+.typbar i{position:absolute;top:-4px;width:4px;height:18px;margin-left:-2px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 2px var(--surface)}
+.typscale{grid-column:1/-1;display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)}
+.typwhy{grid-column:1/-1;font-size:.82rem;margin:4px 0 0}
 .scores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+button.score{appearance:none;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .score{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .score .k{font-size:.75rem;color:var(--muted)}
 .score .v{font:700 1.35rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
 .score .v small{display:block;font:400 .74rem var(--f-body);color:var(--muted);margin-top:2px}
 .meter{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:4px}
 .meter i{display:block;height:100%;background:var(--accent);border-radius:3px}
-.rules{display:flex;flex-direction:column;gap:6px}
-.rule{display:grid;grid-template-columns:10.5em 1fr;gap:8px;align-items:center;font-size:.88rem}
-.rule .why{font-size:.8rem;color:var(--muted);margin-left:6px}
+.rules{display:flex;flex-direction:column}
+.rule{padding:9px 0;border-top:1px solid var(--line)}
+.rule:first-child{border-top:none;padding-top:0}
+.rule .rh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.92rem}
+.rule .rh small{display:block;font-size:.74rem;color:var(--muted);font-weight:400}
+.crit{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.crit span{font:500 .74rem var(--f-body);padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.crit .ok{color:var(--good)}
+.crit .no{color:var(--bad);font-weight:700;background:var(--bad-soft)}
+.pmi{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+.pmi text{font-family:var(--f-body)}
+.cx{display:flex;flex-direction:column}
+.cxr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline}
+.cxr:first-child{border-top:none}
+.cxr b{font-size:.9rem}
+.cxr .v{font:700 1rem var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+.cxr .d{grid-column:1/-1;font-size:.76rem;color:var(--muted)}
+.cxr .pc{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:.72rem;color:var(--muted)}
+.cxr .tr{position:relative;height:6px;border-radius:3px;background:var(--line)}
+.cxr .tr i{position:absolute;top:-3px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
+.alertfig{background:var(--plate);border-radius:10px;border:1px solid var(--line);overflow:hidden}
+.alertfig svg{width:100%;height:auto;display:block}
+.alist{display:flex;flex-direction:column;gap:6px}
+.alist button{appearance:none;border:1px solid var(--line);border-radius:9px;background:none;color:inherit;padding:7px 10px;text-align:left;display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer;font:inherit}
+.alist button[aria-pressed="true"]{border-color:var(--warn);background:var(--warn-soft)}
+.alist code{font:500 .76rem var(--f-mono);word-break:break-all;min-width:0}
+.alist small{color:var(--muted);font-size:.74rem;white-space:nowrap}
+.okline{display:flex;gap:8px;align-items:center;color:var(--good);font-weight:600;margin:0}
+.dgroup{margin-top:10px}
+.dgroup h3{font:700 .78rem var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 6px}
+.scaf{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}
+.scaf .th{display:block;aspect-ratio:168/120;background:var(--plate);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.scaf .th svg{width:100%;height:100%;display:block}
+.scaf b{display:block;font-size:.9rem}
+.scaf code{display:block;font:500 .72rem var(--f-mono);color:var(--muted);word-break:break-all;margin-top:3px}
 .props{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 @media (max-width:400px){.props{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .prop{background:var(--surface);padding:9px 11px;display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -161,12 +204,16 @@ button.chip{cursor:pointer}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .nn{display:flex;flex-direction:column}
-.nn button{appearance:none;border:none;border-top:1px solid var(--line);background:none;padding:8px 0;display:grid;grid-template-columns:22px 56px 1fr auto;gap:10px;align-items:center;text-align:left;cursor:pointer;min-width:0}
-.nn .n{width:20px;height:20px;border-radius:50%;background:var(--warn);color:var(--surface);font:700 .72rem var(--f-body);display:grid;place-items:center}
-.nn .th{width:56px;height:40px;background:var(--plate);border-radius:6px;overflow:hidden}
-.nn .th svg{width:100%;height:100%}
-.nn .t{min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nn .s{font:500 .82rem var(--f-mono);color:var(--muted)}
+.nngrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.nn button{appearance:none;border:1px solid var(--line);border-radius:10px;background:none;padding:4px 4px 6px;display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;min-width:0;color:inherit}
+.nn button:active{background:var(--soft,rgba(0,0,0,.04))}
+.nn .th{position:relative;display:block;width:100%;aspect-ratio:168/120;background:var(--plate);border-radius:7px;overflow:hidden}
+.nn .th svg{width:100%;height:100%;display:block}
+.nn .n{position:absolute;left:3px;top:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--warn);color:var(--surface);font:700 .68rem var(--f-body);display:grid;place-items:center}
+.nn.sim .n{background:var(--accent)}
+.nn .tag{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font:600 .62rem var(--f-body);vertical-align:1px}
+.nn .t{min-width:0;font-weight:700;font-size:.8rem;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:0 2px}
+.nn .s{font:500 .7rem var(--f-mono);color:var(--muted);padding:0 2px}
 
 /* 3D */
 .mol3d{position:relative;width:100%;aspect-ratio:1/1;max-height:62vh;background:var(--plate);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
@@ -219,6 +266,58 @@ button.chip{cursor:pointer}
 .del{appearance:none;border:none;background:none;width:36px;height:36px;border-radius:50%;cursor:pointer;color:var(--muted);display:grid;place-items:center}
 .del svg{width:18px;height:18px}
 
+/* top-bar icon buttons */
+.bar-in .gear{margin-right:0;width:42px}
+.bar-in #gearBtn{margin-right:-10px}
+.newchip{appearance:none;align-self:flex-start;border:1px solid var(--accent);background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:6px 12px;font:500 .82rem var(--f-body);cursor:pointer;display:flex;gap:8px;align-items:center}
+.newchip b{color:var(--accent);font-weight:700}
+
+/* report */
+.report{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.rp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:16px 16px 12px;align-items:start}
+.rp-kicker{margin:0 0 4px;font:500 .7rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rp-name{margin:0;font:700 1.45rem/1.1 var(--f-display);overflow-wrap:anywhere;text-wrap:balance;letter-spacing:-.01em}
+.rp-sub{margin:4px 0 0;font-size:.86rem;color:var(--muted)}
+.rp-qr{width:86px;background:#fff;border-radius:8px;padding:4px;border:1px solid var(--line);display:block;color:#000}
+.rp-qr svg{display:block;width:100%;height:auto}
+.rp-qr span{display:block;text-align:center;font-size:.62rem;color:#5B6773;margin-top:2px}
+.rp-fig{display:grid;grid-template-columns:minmax(0,1fr);background:var(--plate);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.rp-fig.two{grid-template-columns:minmax(0,1fr) 32%}
+.rp-fig svg{width:100%;height:auto;max-height:240px;display:block}
+.rp-fig figure{margin:0;position:relative;min-height:90px;border-left:1px solid var(--line);background:#fff}
+.rp-fig img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.rp-fig figcaption{position:absolute;left:6px;bottom:6px;font-size:.66rem;color:#5B6773;background:rgba(255,255,255,.9);padding:1px 6px;border-radius:999px}
+.rp-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:16px}
+.rp-ids{grid-template-columns:auto minmax(0,1fr)}
+.rp-ids dd{font:400 .78rem/1.4 var(--f-mono);overflow-wrap:anywhere}
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media (max-width:370px){.kgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kgrid div{background:var(--surface);padding:7px 9px;display:flex;flex-direction:column;min-width:0}
+.kgrid span{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kgrid b{font:500 .95rem var(--f-mono);font-variant-numeric:tabular-nums}
+.rp-sec{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rp-sec h3{margin:0;font:700 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.rp-sec p{margin:0;font-size:.9rem;max-width:65ch}
+.rp-sec ul{margin:0;padding-left:1.15em;font-size:.9rem}
+.rp-foot{padding:10px 16px;border-top:1px solid var(--line);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 14px;background:var(--bg)}
+.repact{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
+.repact .btn{flex-direction:column;gap:4px;min-height:60px;font-size:.82rem}
+
+/* share sheet */
+.qr{background:#fff;padding:14px;border-radius:14px;align-self:center;width:min(250px,100%);border:1px solid var(--line);color:#000}
+.qr svg{width:100%;height:auto;display:block}
+.qr.err{color:#B4232C;font-size:.85rem;text-align:center}
+.linkbox{margin:0;font:400 .76rem/1.45 var(--f-mono);overflow-wrap:anywhere;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.stack{display:flex;flex-direction:column;gap:8px}
+
+/* release notes */
+.rel{display:flex;flex-direction:column;gap:10px}
+.rel h3{margin:0;font:700 1.15rem var(--f-display);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rel h3 span{font:400 .82rem var(--f-body);color:var(--muted)}
+.rel h4{margin:6px 0 0;font:700 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.rel ul{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:5px;font-size:.92rem}
+.rel li b{font-weight:700}
+
 /* tab bar */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--tabh)}
@@ -256,6 +355,12 @@ button.chip{cursor:pointer}
     Structure Lens
   </div>
   <span class="sp"></span>
+  <button class="gear" id="histBtn" type="button" aria-label="History">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+  </button>
+  <button class="gear" id="shareBtn" type="button" aria-label="Share this structure">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>
+  </button>
   <button class="gear" id="gearBtn" type="button" aria-label="Settings and licences">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
   </button>
@@ -265,6 +370,7 @@ button.chip{cursor:pointer}
 
 <!-- ============ SCAN ============ -->
 <section class="tab" id="tab-scan" role="tabpanel" aria-label="Scan">
+  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Reports, PDF, QR codes and share links ›</button>
   <div class="plates">
     <div class="pl" id="photoPl">
       <span class="pl-cap">Photo</span>
@@ -339,24 +445,57 @@ button.chip{cursor:pointer}
 <section class="tab" id="tab-props" role="tabpanel" aria-label="Properties" hidden>
   <div class="mini" data-mini></div>
   <div class="card">
-    <div class="ch"><h2>Drug-likeness at a glance</h2></div>
-    <svg class="radar" id="radar" viewBox="0 0 360 300" role="img" aria-label="Property radar"></svg>
-    <p class="hint">The shaded band is the range typical of oral drugs. Points outside it are marked in red.</p>
+    <div class="ch"><h2>Drug-likeness</h2><span class="src">against 1,294 approved drugs</span></div>
+    <div id="typ"></div>
     <div class="scores" id="scores"></div>
-    <div class="rules" id="rules"></div>
+    <details class="fold"><summary>How typicality is calculated</summary><div>
+      <p class="hint">Typicality measures how far the compound sits from the centre of approved-drug property space, taking account of how the eight properties below vary together. It is the Mahalanobis distance computed over MW, cLogP, TPSA, H-bond donors and acceptors, rotatable bonds, aromatic rings and plane of best fit (PBF, a measure of 3D shape), with log scales for MW, TPSA and the counts, using the covariance of 1,294 FDA-approved drugs (ClinTox). The figure is the share of those drugs that lie further from the centre than this compound: 50% is as typical as the median drug, and below 5% is rarer than 19 in 20 approved drugs.</p>
+      <p class="hint">It has no fitted weights or desirability curves, so it describes what approved drugs look like rather than what a drug should look like. Approved drugs include injectables, antibiotics and natural products, so an atypical result is a prompt to look closer, not a verdict.</p>
+    </div></details>
   </div>
   <div class="card">
-    <div class="ch"><h2>Drug space</h2><span class="src">approved drugs, PCA of 8 properties</span></div>
+    <div class="ch"><h2>Property profile</h2><span class="src">vs approved drugs</span></div>
+    <svg class="profile" id="profile" viewBox="0 0 360 404" role="img" aria-label="Each property against the distribution over approved drugs"></svg>
+    <div class="legend"><span><i style="background:var(--dot)"></i>Approved drugs</span><span><i style="background:var(--accent)"></i>This compound</span><span><i class="dash"></i>Rule limit</span></div>
+    <p class="hint">The first eight properties make up the typicality score; Fsp3 is shown for comparison.</p>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Drug space</h2><span class="src">PCA of 8 properties</span></div>
     <div class="space" id="space"><svg id="spaceSvg" viewBox="0 0 340 250" role="img" aria-label="Map of approved drugs with this compound placed on it"></svg><div class="tip" id="tip" hidden></div></div>
-    <div class="legend"><span><i style="background:var(--dot)"></i>Approved drug</span><span><i style="background:var(--warn)"></i>Most similar (Morgan)</span><span><i style="background:var(--accent)"></i>This compound</span></div>
+    <div class="legend"><span><i style="background:var(--dot)"></i>Approved drug</span><span><i style="background:var(--warn)"></i>Same scaffold</span><span><i style="background:var(--accent)"></i>This compound</span></div>
     <p class="hint" id="spaceNote">Tap any point to see which drug it is.</p>
-    <details class="fold"><summary style="font:500 .85rem var(--f-body);color:var(--muted)">How this map is made</summary><div><p class="hint">PC1 rises with polar surface area, H-bond donors and acceptors and size. PC2 rises with size, aromatic rings and cLogP, and falls with Fsp3. The axes come from a principal component analysis of eight RDKit properties over 1,294 FDA-approved drugs, so any new structure can be placed on the same map.</p></div></details>
+    <details class="fold"><summary>How this map is made</summary><div><p class="hint">PC1 rises with polar surface area, H-bond donors and acceptors and size. PC2 rises with cLogP, size, aromatic rings, rotatable bonds and the plane of best fit, and falls with H-bond donors. The axes come from a principal component analysis of eight properties (seven from RDKit, plus the plane of best fit from a 3D conformer) over 1,294 FDA-approved drugs, so any new structure can be placed on the same map.</p></div></details>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Rule checks</h2></div>
+    <div class="rules" id="rules"></div>
+  </div>
+  <div class="card" id="alertCard">
+    <div class="ch"><h2>Structural alerts</h2><span class="src">116 substructures</span></div>
+    <div id="alerts"></div>
+  </div>
+  <div class="card" id="cxCard">
+    <div class="ch"><h2>Complexity and 3D shape</h2><span class="src">vs approved drugs</span></div>
+    <svg class="pmi" id="pmi" viewBox="0 0 340 236" role="img" aria-label="Principal moments of inertia triangle"></svg>
+    <p class="hint" id="pmiNote"></p>
+    <div class="cx" id="cx"></div>
+    <details class="fold"><summary>About these measures</summary><div>
+      <p class="hint"><b>Plane of best fit</b> (Firth, Brown and Blagg 2012) and the <b>normalised PMI ratios</b> (Sauer and Schwarz 2003) describe 3D shape. Both come from one conformer (OpenChemLib, MMFF94s+), using heavy atoms; the reference drugs were treated the same way, so the comparison is like for like. One conformer is a snapshot: flexible molecules can adopt other shapes.</p>
+      <p class="hint"><b>Bertz CT</b> (Bertz 1981) grows with size, branching, multiple bonds and heteroatom variety. <b>Fsp3</b> (Lovering et al. 2009) is the fraction of carbons that are sp3. <b>Kier Φ</b> (Kier 1989) indexes flexibility from atom counts and shape indices. <b>PubChem complexity</b> is PubChem's own Bertz/Hendrickson-type index, shown when the compound is in PubChem.</p>
+    </div></details>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Approved drugs with the same scaffold</h2></div>
     <div class="nn" id="nn"></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Approved drugs: nearest neighbours</h2><span class="src">Morgan fingerprint</span></div>
+    <div class="nn sim" id="nnSim"></div>
   </div>
   <div class="card">
     <details class="fold">
       <summary>All descriptors <span class="src" id="rdv" style="font-weight:400;font-family:var(--f-body);font-size:.8rem;color:var(--muted)">RDKit.js</span></summary>
-      <div><div class="props" id="props"></div></div>
+      <div><div id="props"></div></div>
     </details>
   </div>
 </section>
@@ -389,26 +528,34 @@ button.chip{cursor:pointer}
     <button class="btn" type="button" id="bannerCheck">Run connection check</button>
   </div>
   <div class="srcbar" role="tablist" aria-label="Data source">
-    <button type="button" role="tab" data-src="pc" aria-selected="true"><i id="dot-pc"></i>PubChem</button>
+    <button type="button" role="tab" data-src="wk" aria-selected="true"><i id="dot-wk"></i>Wikipedia</button>
     <button type="button" role="tab" data-src="ch" aria-selected="false"><i id="dot-ch"></i>ChEMBL</button>
-    <button type="button" role="tab" data-src="wk" aria-selected="false"><i id="dot-wk"></i>Wikipedia</button>
     <button type="button" role="tab" data-src="sc" aria-selected="false"><i id="dot-sc"></i>Patents</button>
+    <button type="button" role="tab" data-src="pc" aria-selected="false"><i id="dot-pc"></i>PubChem</button>
     <button type="button" role="tab" data-src="xr" aria-selected="false"><i id="dot-xr"></i>Other databases</button>
   </div>
-  <div class="card" data-pane="pc"><div class="ch"><h2>PubChem</h2><span class="src">NCBI</span><span class="st" id="pcSt"></span></div><div id="pcBody"></div></div>
+  <div class="card" data-pane="wk"><div class="ch"><h2>Wikipedia</h2><span class="src">matched through Wikidata</span><span class="st" id="wkSt"></span></div><div id="wkBody"></div></div>
   <div class="card" data-pane="ch" hidden><div class="ch"><h2>ChEMBL</h2><span class="src">EMBL-EBI</span><span class="st" id="chSt"></span></div><div id="chBody"></div></div>
-  <div class="card" data-pane="wk" hidden><div class="ch"><h2>Wikipedia</h2><span class="src">matched through Wikidata</span><span class="st" id="wkSt"></span></div><div id="wkBody"></div></div>
-  <div class="card" data-pane="sc" hidden><div class="ch"><h2>SureChEMBL</h2><span class="src">patents</span><span class="st" id="scSt"></span></div><div id="scBody"></div></div>
+  <div class="card" data-pane="sc" hidden><div class="ch"><h2>Patents</h2><span class="src">PubChem · SureChEMBL</span><span class="st" id="scSt"></span></div><div id="scBody"></div></div>
+  <div class="card" data-pane="pc" hidden><div class="ch"><h2>PubChem</h2><span class="src">NCBI</span><span class="st" id="pcSt"></span></div><div id="pcBody"></div></div>
   <div class="card" data-pane="xr" hidden><div class="ch"><h2>Other databases</h2><span class="src">UniChem cross-references</span><span class="st" id="xrSt"></span></div><div id="xrBody"></div></div>
 </section>
 
-<!-- ============ HISTORY ============ -->
-<section class="tab" id="tab-hist" role="tabpanel" aria-label="History" hidden>
-  <div class="card">
-    <div class="ch"><h2>History</h2><span class="src">kept on this phone only</span></div>
-    <div class="hist" id="recent"></div>
-    <button class="btn slim" type="button" id="clearHist" hidden>Clear history</button>
+<!-- ============ REPORT ============ -->
+<section class="tab" id="tab-report" role="tabpanel" aria-label="Report" hidden>
+  <article class="report" id="report" aria-live="polite"></article>
+  <div class="repact">
+    <button class="btn primary" type="button" id="pdfBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3 3 3-3"/></svg>
+      Save PDF</button>
+    <button class="btn" type="button" id="sharePdfBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>
+      Share PDF</button>
+    <button class="btn" type="button" id="openShare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h7v-4"/></svg>
+      Link and QR</button>
   </div>
+  <p class="hint">This page is the one-page summary. The PDF adds everything else the app found: all descriptors, the radar and drug-space charts, bioactivity, patents, cross-references and the input photo. For the 3D model, the PDF links to the interactive view in the app.</p>
 </section>
 
 </main>
@@ -422,8 +569,8 @@ button.chip{cursor:pointer}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="16" r="2.5"/><circle cx="17" cy="17.5" r="2"/><circle cx="12" cy="6" r="3"/><path d="M7.4 14l3.2-5.4M13.6 8.6l2.6 7M8.5 16.4l6.6.9"/></svg>3D</button>
   <button type="button" role="tab" data-tab="src" aria-selected="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Sources</button>
-  <button type="button" role="tab" data-tab="hist" aria-selected="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>History</button>
+  <button type="button" role="tab" data-tab="report" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Report</button>
 </div></nav>
 
 <!-- ============ SETTINGS SHEET ============ -->
@@ -487,24 +634,95 @@ button.chip{cursor:pointer}
     </div>
 
     <div class="card">
+      <div class="ch"><h2>What's new</h2><span class="src" id="verChip"></span></div>
+      <p class="hint">See what changed in each version of Structure Lens.</p>
+      <button class="btn slim" type="button" id="notesBtn">Release notes</button>
+    </div>
+
+    <div class="card">
       <div class="ch"><h2>About and licences</h2></div>
       <p class="hint">Structure Lens reads a drawn chemical structure from a photo on the phone, then describes it and looks it up in public databases. <span id="verLine"></span></p>
       <ul class="lic">
         <li><b>Structure Lens</b><a href="https://github.com/nathbroon/structure-lens/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">This app. Source on <a href="https://github.com/nathbroon/structure-lens" target="_blank" rel="noopener">GitHub</a>.</span></li>
         <li><b>DECIMER Image Transformer</b><a href="https://github.com/Kohulan/DECIMER-Image_Transformer/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Structure recognition model, converted to run in the browser. Rajan, Brinkhaus, Steinbeck et al., <a href="https://doi.org/10.1038/s41467-023-40782-0" target="_blank" rel="noopener">Nat. Commun. 2023</a>.</span></li>
-        <li><b>RDKit</b><a href="https://github.com/rdkit/rdkit/blob/master/license.txt" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Depictions, descriptors, fingerprints and InChI, via <a href="https://www.npmjs.com/package/@rdkit/rdkit" target="_blank" rel="noopener">RDKit.js</a>. QED follows RDKit's implementation of Bickerton et al. 2012.</span></li>
+        <li><b>RDKit</b><a href="https://github.com/rdkit/rdkit/blob/master/license.txt" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Depictions, descriptors, fingerprints and InChI, via <a href="https://www.npmjs.com/package/@rdkit/rdkit" target="_blank" rel="noopener">RDKit.js</a>. Structural alerts are the Brenk et al. 2008 set used in RDKit; scaffolds follow Bemis and Murcko 1996.</span></li>
         <li><b>ONNX Runtime Web</b><a href="https://github.com/microsoft/onnxruntime/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Runs the DECIMER model on the phone.</span></li>
         <li><b>3Dmol.js</b><a href="https://github.com/3dmol/3Dmol.js/blob/master/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Interactive 3D viewer.</span></li>
-        <li><b>OpenChemLib JS</b><a href="https://github.com/cheminfo/openchemlib-js/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">3D conformer generation and MMFF94s minimisation.</span></li>
+        <li><b>OpenChemLib JS</b><a href="https://github.com/cheminfo/openchemlib-js/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">3D conformer generation and MMFF94s minimisation, for the 3D view and the plane of best fit.</span></li>
         <li><b>ClinTox dataset</b><a href="https://moleculenet.org/datasets-1" target="_blank" rel="noopener">MoleculeNet</a><span class="what">FDA-approved drug structures behind the drug-space map. Wu et al., Chem. Sci. 2018; Gayvert et al., Cell Chem. Biol. 2016.</span></li>
         <li><b>PubChem</b><a href="https://www.ncbi.nlm.nih.gov/home/about/policies/" target="_blank" rel="noopener">NCBI policies</a><span class="what">Names, descriptions and similar compounds.</span></li>
         <li><b>ChEMBL and SureChEMBL</b><a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a><span class="what">Bioactivity, mechanisms, indications and patents, from EMBL-EBI.</span></li>
         <li><b>UniChem</b><a href="https://www.ebi.ac.uk/about/terms-of-use/" target="_blank" rel="noopener">EMBL-EBI terms</a><span class="what">Cross-references to other databases.</span></li>
         <li><b>Wikidata and Wikipedia</b><a href="https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use" target="_blank" rel="noopener">CC0 / CC BY-SA 4.0</a><span class="what">Article summaries, matched by InChIKey.</span></li>
+        <li><b>jsPDF</b><a href="https://github.com/parallax/jsPDF/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Builds the PDF report on the phone. Loaded only when you save or share a PDF.</span></li>
+        <li><b>QR Code Generator</b><a href="https://github.com/kazuhikoarase/qrcode-generator/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">QR codes for share links and SMILES, by Kazuhiko Arase. "QR Code" is a registered trademark of DENSO WAVE INCORPORATED.</span></li>
         <li><b>Fonts</b><a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL OFL 1.1</a><span class="what">Familjen Grotesk, Atkinson Hyperlegible and IBM Plex Mono, from Google Fonts.</span></li>
       </ul>
+      <p class="hint">Full licence texts for the app and every component are in <a href="https://github.com/nathbroon/structure-lens/blob/main/THIRD_PARTY_LICENSES.md" target="_blank" rel="noopener">THIRD_PARTY_LICENSES.md</a>.</p>
     </div>
   </div>
+</div>
+
+<!-- ============ HISTORY SHEET ============ -->
+<div class="sheet" id="histSheet" role="dialog" aria-modal="true" aria-labelledby="histH" hidden>
+  <div class="sheet-h"><div class="bar-in"><h2 id="histH">History</h2><button class="done" type="button" data-close="#histSheet">Done</button></div></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="ch"><h2>Structures</h2><span class="src" id="histCount">kept on this phone only</span></div>
+      <div class="hist" id="recent"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Back up or move</h2></div>
+      <p class="hint">Export saves the history as a JSON file you can keep or open on another phone. Import adds the structures in a file to this list; nothing here is removed.</p>
+      <div class="row">
+        <button class="btn slim" type="button" id="histExport">Export JSON</button>
+        <label class="btn slim" for="histImport">Import JSON</label>
+        <input id="histImport" type="file" accept=".json,application/json">
+        <button class="btn slim" type="button" id="clearHist" hidden>Clear history</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHARE SHEET ============ -->
+<div class="sheet" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareH" hidden>
+  <div class="sheet-h"><div class="bar-in"><h2 id="shareH">Share</h2><button class="done" type="button" data-close="#shareSheet">Done</button></div></div>
+  <div class="wrap">
+    <div class="mini" data-mini></div>
+    <div class="card">
+      <div class="ch"><h2>Link</h2></div>
+      <p class="hint">The link carries the structure's SMILES, so it opens straight to this structure. No photo, and no model download.</p>
+      <p class="linkbox" id="linkText"></p>
+      <div class="stack">
+        <button class="btn primary" type="button" id="shareLink">Share link…</button>
+        <button class="btn" type="button" id="copyLink">Copy link</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>QR code</h2></div>
+      <div class="seg" id="qrMode" role="group" aria-label="What the QR code holds">
+        <button type="button" data-q="link" aria-pressed="true">Link to this structure</button>
+        <button type="button" data-q="smiles" aria-pressed="false">SMILES only</button>
+      </div>
+      <div class="qr" id="qrBox" role="img" aria-label="QR code"></div>
+      <p class="hint" id="qrNote"></p>
+      <button class="btn slim" type="button" id="qrSave">Save QR image</button>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Report</h2></div>
+      <p class="hint">A multi-page PDF with everything the app found for this structure.</p>
+      <div class="stack">
+        <button class="btn" type="button" id="sharePdf2">Share PDF…</button>
+        <button class="btn" type="button" id="pdfBtn2">Save PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RELEASE NOTES SHEET ============ -->
+<div class="sheet" id="notesSheet" role="dialog" aria-modal="true" aria-labelledby="notesH" hidden>
+  <div class="sheet-h"><div class="bar-in"><h2 id="notesH">What's new</h2><button class="done" type="button" data-close="#notesSheet">Done</button></div></div>
+  <div class="wrap" id="notesBody"></div>
 </div>
 
 <div class="toast" id="toast" hidden role="status"></div>
@@ -520,6 +738,13 @@ const DEFAULTS = {
   modelBase: "decimer/"
 };
 const EXAMPLE = { smiles: "Cn1c(=O)c2c(ncn2C)n(C)c1=O", label: "example · caffeine" };
+const APP_VERSION = "1.1.0";
+const JSPDF_URL = "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js";
+const QR_URL = "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.js";
+const HIST_MAX = 300;
+// The published app. When this page runs from somewhere without the model or data folders
+// (a downloaded copy, another host), those files are fetched from here instead.
+const HOME_URL = "https://nathbroon.github.io/structure-lens/";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -570,8 +795,8 @@ function noteFailure(e) {
   if (netFailHosts.size >= 2) {
     const viewer = window.top !== window.self || location.protocol === "file:" || location.origin === "null";
     $("#netBannerText").textContent = (viewer
-      ? "This page is running inside another app's viewer, which does not allow it to connect to PubChem, ChEMBL or SureChEMBL. "
-      : "This browser could not connect to PubChem, ChEMBL or SureChEMBL. ")
+      ? "This page is running inside another app's viewer, which does not allow it to connect to PubChem, ChEMBL or Wikipedia. "
+      : "This browser could not connect to PubChem, ChEMBL or Wikipedia. ")
       + "Open the page from its web address in Safari (not from the Claude app or the Files app). If it is already open in Safari, check for a content blocker, a VPN or Lockdown Mode, then run the connection check in Settings.";
     $("#netBanner").hidden = false;
   }
@@ -599,7 +824,7 @@ $("#sReset").addEventListener("click", () => { store.set("sl.settings", {}); loa
 /* ---------- RDKit ---------- */
 let RD = null;
 const rdReady = window.initRDKitModule({ locateFile: () => RDKIT_WASM })
-  .then(m => { RD = m; $("#rdv").textContent = "RDKit.js " + m.version(); $("#verLine").textContent = `Running RDKit.js ${m.version()} and ONNX Runtime Web 1.30.0.`; return m; })
+  .then(m => { RD = m; $("#rdv").textContent = "RDKit.js " + m.version(); $("#verLine").textContent = `Version ${APP_VERSION}. Running RDKit.js ${m.version()} and ONNX Runtime Web 1.30.0.`; return m; })
   .catch(e => { $("#rdv").textContent = "RDKit failed to load"; throw e; });
 
 /* ---------- image capture, crop, enhance ---------- */
@@ -801,7 +1026,8 @@ function loadScript(src) {
   return new Promise((res, rej) => {
     if (document.querySelector(`script[src="${src}"]`)) return res();
     const s = document.createElement("script"); s.src = src; s.onload = res;
-    s.onerror = () => rej(new Error("Could not load the ONNX runtime")); document.head.appendChild(s);
+    s.onerror = () => { s.remove(); rej(new Error("Could not load " + (src.match(/npm\/(@?[^@/]+)/) || [, "a component"])[1] + ". Check the connection.")); };
+    document.head.appendChild(s);
   });
 }
 async function openCache() { try { return await caches.open(CACHE_NAME); } catch { return null; } }
@@ -826,25 +1052,40 @@ const joinParts = parts => { const n = parts.reduce((a, p) => a + p.length, 0), 
 let manifestP = null;
 // The model may be stored as parts under 25 MB (so it can be uploaded to GitHub through the browser);
 // manifest.json lists them with their sizes. Without a manifest, whole files are fetched.
+const usingDefaultModel = () => (settings().modelBase || DEFAULTS.modelBase) === DEFAULTS.modelBase;
+const homeModelURL = f => HOME_URL + "decimer/" + f;
 function modelManifest() {
-  if (!manifestP) manifestP = fetch(modelURL("manifest.json")).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!manifestP) manifestP = (async () => {
+    const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
+    const here = await get(modelURL("manifest.json"));
+    if (here) return { man: here, src: modelURL };
+    if (usingDefaultModel() && homeModelURL("") !== modelURL("")) {
+      const home = await get(homeModelURL("manifest.json"));
+      if (home) return { man: home, src: homeModelURL };
+    }
+    return { man: null, src: modelURL };
+  })();
+  manifestP.then(r => { if (!r.man) manifestP = null; });
   return manifestP;
 }
 async function fetchModelFile(name, onProgress) {
   const url = modelURL(name), cache = await openCache();
   if (cache) { const hit = await cache.match(url); if (hit) return new Uint8Array(await hit.arrayBuffer()); }
-  const man = await modelManifest(), entry = man && man.files && man.files[name];
+  const { man, src } = await modelManifest(), entry = man && man.files && man.files[name];
   let buf;
   if (entry && entry.parts) {
     const total = entry.size || 0, done = [];
     let base = 0;
     for (const part of entry.parts) {
-      const b = await downloadBytes(modelURL(part), g => onProgress && onProgress(base + g, total));
+      const b = await downloadBytes(src(part), g => onProgress && onProgress(base + g, total));
       done.push(b); base += b.length;
     }
     buf = joinParts(done);
     if (entry.size && buf.length !== entry.size) throw new Error(`${name} is incomplete (${buf.length} of ${entry.size} bytes)`);
-  } else buf = await downloadBytes(url, onProgress);
+  } else {
+    try { buf = await downloadBytes(src(name), onProgress); }
+    catch (e) { if (src !== modelURL || !usingDefaultModel()) throw e; buf = await downloadBytes(homeModelURL(name), onProgress); }
+  }
   if (cache) { try { await cache.put(url, new Response(buf, { headers: { "Content-Type": "application/octet-stream" } })); } catch {} }
   return buf;
 }
@@ -1014,7 +1255,7 @@ async function connectionCheck() {
     ["Wikidata", "https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(`SELECT ?i WHERE { ?i wdt:P235 "${KEY}" } LIMIT 1`), { headers: { Accept: "application/sparql-results+json" } }],
     ["Wikipedia", "https://en.wikipedia.org/api/rest_v1/page/summary/Caffeine", {}],
     ["UniChem", "https://www.ebi.ac.uk/unichem/api/v1/compounds", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "inchikey", compound: KEY }) }],
-    ["SureChEMBL", `${SC}/chemical/id?ids=5671`, { method: "POST" }],
+    ["Patents", `${PUG}/compound/cid/2519/property/PatentCount/JSON`, {}],
     ["Model", modelURLSafe("vocab.json"), {}]
   ];
   for (const [name, url, opts] of tests) {
@@ -1088,17 +1329,23 @@ async function analyse(smiles, sourceLabel) {
     const c = lastConf;
     setSt("#strSt", `confidence ${Math.round(100 * c.mean)}% · lowest ${Math.round(100 * c.min)}%` + (c.unknown ? ` · ${c.unknown} unknown token${c.unknown > 1 ? "s" : ""}` : ""), c.mean > 0.9 && !c.unknown ? "ok" : "err");
   } else setSt("#strSt", "");
+  const runConf = lastConf && /phone/.test(sourceLabel) ? lastConf : null;
   lastConf = null;
-  const svg = mol.get_svg_with_highlights(JSON.stringify({ width: 560, height: 340, bondLineWidth: 2, fixedBondLength: 34, padding: 0.08, clearBackground: false }));
+  const svg = mol.get_svg_with_highlights(JSON.stringify(drawOpts(560, 340)));
   const canon = mol.get_smiles();
   const desc = JSON.parse(mol.get_descriptors());
   const inchi = mol.get_inchi();
-  let extra = { qed: NaN, alerts: 0, logS: NaN }; try { extra = extras(mol, desc); } catch (e) { console.warn(e); }
+  let extra = { alerts: 0, alertKeys: [], logS: NaN }; try { extra = extras(mol, desc); } catch (e) { console.warn(e); }
   mol.delete();
   const key = inchi ? RD.get_inchikey_for_inchi(inchi) : "";
   const formula = inchi ? (inchi.split("/")[1] || "") : "";
 
-  current = { smiles: canon, key, inchi, formula, desc, extra, name: "", thumb: thumbSVG(canon, 160, 120) };
+  current = { smiles: canon, key, inchi, formula, desc, extra, name: "", thumb: thumbSVG(canon, 160, 120),
+    input: smiles, source: sourceLabel, conf: runConf, when: Date.now(), info: {}, nn: null, typ: null, scaf: null,
+    photo: /^DECIMER/.test(sourceLabel) ? photoSnapshot() : null };
+  if (current.photo) savePhoto(canon, current.photo, sourceLabel);
+  else { current.photo = loadPhoto(canon); if (current.photo?.src) current.source = current.photo.src + " (from an earlier scan on this phone)"; }
+  writeHash(canon, sourceLabel);
   $("#depict").innerHTML = svg;
   $("#csmi").textContent = canon; $("#ikey").textContent = key || "—";
   $("#formula").innerHTML = formulaHTML(formula);
@@ -1114,50 +1361,74 @@ async function analyse(smiles, sourceLabel) {
   onCompound();
 
   const names = { pubchem: null, chembl: null };
-  const pc = pubchem(id, pKey, parent).then(n => names.pubchem = n).catch(e => fail("#pcSt", "#pcBody", e));
-  const ch = chembl(id, pKey, parent).then(n => names.chembl = n).catch(e => fail("#chSt", "#chBody", e));
-  const uc = unichem(id, pKey).catch(e => { fail("#xrSt", "#xrBody", e); return null; });
-  surechembl(id, parent, uc).catch(e => fail("#scSt", "#scBody", e));
-  wikipedia(id, pKey, () => Promise.all([pc, ch]).then(() => names.chembl || names.pubchem)).catch(e => fail("#wkSt", "#wkBody", e));
+  const pc = pubchem(id, pKey, parent).then(n => names.pubchem = n).catch(e => fail("#pcSt", "#pcBody", e, id));
+  const ch = chembl(id, pKey, parent).then(n => names.chembl = n).catch(e => fail("#chSt", "#chBody", e, id));
+  const uc = unichem(id, pKey).catch(e => { fail("#xrSt", "#xrBody", e, id); return null; });
+  patents(id, pc, uc).catch(e => fail("#scSt", "#scBody", e, id));
+  wikipedia(id, pKey, () => Promise.all([pc, ch]).then(() => names.chembl || names.pubchem)).catch(e => fail("#wkSt", "#wkBody", e, id));
 
   Promise.all([pc, ch]).then(() => {
     if (id !== runId) return;
     const nm = names.pubchem || names.chembl;
-    if (nm) { current.name = nm; updateMini(); $("#cName").textContent = titleCase(nm); $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${fmt(desc.amw, 2)}` : ""; }
+    if (nm) { current.name = nm; updateMini(); scheduleReport(); $("#cName").textContent = titleCase(nm); $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${fmt(desc.amw, 2)}` : ""; }
     else $("#cSub").textContent = "No name found in PubChem or ChEMBL. This may be a novel structure.";
-    addRecent(canon, nm);
+    addRecent(canon, nm, key);
   });
 }
 function titleCase(s) { return s && s === s.toUpperCase() ? s.charAt(0) + s.slice(1).toLowerCase() : s; }
-function fail(st, body, e) {
+function fail(st, body, e, id = runId) {
   const msg = isNetErr(e) ? "Could not connect to the service. The browser blocked the request or there is no connection." : (e && e.message) || "Lookup failed";
+  if (DOTS[st]) stash(id, DOTS[st], { error: msg });
   const detail = e ? `${e.host ? e.host + " · " : ""}${e.name || "Error"}: ${e.message || ""}` : "";
   setSt(st, "error", "err");
   $(body).innerHTML = `<p class="empty">${esc(msg)}</p>${detail ? `<p class="hint" style="font-family:var(--f-mono);font-size:.75rem;overflow-wrap:anywhere">${esc(detail)}</p>` : ""}`;
 }
 
-function renderProps(d) {
-  const P = [
+function descRows(d) {
+  const f3 = (v, dp) => v === undefined ? "…" : Number.isFinite(v) ? fmt(v, dp) : "—";
+  return [
     ["MW", fmt(d.amw, 2), "Da"], ["Exact mass", fmt(d.exactmw, 4), ""], ["cLogP", fmt(d.CrippenClogP, 2), "Crippen"],
     ["TPSA", fmt(d.tpsa, 1), "Å²"], ["HBD", d.lipinskiHBD, ""], ["HBA", d.lipinskiHBA, ""],
-    ["Rot. bonds", d.NumRotatableBonds, ""], ["Heavy atoms", d.NumHeavyAtoms, ""], ["Fsp3", fmt(d.FractionCSP3, 2), ""],
+    ["Rot. bonds", d.NumRotatableBonds, ""], ["Heavy atoms", d.NumHeavyAtoms, ""], ["PBF", f3(d.PBF, 2), "Å"],
+    ["NPR1", f3(d.NPR1, 3), ""], ["NPR2", f3(d.NPR2, 3), ""], ["Bertz CT", f3(d.BertzCT, 0), ""], ["Fsp3", fmt(d.FractionCSP3, 2), ""],
     ["Rings", d.NumRings, ""], ["Arom. rings", d.NumAromaticRings, ""], ["Stereocentres", d.NumAtomStereoCenters, d.NumUnspecifiedAtomStereoCenters ? `${d.NumUnspecifiedAtomStereoCenters} undefined` : ""],
+    ["Spiro atoms", d.NumSpiroAtoms, ""], ["Bridgehead atoms", d.NumBridgeheadAtoms, ""],
     ["Molar refr.", fmt(d.CrippenMR, 1), ""], ["Heteroatoms", d.NumHeteroatoms, ""], ["Amide bonds", d.NumAmideBonds, ""],
-    ["Heterocycles", d.NumHeterocycles, ""], ["Aliph. rings", d.NumAliphaticRings, ""], ["Labute ASA", fmt(d.labuteASA, 1), "Å²"]
+    ["Heterocycles", d.NumHeterocycles, ""], ["Aliph. rings", d.NumAliphaticRings, ""], ["Sat. rings", d.NumSaturatedRings, ""], ["Labute ASA", fmt(d.labuteASA, 1), "Å²"],
+    ["Kier Φ", fmt(d.Phi, 2), ""], ["κ1", fmt(d.kappa1, 2), ""], ["κ2", fmt(d.kappa2, 2), ""], ["κ3", fmt(d.kappa3, 2), ""],
+    ["χ0v", fmt(d.chi0v, 2), ""], ["χ1v", fmt(d.chi1v, 2), ""], ["χ2v", fmt(d.chi2v, 2), ""], ["χ3v", fmt(d.chi3v, 2), ""], ["χ4v", fmt(d.chi4v, 2), ""],
+    ["Hall–Kier α", fmt(d.hallKierAlpha, 2), ""]
   ];
-  $("#props").innerHTML = P.map(([k, v, u]) => `<div class="prop"><span class="k">${k}</span><span class="v">${v}${u ? `<span class="u">${u}</span>` : ""}</span></div>`).join("");
-
-  const ro5 = [["MW ≤ 500", d.amw <= 500], ["cLogP ≤ 5", d.CrippenClogP <= 5], ["HBD ≤ 5", d.lipinskiHBD <= 5], ["HBA ≤ 10", d.lipinskiHBA <= 10]];
-  const veber = [["RotB ≤ 10", d.NumRotatableBonds <= 10], ["TPSA ≤ 140", d.tpsa <= 140]];
-  const ro3 = [["MW < 300", d.amw < 300], ["cLogP ≤ 3", d.CrippenClogP <= 3], ["HBD ≤ 3", d.lipinskiHBD <= 3], ["HBA ≤ 3", d.NumHBA <= 3], ["RotB ≤ 3", d.NumRotatableBonds <= 3]];
-  const bbb = [["TPSA < 90", d.tpsa < 90], ["MW < 450", d.amw < 450], ["HBD ≤ 3", d.lipinskiHBD <= 3]];
-  const row = (name, checks, allowOne) => {
-    const v = checks.filter(c => !c[1]).length;
+}
+function ruleChecks(d) {
+  const sets = [
+    ["Lipinski Ro5", [["MW ≤ 500", d.amw <= 500], ["cLogP ≤ 5", d.CrippenClogP <= 5], ["HBD ≤ 5", d.lipinskiHBD <= 5], ["HBA ≤ 10", d.lipinskiHBA <= 10]], true],
+    ["Veber", [["RotB ≤ 10", d.NumRotatableBonds <= 10], ["TPSA ≤ 140", d.tpsa <= 140]], false],
+    ["Rule of 3 (fragments)", [["MW < 300", d.amw < 300], ["cLogP ≤ 3", d.CrippenClogP <= 3], ["HBD ≤ 3", d.lipinskiHBD <= 3], ["HBA ≤ 3", d.NumHBA <= 3], ["RotB ≤ 3", d.NumRotatableBonds <= 3]], false],
+    ["CNS-like (heuristic)", [["TPSA < 90", d.tpsa < 90], ["MW < 450", d.amw < 450], ["HBD ≤ 3", d.lipinskiHBD <= 3]], false]
+  ];
+  return sets.map(([name, checks, allowOne]) => {
+    const fails = checks.filter(c => !c[1]).map(c => c[0]), v = fails.length;
     const cls = v === 0 ? "pass" : (allowOne && v === 1) ? "mid" : "fail";
     const verdict = v === 0 ? "passes" : v === 1 && allowOne ? "1 violation, allowed" : `${v} violation${v > 1 ? "s" : ""}`;
-    return `<div class="rule"><b>${name}</b><span><span class="chip ${cls}">${verdict}</span>${v ? `<span class="why">fails ${checks.filter(c => !c[1]).map(c => c[0]).join(", ")}</span>` : ""}</span></div>`;
-  };
-  $("#rules").innerHTML = row("Lipinski Ro5", ro5, true) + row("Veber", veber) + row("Rule of 3 (fragments)", ro3) + row("CNS-like (heuristic)", bbb);
+    return { name, fails, cls, verdict, checks: checks.map(([t, ok]) => ({ t, ok })) };
+  });
+}
+const RULE_NOTE = { "Lipinski Ro5": "Oral absorption; one violation allowed", "Veber": "Oral bioavailability in rats", "Rule of 3 (fragments)": "Fragment screening libraries", "CNS-like (heuristic)": "Brain penetration, rough guide" };
+const DESC_GROUPS = [
+  ["Size", ["MW", "Exact mass", "Heavy atoms", "Labute ASA", "Molar refr."]],
+  ["Lipophilicity and polarity", ["cLogP", "TPSA", "HBD", "HBA", "Heteroatoms", "Amide bonds"]],
+  ["Complexity and 3D shape", ["PBF", "NPR1", "NPR2", "Bertz CT", "Fsp3", "Stereocentres", "Spiro atoms", "Bridgehead atoms"]],
+  ["Flexibility", ["Rot. bonds", "Kier Φ"]],
+  ["Rings", ["Rings", "Arom. rings", "Aliph. rings", "Sat. rings", "Heterocycles"]],
+  ["Topological indices", ["κ1", "κ2", "κ3", "χ0v", "χ1v", "χ2v", "χ3v", "χ4v", "Hall–Kier α"]]
+];
+function renderProps(d) {
+  const P = new Map(descRows(d).map(r => [r[0], r]));
+  const cell = ([k, v, u]) => `<div class="prop"><span class="k">${k}</span><span class="v">${v}${u ? `<span class="u">${u}</span>` : ""}</span></div>`;
+  $("#props").innerHTML = DESC_GROUPS.map(([g, keys]) => `<div class="dgroup"><h3>${g}</h3><div class="props">${keys.filter(k => P.has(k)).map(k => cell(P.get(k))).join("")}</div></div>`).join("");
+  $("#rules").innerHTML = ruleChecks(d).map(r => `<div class="rule"><div class="rh"><span><b>${r.name}</b><small>${RULE_NOTE[r.name] || ""}</small></span><span class="chip ${r.cls}">${r.verdict}</span></div>
+    <div class="crit">${r.checks.map(c => `<span class="${c.ok ? "ok" : "no"}">${c.ok ? "✓" : "✗"} ${c.t}</span>`).join("")}</div></div>`).join("");
 }
 
 /* ---------- PubChem ---------- */
@@ -1173,13 +1444,14 @@ async function pubchem(id, key, smi) {
     cids = r?.IdentifierList?.CID;
   }
   if (id !== runId) return null;
-  if (!cids?.length) { setSt("#pcSt", "not found"); $("#pcBody").innerHTML = `<p class="empty">No exact or close (≥90% Tanimoto) match in PubChem.</p>`; return null; }
+  if (!cids?.length) { setSt("#pcSt", "not found"); stash(id, "pc", { none: true }); $("#pcBody").innerHTML = `<p class="empty">No exact or close (≥90% Tanimoto) match in PubChem.</p>`; return null; }
 
   if (!exact) {
     const pr = await getJSON(`${PUG}/compound/cid/${cids.join(",")}/property/Title,MolecularFormula,MolecularWeight/JSON`);
     if (id !== runId) return null;
     const rows = pr?.PropertyTable?.Properties || [];
     setSt("#pcSt", "similar only");
+    stash(id, "pc", { similar: rows.map(p => ({ cid: p.CID, title: p.Title || "CID " + p.CID, formula: p.MolecularFormula, mw: p.MolecularWeight })) });
     $("#pcBody").innerHTML = `<p class="empty">No exact match. Nearest compounds (≥90% similar):</p>
       <div class="tblwrap"><table class="tbl"><thead><tr><th>Compound</th><th>Formula</th><th style="text-align:right">MW</th></tr></thead><tbody>
       ${rows.map(p => `<tr><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/${p.CID}" target="_blank" rel="noopener">${esc(p.Title || "CID " + p.CID)}</a></td><td>${formulaHTML(p.MolecularFormula)}</td><td class="n">${fmt(p.MolecularWeight, 2)}</td></tr>`).join("")}
@@ -1199,6 +1471,8 @@ async function pubchem(id, key, smi) {
   const descs = (des?.InformationList?.Information || []).filter(i => i.Description);
   const d0 = descs[0];
   setSt("#pcSt", "CID " + cid, "ok");
+  stash(id, "pc", { cid, title: p.Title, iupac: p.IUPACName, xlogp: p.XLogP, complexity: p.Complexity, charge: p.Charge,
+    desc: d0?.Description || "", descSrc: d0?.DescriptionSourceName || "", syns: (syn?.InformationList?.Information?.[0]?.Synonym || []).filter(s => !/^[A-Z0-9-]{14,}$/.test(s) && s.length < 50).slice(0, 25) });
   $("#pcBody").innerHTML = `
     ${d0 ? `<p class="lede">${esc(d0.Description)}</p><p class="hint">Description: ${esc(d0.DescriptionSourceName || "PubChem")}</p>` : ""}
     <dl class="kv">
@@ -1228,6 +1502,7 @@ async function chembl(id, key, smi) {
     if (id !== runId) return null;
     const hits = s?.molecules || [];
     setSt("#chSt", hits.length ? "similar only" : "not found");
+    stash(id, "ch", hits.length ? { similar: hits.map(h => ({ id: h.molecule_chembl_id, name: h.pref_name || "", sim: h.similarity })) } : { none: true });
     $("#chBody").innerHTML = hits.length ? `<p class="empty">Not in ChEMBL. Most similar compounds (≥70%):</p>
       <div class="tblwrap"><table class="tbl"><thead><tr><th>ChEMBL ID</th><th>Name</th><th style="text-align:right">Sim.</th></tr></thead><tbody>
       ${hits.map(h => `<tr><td><a href="https://www.ebi.ac.uk/chembl/explore/compound/${h.molecule_chembl_id}" target="_blank" rel="noopener">${h.molecule_chembl_id}</a></td><td>${esc(h.pref_name || "—")}</td><td class="n">${fmt(h.similarity, 0)}%</td></tr>`).join("")}
@@ -1237,12 +1512,13 @@ async function chembl(id, key, smi) {
   const cid = m.molecule_chembl_id, mp = m.molecule_properties || {};
   const phaseKey = m.max_phase == null ? null : String(parseFloat(m.max_phase));
   setSt("#chSt", cid, "ok");
+  stash(id, "ch", { id: cid, name: m.pref_name || "", phase: phaseKey ? (PHASE[phaseKey] || "Phase " + phaseKey) : "Preclinical / research compound", approved: phaseKey === "4",
+    firstApproval: m.first_approval || null, apka: mp.cx_most_apka ?? null, bpka: mp.cx_most_bpka ?? null, logd: mp.cx_logd ?? null });
   $("#chBody").innerHTML = `
     <dl class="kv">
       <dt>Name</dt><dd>${esc(m.pref_name || "—")}</dd>
       <dt>Max phase</dt><dd>${phaseKey ? `<span class="chip ${phaseKey === "4" ? "pass" : "mid"}">${PHASE[phaseKey] || "Phase " + phaseKey}</span>` : "Preclinical / research compound"}</dd>
       ${m.first_approval ? `<dt>First approval</dt><dd>${m.first_approval}</dd>` : ""}
-      ${mp.qed_weighted ? `<dt>QED</dt><dd>${fmt(mp.qed_weighted, 2)}</dd>` : ""}
       ${mp.cx_most_apka ? `<dt>Most acidic pKa</dt><dd>${fmt(mp.cx_most_apka, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
       ${mp.cx_most_bpka ? `<dt>Most basic pKa</dt><dd>${fmt(mp.cx_most_bpka, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
       ${mp.cx_logd ? `<dt>logD 7.4</dt><dd>${fmt(mp.cx_logd, 2)} <span class="hint">(ChemAxon)</span></dd>` : ""}
@@ -1272,6 +1548,10 @@ async function chembl(id, key, smi) {
   }
   for (const t of byT.values()) { const v = t.vals.sort((a, b) => a - b); t.med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2; }
   const top = [...byT.entries()].sort((a, b) => b[1].n - a[1].n || b[1].med - a[1].med).slice(0, 8);
+  stash(id, "ch", {
+    mechs: mechs.map(x => ({ moa: x.mechanism_of_action, action: (x.action_type || "").toLowerCase() })),
+    inds: [...new Map(inds.map(i => [i.efo_term || i.mesh_heading, i])).values()].slice(0, 10).map(i => ({ term: i.efo_term || i.mesh_heading, phase: parseFloat(i.max_phase_for_ind) || null })),
+    targets: top.map(([tid, t]) => ({ id: tid, name: t.name, org: t.org || "", types: [...t.types].join(", "), med: t.med, max: t.max, n: t.n })), actTotal: total });
   $("#chAct").innerHTML = top.length ? `<p class="hint" style="margin:6px 0 4px">Targets with the most potency data · ${total} activities with a pChEMBL value</p>
     <div class="tblwrap"><table class="tbl"><thead><tr><th>Target</th><th style="text-align:right">Median</th><th style="text-align:right">Best</th><th style="text-align:right">n</th></tr></thead><tbody>
     ${top.map(([tid, t]) => `<tr><td><a href="https://www.ebi.ac.uk/chembl/explore/target/${tid}" target="_blank" rel="noopener">${esc(t.name)}</a><br><span class="hint">${esc(t.org || "")} · ${[...t.types].join(", ")}</span></td><td class="n">${t.med.toFixed(2)}</td><td class="n">${t.max.toFixed(2)}</td><td class="n">${t.n}</td></tr>`).join("")}
@@ -1301,14 +1581,16 @@ async function wikipedia(id, key, nameLater) {
   if (id !== runId) return;
   if (!title) {
     setSt("#wkSt", qid ? qid : "not found");
+    stash(id, "wk", { none: true, qid });
     $("#wkBody").innerHTML = qid ? `<p class="empty">On Wikidata but no English Wikipedia article.</p><div class="links"><a class="chip" href="https://www.wikidata.org/wiki/${qid}" target="_blank" rel="noopener">Wikidata ${qid} ↗</a></div>` : `<p class="empty">No Wikipedia article found.</p>`;
     return;
   }
   const s = await getJSON(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`);
   if (id !== runId) return;
-  if (!s) { setSt("#wkSt", "not found"); $("#wkBody").innerHTML = `<p class="empty">No Wikipedia article found.</p>`; return; }
+  if (!s) { setSt("#wkSt", "not found"); stash(id, "wk", { none: true, qid }); $("#wkBody").innerHTML = `<p class="empty">No Wikipedia article found.</p>`; return; }
   setSt("#wkSt", via === "exact InChIKey" ? "matched" : "by name", via === "exact InChIKey" ? "ok" : "");
   const url = s.content_urls?.mobile?.page || s.content_urls?.desktop?.page;
+  stash(id, "wk", { title: s.title, desc: s.description || "", extract: s.extract || "", url: s.content_urls?.desktop?.page || url || "", qid, via });
   $("#wkBody").innerHTML = `<div class="wiki"><div style="min-width:0"><p class="name" style="font-size:1.15rem;margin:0 0 6px">${esc(s.title)}</p>
     ${s.description ? `<p class="hint" style="margin:0 0 8px">${esc(s.description)}</p>` : ""}
     <p class="lede">${esc(s.extract || "")}</p></div>
@@ -1350,6 +1632,7 @@ async function unichem(id, key) {
   const grouped = new Map();
   for (const s of others) { const k = s.longName || s.shortName; if (!grouped.has(k)) grouped.set(k, []); grouped.get(k).push(s); }
   setSt("#xrSt", srcs.length ? `${grouped.size} sources` : "not found", srcs.length ? "ok" : "");
+  stash(id, "xr", { list: [...grouped.entries()].map(([name, list]) => ({ name, short: list[0].shortName || name, id: list[0].compoundId, more: list.length - 1, url: xlink(list[0]) || "" })) });
   $("#xrBody").innerHTML = grouped.size ? `<div class="syn">${[...grouped.entries()].slice(0, 30).map(([name, list]) => {
       const s = list[0], u = xlink(s);
       const lbl = `${esc(s.shortName || name)}: ${esc(s.compoundId)}${list.length > 1 ? ` +${list.length - 1}` : ""}`;
@@ -1358,32 +1641,78 @@ async function unichem(id, key) {
   return schembl;
 }
 
-/* ---------- SureChEMBL patents ---------- */
-const SC = "https://surechembl.org/api";
-async function surechembl(id, smi, unichemId) {
+/* ---------- patents (PubChem; SureChEMBL ID from UniChem) ----------
+   SureChEMBL's new API does not allow requests from other websites, so the
+   counts, patent numbers and titles come from PubChem, which takes its patent
+   links from SureChEMBL, IBM and Google Patents. */
+const PUGV = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view";
+const PAT_LIST_MAX = 10000;   // above this the full ID list is too big to fetch on a phone
+const PAT_SHOW = 8;
+const gpURL = pid => `https://patents.google.com/patent/${String(pid).replace(/-/g, "")}`;
+const scPatURL = pid => `https://www.surechembl.org/patent/${encodeURIComponent(pid)}`;
+const schemblURL = sid => `https://www.surechembl.org/chemical/SCHEMBL${String(sid).replace(/^SCHEMBL/, "")}`;
+// PubChem allows 5 requests a second: space out the optional ones
+let pcSlot = 0;
+function pcPaced(fn) {
+  const now = Date.now(), at = Math.max(now, pcSlot); pcSlot = at + 230;
+  return new Promise(r => setTimeout(r, at - now)).then(fn);
+}
+function patentPick(ids) {
+  // prefer WO, then US, then EP publications; keep PubChem's order within each
+  const rank = id => /^WO-/.test(id) ? 0 : /^US-/.test(id) ? 1 : /^EP-/.test(id) ? 2 : 3;
+  return [...ids].map((id, k) => [rank(id), k, id]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(x => x[2]);
+}
+async function patentInfo(pid) {
+  const r = await pcPaced(() => getJSON(`${PUGV}/data/patent/${encodeURIComponent(pid)}/JSON`)).catch(() => null);
+  const R = r?.Record; if (!R) return { id: pid, title: "", date: "", assignee: "" };
+  const sec = h => (R.Section || []).find(x => x.TOCHeading === h);
+  const dates = sec("Important Dates")?.Section || [];
+  const dt = h => dates.find(x => x.TOCHeading === h)?.Information?.[0]?.Value?.DateISO8601?.[0] || "";
+  const who = (sec("Assignee")?.Information || []).map(i => i.Value?.StringWithMarkup?.[0]?.String).filter(Boolean);
+  return { id: pid, title: titleCase(R.RecordTitle || ""), date: (dt("Priority Date") || dt("Publication Date")).replace(/\//g, "-"), assignee: who.slice(0, 2).join("; ") };
+}
+async function patents(id, pcDone, unichemId) {
   setSt("#scSt", "searching"); $("#scBody").innerHTML = skel(3);
-  let cid = null, info = null;
-  const r = await getJSON(`${SC}/chemical/smiles/?smiles=${encodeURIComponent(smi)}`, { method: "POST" }).catch(() => null);
-  if (r?.data) { info = Object.values(r.data)[0] || null; cid = info?.chemical_id || null; }
-  if (!cid) { const u = await unichemId; if (u) cid = String(u).replace(/^SCHEMBL/, ""); }
+  await pcDone;
+  const schembl = await unichemId;
   if (id !== runId) return;
+  const cid = current?.info?.pc?.cid || null;
+  const sid = schembl ? "SCHEMBL" + String(schembl).replace(/^SCHEMBL/, "") : null;
+  const scChip = sid ? `<a class="chip" href="${schemblURL(sid)}" target="_blank" rel="noopener">${sid} in SureChEMBL ↗</a>` : "";
   if (!cid) {
-    setSt("#scSt", "not found");
-    $("#scBody").innerHTML = `<p class="empty">This structure has not been found in any patent indexed by SureChEMBL.</p><div class="links"><a class="chip" href="https://www.surechembl.org/" target="_blank" rel="noopener">Similarity search on SureChEMBL ↗</a></div>`;
+    setSt("#scSt", sid ? sid : "not found", sid ? "ok" : "");
+    stash(id, "sc", { none: !sid, schembl: sid });
+    $("#scBody").innerHTML = `<p class="empty">${sid ? "This structure is in SureChEMBL but not in PubChem, so patent counts are not available here." : "This exact structure is not in PubChem or SureChEMBL, so no patents mention it."}</p>
+      <div class="links">${scChip}<a class="chip" href="https://www.surechembl.org/" target="_blank" rel="noopener">Similarity search on SureChEMBL ↗</a></div>`;
     return;
   }
-  const d = await getJSON(`${SC}/search/documents_for_structures?chemicalIds=${cid}&page=1&itemsPerPage=8`, { method: "POST" });
+  const pr = await getJSON(`${PUG}/compound/cid/${cid}/property/PatentCount,PatentFamilyCount,LiteratureCount/JSON`);
   if (id !== runId) return;
-  const res = d?.data?.results || {}, docs = res.documents || [], total = res.total_hits ?? docs.length;
-  const title = doc => { const t = (doc.metadata?.titles || []).find(x => x.lang === "en") || (doc.metadata?.titles || [])[0]; return t?.titles?.[0] || ""; };
-  setSt("#scSt", "SCHEMBL" + cid, "ok");
-  $("#scBody").innerHTML = `
-    <dl class="kv"><dt>Patent documents</dt><dd><b>${Number(total).toLocaleString("en-GB")}</b></dd>
-    ${info?.name ? `<dt>Name in patents</dt><dd>${esc(info.name)}</dd>` : ""}</dl>
-    ${docs.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Document</th><th>Title</th></tr></thead><tbody>
-      ${docs.map(doc => `<tr><td style="white-space:nowrap"><a href="https://www.surechembl.org/patent/${encodeURIComponent(doc.docId)}" target="_blank" rel="noopener">${esc(doc.docId)}</a></td><td>${esc(titleCase(title(doc)))}</td></tr>`).join("")}
-    </tbody></table></div><p class="hint">First ${docs.length} documents as SureChEMBL lists them.</p>` : ""}
-    <div class="links"><a class="chip" href="https://www.surechembl.org/chemical/SCHEMBL${cid}" target="_blank" rel="noopener">Open in SureChEMBL ↗</a></div>`;
+  const P = pr?.PropertyTable?.Properties?.[0] || {};
+  const count = +P.PatentCount || 0, fams = +P.PatentFamilyCount || 0, lit = +P.LiteratureCount || 0;
+  const base = { cid, schembl: sid, count, families: fams, lit, docs: [], listed: false };
+  const pcPat = `https://pubchem.ncbi.nlm.nih.gov/compound/${cid}#section=Patents`;
+  const chips = `<div class="links"><a class="chip" href="${pcPat}" target="_blank" rel="noopener">All patents in PubChem ↗</a>${scChip}</div>`;
+  const head = `<dl class="kv"><dt>Patent documents</dt><dd><b>${count.toLocaleString("en-GB")}</b></dd>
+      <dt>Patent families</dt><dd>${fams.toLocaleString("en-GB")}</dd>
+      <dt>Literature</dt><dd>${lit.toLocaleString("en-GB")} articles</dd>${sid ? `<dt>SureChEMBL</dt><dd>${sid}</dd>` : ""}</dl>`;
+  setSt("#scSt", count ? `${count.toLocaleString("en-GB")} patents` : "none", count ? "ok" : "");
+  stash(id, "sc", base);
+  if (!count) { $("#scBody").innerHTML = head + `<p class="empty">PubChem lists no patents for this structure.</p>` + chips; return; }
+  if (count > PAT_LIST_MAX) {
+    $("#scBody").innerHTML = head + `<p class="hint">Too many patents to list on the phone. Open PubChem or SureChEMBL to browse and filter them.</p>` + chips;
+    return;
+  }
+  $("#scBody").innerHTML = head + `<p class="hint"><span class="busy"></span> Fetching patent titles…</p>` + chips;
+  const xr = await getJSON(`${PUG}/compound/cid/${cid}/xrefs/PatentID/JSON`).catch(() => null);
+  if (id !== runId) return;
+  const ids = patentPick(xr?.InformationList?.Information?.[0]?.PatentID || []).slice(0, PAT_SHOW);
+  const docs = await Promise.all(ids.map(patentInfo));
+  if (id !== runId) return;
+  stash(id, "sc", { docs, listed: true });
+  $("#scBody").innerHTML = head + (docs.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Document</th><th>Title</th></tr></thead><tbody>
+      ${docs.map(d => `<tr><td style="white-space:nowrap"><a href="${gpURL(d.id)}" target="_blank" rel="noopener">${esc(d.id)}</a><br><a class="hint" href="${scPatURL(d.id)}" target="_blank" rel="noopener">SureChEMBL</a></td><td>${esc(d.title || "—")}${d.date || d.assignee ? `<br><span class="hint">${esc([d.date, d.assignee].filter(Boolean).join(" · "))}</span>` : ""}</td></tr>`).join("")}
+    </tbody></table></div><p class="hint">${docs.length} of ${count.toLocaleString("en-GB")} documents (WO, US and EP first). Numbers open Google Patents.</p>` : "") + chips;
 }
 
 
@@ -1396,10 +1725,11 @@ let activeTab = "scan";
 function showTab(name) {
   activeTab = name;
   document.querySelectorAll(".tabbar button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
-  for (const t of ["scan", "props", "3d", "src", "hist"]) $("#tab-" + t).hidden = t !== name;
+  for (const t of ["scan", "props", "3d", "src", "report"]) $("#tab-" + t).hidden = t !== name;
   window.scrollTo(0, 0);
   if (name === "3d") show3D();
-  if (name === "props") ensureNeighbours();
+  if (name === "props" || name === "report") ensureNeighbours();
+  if (name === "report") renderReport();
 }
 document.querySelectorAll(".tabbar button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
@@ -1411,12 +1741,31 @@ function showSource(k) {
 document.querySelectorAll(".srcbar button").forEach(b => b.addEventListener("click", () => showSource(b.dataset.src)));
 
 /* ---------- settings sheet ---------- */
-function openSheet() { $("#sheet").hidden = false; document.body.style.overflow = "hidden"; $("#sheetDone").focus(); }
-function closeSheet() { $("#sheet").hidden = true; document.body.style.overflow = ""; $("#gearBtn").focus(); }
-$("#gearBtn").addEventListener("click", openSheet);
-$("#sheetDone").addEventListener("click", closeSheet);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
-$("#bannerCheck").addEventListener("click", () => { openSheet(); $("#diagPanel").scrollIntoView({ block: "start" }); connectionCheck(); });
+const SHEET_OPENER = { "#sheet": "#gearBtn", "#histSheet": "#histBtn", "#shareSheet": "#shareBtn", "#notesSheet": "#gearBtn" };
+let sheetStack = [];
+function openSheet(id = "#sheet") {
+  const el = $(id); if (!el) return;
+  sheetStack = sheetStack.filter(x => x !== id); sheetStack.push(id);
+  el.style.zIndex = String(20 + sheetStack.length); el.hidden = false; el.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  if (id === "#histSheet") renderRecent();
+  if (id === "#shareSheet") renderShare();
+  if (id === "#notesSheet") markNotesSeen();
+  const d = el.querySelector(".done"); if (d) d.focus();
+}
+function closeSheet(id = sheetStack[sheetStack.length - 1] || "#sheet") {
+  const el = $(id); if (el) el.hidden = true;
+  sheetStack = sheetStack.filter(x => x !== id);
+  if (!sheetStack.length) document.body.style.overflow = "";
+  const o = $(SHEET_OPENER[id] || "#gearBtn"); if (o && !sheetStack.length) o.focus();
+}
+$("#gearBtn").addEventListener("click", () => openSheet("#sheet"));
+$("#histBtn").addEventListener("click", () => openSheet("#histSheet"));
+$("#shareBtn").addEventListener("click", () => openSheet("#shareSheet"));
+$("#sheetDone").addEventListener("click", () => closeSheet("#sheet"));
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeSheet(b.dataset.close)));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && sheetStack.length) closeSheet(); });
+$("#bannerCheck").addEventListener("click", () => { openSheet("#sheet"); $("#diagPanel").scrollIntoView({ block: "start" }); connectionCheck(); });
 
 /* ---------- theme: match phone / light / dark ---------- */
 function applyTheme(t) {
@@ -1440,88 +1789,241 @@ function updateMini() {
   });
 }
 
-/* ---------- QED (RDKit's implementation of Bickerton et al. 2012) and ESOL ---------- */
-const QEDP = {"acceptors": ["[o&H0&X2]", "[O&H1&X2&v2]", "[O&H0&X2&v2]", "[O&H0&X1&v2]", "[O&-&X1]", "[S&H0&X2&v2]", "[S&H0&X1&v2]", "[S&-&X1]", "[n&H0&X2]", "[N&H0&X1&v3]", "[$([N&+0&X3&v3])&!$(N[C,S]=O)]"], "alerts": ["*1[O,S,N]*1", "[S,C](=[O,S])[F,Br,Cl,I]", "[C&X4][Cl,Br,I]", "[#6]S(=O)(=O)O[#6]", "[$([C&H1]),$(CC)]#CC(=O)[#6]", "[$([C&H1]),$(CC)]#CC(=O)O[#6]", "n[O&H1]", "[$([C&H1]),$(CC)]#CS(=O)(=O)[#6]", "C=C(C=O)C=O", "n1c([F,Cl,Br,I])cccc1", "[C&H1]=O", "[#8][#8]", "[C&!R]=[N&!R]", "[N&!R]=[N&!R]", "[#6](=O)[#6]=O", "[#16][#16]", "[#7][N&H2]", "C(=O)N[N&H2]", "[#6]=S", "[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]=[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]", "C1(=[O,N])C=CC(=[O,N])C=C1", "C1(=[O,N])C(=[O,N])C=CC=C1", "a12aa3a(aa1aaaa2)aaaa3", "a12a(a3a(aa1)aaaa3)aaaa2", "a1aa2a3a(a1)A=AA=A3=AA=A2", "c1cc([N&H2])ccc1", "[#80,#26,#33,#51,#30,#34,se,#52,B,#14,#11,#20,#32,#47,#12,#19,#56,#38,#4,#22,#42,#25,#44,#46,#28,#29,#79,#48,#13,#31,#50,#45,#81,#83,#41,#3,#82,#72,#67]", "I", "OS(=O)(=O)[O&-]", "[N&+](=O)[O&-]", "C(=O)N[O&H1]", "C1NC(=O)NC1=O", "[S&H1]", "[S&-]", "c1ccc([Cl,Br,I,F])c([Cl,Br,I,F])c1[Cl,Br,I,F]", "c1cc([Cl,Br,I,F])cc([Cl,Br,I,F])c1[Cl,Br,I,F]", "[C&R1]1[C&R1][C&R1][C&R1][C&R1][C&R1][C&R1]1", "[C&R1]1[C&R1][C&R1]cc[C&R1][C&R1]1", "[C&R2]1[C&R2][C&R2][C&R2][C&R2][C&R2][C&R2][C&R2]1", "[C&R2]1[C&R2][C&R2]cc[C&R2][C&R2][C&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "C#C", "[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]", "[$([N&+&R]),$([n&+&R]),$([N&+]=C)][O&-]", "[#6]=N[O&H1]", "[#6]=NOC=O", "[#6](=O)[C&X4,C&R0&X3,O][#6]=O", "c1ccc2c(c1)ccc(=O)o2", "[O&+,o&+,S&+,s&+]", "N=C=O", "[N&X3,N&X4][F,Cl,Br,I]", "c1ccccc1OC(=O)[#6]", "[C&R0]=[C&R0][C&R0]=[C&R0]", "[C&+,c&+,C&-,c&-]", "N=[N&+]=[N&-]", "C12C(NC(N1)=O)CSC2", "c1c([O&H1])c([O&H1,N&H2,N&H1])ccc1", "P", "[N,O,S]C#N", "C=C=O", "[#14][F,Cl,Br,I]", "[S&X2]O", "[#14&R0,C&R0](c1ccccc1)(c1ccccc1)c1ccccc1", "O1CCCCC1OC1CCC2CCCCC2C1", "N=[C&R0][N,n,O,S]", "[c&R2]1[c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2][c&R2]1[c&R2]1[c&R2][c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2]1", "C=[C&!R]C#N", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]c1[N&+0&X3&R0,n&X3&R0]", "[O&H1]c1ccc([O&H1,N&H2,N&H1])cc1", "c1ccccc1OC(=O)O", "[S&X2&H0]N", "c12ccccc1SC(S)=N2", "c12ccccc1SC(=S)N2", "c1nnnn1C=O", "s1c(S)nnc1NC=O", "S1C=CSC1=S", "C(=O)Onnn", "OS(=O)(=O)C(F)(F)F", "N#CC[O&H1]", "N#CC=O", "S(=O)(=O)C#N", "N[C&H2]C#N", "C1(=O)NCC1", "S(=O)(=O)[O&-,O&H1]", "NC[F,Cl,Br,I]", "C=[C&!R]O", "[N&X2&+0]=[O&+0]", "[O&R0,N&R0][O&R0,N&R0]", "C(=O)O[C,H1].C(=O)O[C,H1].C(=O)O[C,H1]", "[C&X2&R0][N&X3&R0]", "c1ccccc1[C&!R]=[C&!R]c1ccccc1", "[N&X3&R0,N&X4&R0,O&R0,S&X2&R0][C&X4][N&X3&R0,N&X4&R0,O&R0,S&X2&R0]", "[s,S,c,C,n,N,o,O]~[n&+,N&+](~[s,S,c,C,n,N,o,O])(~[s,S,c,C,n,N,o,O])~[s,S,c,C,n,N,o,O]", "[s,S,c,C,n,N,o,O]~[n&X3&+,N&X3&+](~[s,S,c,C,n,N])~[s,S,c,C,n,N]", "*=[N&+]=*", "[S&X3](=O)[O&-,O&H1]", "N#N", "F.F.F.F", "[R0&D2][R0&D2][R0&D2][R0&D2]", "[c&R,C&R]~C(=O)NC(=O)~[c&R,C&R]", "C=&!@CC=[O,S]", "[#6,#8,#16][#6](=O)O[#6]", "c[C&R0](=[O,S])[#6]", "c[S&X2][C&!R]", "C=C=C", "c1nc([F,Cl,Br,I,S])ncc1", "c1ncnc([F,Cl,Br,I,S])c1", "c1ncc2c(n1)nc(n2)[F,Cl,Br,I]", "[#6]S(=O)(=O)c1ccc(cc1)F", "[N&15*]", "[C&13*]", "[O&18*]", "[S&34*]"], "ads": {"MW": [2.817065973, 392.5754953, 290.7489764, 2.419764353, 49.22325677, 65.37051707, 104.9805561], "ALOGP": [3.172690585, 137.8624751, 2.534937431, 4.581497897, 0.822739154, 0.576295591, 131.3186604], "HBA": [2.948620388, 160.4605972, 3.615294657, 4.435986202, 0.290141953, 1.300669958, 148.7763046], "HBD": [1.618662227, 1010.051101, 0.985094388, 1e-09, 0.713820843, 0.920922555, 258.1632616], "PSA": [1.876861559, 125.2232657, 62.90773554, 87.83366614, 12.01999824, 28.51324732, 104.5686167], "ROTB": [0.01, 272.4121427, 2.55837997, 1.565547684, 1.271567166, 2.758063707, 105.4420403], "AROM": [3.21778897, 957.7374108, 2.274627939, 1e-09, 1.317690384, 0.375760881, 312.337261], "ALERTS": [0.01, 1199.094025, -0.09002883, 1e-09, 0.185904477, 0.875193782, 417.725314]}, "wmean": [0.66, 0.46, 0.05, 0.61, 0.06, 0.65, 0.48, 0.95], "keys": ["MW", "ALOGP", "HBA", "HBD", "PSA", "ROTB", "AROM", "ALERTS"]};
-let qedQ = null;
-function qedQueries() {
-  if (!qedQ) qedQ = { acc: QEDP.acceptors.map(s => RD.get_qmol(s)), alerts: QEDP.alerts.map(s => RD.get_qmol(s)), aliph: RD.get_qmol("[$([A;R][!a])]"), arom: RD.get_qmol("a") };
-  return qedQ;
-}
+/* ---------- structural alerts and ESOL ----------
+   The 116 alert SMARTS are the unwanted-substructure set in RDKit's QED module,
+   derived from Brenk et al. 2008. */
+const ALERTS = ["*1[O,S,N]*1", "[S,C](=[O,S])[F,Br,Cl,I]", "[C&X4][Cl,Br,I]", "[#6]S(=O)(=O)O[#6]", "[$([C&H1]),$(CC)]#CC(=O)[#6]", "[$([C&H1]),$(CC)]#CC(=O)O[#6]", "n[O&H1]", "[$([C&H1]),$(CC)]#CS(=O)(=O)[#6]", "C=C(C=O)C=O", "n1c([F,Cl,Br,I])cccc1", "[C&H1]=O", "[#8][#8]", "[C&!R]=[N&!R]", "[N&!R]=[N&!R]", "[#6](=O)[#6]=O", "[#16][#16]", "[#7][N&H2]", "C(=O)N[N&H2]", "[#6]=S", "[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]=[$([C&H2]),$([C&H1][C&X4]),$(C([C&X4])[C&X4])]", "C1(=[O,N])C=CC(=[O,N])C=C1", "C1(=[O,N])C(=[O,N])C=CC=C1", "a12aa3a(aa1aaaa2)aaaa3", "a12a(a3a(aa1)aaaa3)aaaa2", "a1aa2a3a(a1)A=AA=A3=AA=A2", "c1cc([N&H2])ccc1", "[#80,#26,#33,#51,#30,#34,se,#52,B,#14,#11,#20,#32,#47,#12,#19,#56,#38,#4,#22,#42,#25,#44,#46,#28,#29,#79,#48,#13,#31,#50,#45,#81,#83,#41,#3,#82,#72,#67]", "I", "OS(=O)(=O)[O&-]", "[N&+](=O)[O&-]", "C(=O)N[O&H1]", "C1NC(=O)NC1=O", "[S&H1]", "[S&-]", "c1ccc([Cl,Br,I,F])c([Cl,Br,I,F])c1[Cl,Br,I,F]", "c1cc([Cl,Br,I,F])cc([Cl,Br,I,F])c1[Cl,Br,I,F]", "[C&R1]1[C&R1][C&R1][C&R1][C&R1][C&R1][C&R1]1", "[C&R1]1[C&R1][C&R1]cc[C&R1][C&R1]1", "[C&R2]1[C&R2][C&R2][C&R2][C&R2][C&R2][C&R2][C&R2]1", "[C&R2]1[C&R2][C&R2]cc[C&R2][C&R2][C&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "[C&H2&R2]1N[C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2][C&H2&R2]1", "C#C", "[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]@[C&R2]@[C&R2]@[O&R2,N&R2]", "[$([N&+&R]),$([n&+&R]),$([N&+]=C)][O&-]", "[#6]=N[O&H1]", "[#6]=NOC=O", "[#6](=O)[C&X4,C&R0&X3,O][#6]=O", "c1ccc2c(c1)ccc(=O)o2", "[O&+,o&+,S&+,s&+]", "N=C=O", "[N&X3,N&X4][F,Cl,Br,I]", "c1ccccc1OC(=O)[#6]", "[C&R0]=[C&R0][C&R0]=[C&R0]", "[C&+,c&+,C&-,c&-]", "N=[N&+]=[N&-]", "C12C(NC(N1)=O)CSC2", "c1c([O&H1])c([O&H1,N&H2,N&H1])ccc1", "P", "[N,O,S]C#N", "C=C=O", "[#14][F,Cl,Br,I]", "[S&X2]O", "[#14&R0,C&R0](c1ccccc1)(c1ccccc1)c1ccccc1", "O1CCCCC1OC1CCC2CCCCC2C1", "N=[C&R0][N,n,O,S]", "[c&R2]1[c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2][c&R2]1[c&R2]1[c&R2][c&R2][c&R2]([N&v3&X3,N&v4&X4])[c&R2][c&R2]1", "C=[C&!R]C#N", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2]1", "[c&R2]1[c&R2]c([N&+0&X3&R0,n&X3&R0])[c&R2][c&R2]c1[N&+0&X3&R0,n&X3&R0]", "[O&H1]c1ccc([O&H1,N&H2,N&H1])cc1", "c1ccccc1OC(=O)O", "[S&X2&H0]N", "c12ccccc1SC(S)=N2", "c12ccccc1SC(=S)N2", "c1nnnn1C=O", "s1c(S)nnc1NC=O", "S1C=CSC1=S", "C(=O)Onnn", "OS(=O)(=O)C(F)(F)F", "N#CC[O&H1]", "N#CC=O", "S(=O)(=O)C#N", "N[C&H2]C#N", "C1(=O)NCC1", "S(=O)(=O)[O&-,O&H1]", "NC[F,Cl,Br,I]", "C=[C&!R]O", "[N&X2&+0]=[O&+0]", "[O&R0,N&R0][O&R0,N&R0]", "C(=O)O[C,H1].C(=O)O[C,H1].C(=O)O[C,H1]", "[C&X2&R0][N&X3&R0]", "c1ccccc1[C&!R]=[C&!R]c1ccccc1", "[N&X3&R0,N&X4&R0,O&R0,S&X2&R0][C&X4][N&X3&R0,N&X4&R0,O&R0,S&X2&R0]", "[s,S,c,C,n,N,o,O]~[n&+,N&+](~[s,S,c,C,n,N,o,O])(~[s,S,c,C,n,N,o,O])~[s,S,c,C,n,N,o,O]", "[s,S,c,C,n,N,o,O]~[n&X3&+,N&X3&+](~[s,S,c,C,n,N])~[s,S,c,C,n,N]", "*=[N&+]=*", "[S&X3](=O)[O&-,O&H1]", "N#N", "F.F.F.F", "[R0&D2][R0&D2][R0&D2][R0&D2]", "[c&R,C&R]~C(=O)NC(=O)~[c&R,C&R]", "C=&!@CC=[O,S]", "[#6,#8,#16][#6](=O)O[#6]", "c[C&R0](=[O,S])[#6]", "c[S&X2][C&!R]", "C=C=C", "c1nc([F,Cl,Br,I,S])ncc1", "c1ncnc([F,Cl,Br,I,S])c1", "c1ncc2c(n1)nc(n2)[F,Cl,Br,I]", "[#6]S(=O)(=O)c1ccc(cc1)F", "[N&15*]", "[C&13*]", "[O&18*]", "[S&34*]"];
+let alertQ = null;
 const nMatches = (m, q) => { try { const r = JSON.parse(m.get_substruct_matches(q)); return Array.isArray(r) ? r.length : 0; } catch { return 0; } };
-function qedAromRings(mol, q) {
-  // RDKit QED removes aliphatic ring atoms, then counts rings in what is left (cyclomatic number).
-  const del = new Set(); try { const mm = JSON.parse(mol.get_substruct_matches(q.aliph)); if (Array.isArray(mm)) for (const x of mm) del.add(x.atoms[0]); } catch {}
-  const g = JSON.parse(mol.get_json()).molecules[0], n = g.atoms.length;
-  const keep = [...Array(n).keys()].filter(i => !del.has(i)), par = new Map(keep.map(i => [i, i]));
-  const f = x => { while (par.get(x) !== x) { par.set(x, par.get(par.get(x))); x = par.get(x); } return x; };
-  let E = 0; for (const b of (g.bonds || [])) { const [a, c] = b.atoms; if (del.has(a) || del.has(c)) continue; E++; par.set(f(a), f(c)); }
-  return E - keep.length + new Set(keep.map(f)).size;
+function alertMatches(mol, keys) {
+  if (!alertQ) alertQ = { alerts: ALERTS.map(x => RD.get_qmol(x)), arom: RD.get_qmol("a") };
+  const hits = [];
+  (keys || ALERTS.map((_, k) => k)).forEach(k => {
+    const q = alertQ.alerts[k]; if (!q) return;
+    let r; try { r = JSON.parse(mol.get_substruct_matches(q)); } catch { return; }
+    if (!Array.isArray(r) || !r.length) return;
+    const atoms = new Set(), bonds = new Set();
+    for (const x of r) { (x.atoms || []).forEach(i => atoms.add(i)); (x.bonds || []).forEach(i => bonds.add(i)); }
+    hits.push({ k, smarts: ALERTS[k], n: r.length, atoms: [...atoms], bonds: [...bonds] });
+  });
+  return hits;
 }
 function extras(mol, d) {
-  const q = qedQueries();
-  const props = {
-    MW: d.amw, ALOGP: d.CrippenClogP, HBA: q.acc.reduce((a, p) => a + nMatches(mol, p), 0), HBD: d.NumHBD,
-    PSA: d.tpsa, ROTB: d.NumRotatableBonds, AROM: qedAromRings(mol, q), ALERTS: q.alerts.reduce((a, p) => a + (nMatches(mol, p) ? 1 : 0), 0)
-  };
-  const ads = (x, [a, b, c, dd, e, f, dmax]) => (a + (b / (1 + Math.exp(-(x - c + dd / 2) / e)) * (1 - 1 / (1 + Math.exp(-(x - c - dd / 2) / f))))) / dmax;
-  let s = 0, w = 0;
-  QEDP.keys.forEach((k, i) => { s += QEDP.wmean[i] * Math.log(ads(props[k], QEDP.ads[k])); w += QEDP.wmean[i]; });
-  const aromAtoms = nMatches(mol, q.arom);
+  try { d.BertzCT = bertzCT(mol); } catch { d.BertzCT = NaN; }
+  const hits = alertMatches(mol);
+  const aromAtoms = nMatches(mol, alertQ.arom);
   const ap = d.NumHeavyAtoms ? aromAtoms / d.NumHeavyAtoms : 0;
   const logS = 0.16 - 0.63 * d.CrippenClogP - 0.0062 * d.amw + 0.066 * d.NumRotatableBonds - 0.74 * ap;   // ESOL, Delaney 2004
-  return { qed: Math.exp(s / w), alerts: props.ALERTS, logS };
-}
-
-/* ---------- radar ---------- */
-const AXES = [
-  { k: "LIPO", label: "Lipophilicity", v: c => c.desc.CrippenClogP, lo: -2, hi: 7, ok: [-0.7, 5], f: v => `cLogP ${fmt(v, 1)}` },
-  { k: "SIZE", label: "Size", v: c => c.desc.amw, lo: 0, hi: 800, ok: [150, 500], f: v => `MW ${fmt(v, 0)}` },
-  { k: "POLAR", label: "Polarity", v: c => c.desc.tpsa, lo: 0, hi: 200, ok: [20, 130], f: v => `TPSA ${fmt(v, 0)}` },
-  { k: "INSOLU", label: "Insolubility", v: c => -c.extra.logS, lo: -2, hi: 10, ok: [0, 6], f: v => `logS ${fmt(-v, 1)}` },
-  { k: "INSATU", label: "Unsaturation", v: c => 1 - c.desc.FractionCSP3, lo: 0, hi: 1, ok: [0, 0.75], f: v => `Fsp3 ${fmt(1 - v, 2)}` },
-  { k: "FLEX", label: "Flexibility", v: c => c.desc.NumRotatableBonds, lo: 0, hi: 15, ok: [0, 9], f: v => `${v} rot. bonds` }
-];
-function renderRadar(c) {
-  const W = 360, H = 300, cx = W / 2, cy = 150, R = 92, n = AXES.length;
-  const ang = i => -Math.PI / 2 + i * 2 * Math.PI / n;
-  const t = (a, v) => Math.max(0, Math.min(1, (v - a.lo) / (a.hi - a.lo)));
-  const pt = (i, r) => [cx + Math.cos(ang(i)) * r * R, cy + Math.sin(ang(i)) * r * R];
-  const poly = rs => rs.map((r, i) => pt(i, r).map(x => x.toFixed(1)).join(",")).join(" ");
-  const rings = [0.25, 0.5, 0.75, 1].map(r => `<polygon points="${poly(AXES.map(() => r))}" fill="none" stroke="var(--line)" stroke-width="1"/>`).join("");
-  const spokes = AXES.map((a, i) => { const [x, y] = pt(i, 1); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)"/>`; }).join("");
-  const hi = AXES.map(a => t(a, a.ok[1])), lo = AXES.map(a => t(a, a.ok[0]));
-  const band = `<path d="M${poly(hi).replace(/ /g, " L")} Z M${poly(lo).replace(/ /g, " L")} Z" fill="var(--accent)" fill-opacity=".14" fill-rule="evenodd"/>`;
-  const vals = AXES.map(a => a.v(c)), rs = AXES.map((a, i) => t(a, vals[i]));
-  const inside = AXES.map((a, i) => vals[i] >= a.ok[0] && vals[i] <= a.ok[1]);
-  const shape = `<polygon points="${poly(rs)}" fill="var(--accent)" fill-opacity=".22" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
-  const dots = rs.map((r, i) => { const [x, y] = pt(i, r); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${inside[i] ? "var(--accent)" : "var(--bad)"}" stroke="var(--surface)" stroke-width="1.5"/>`; }).join("");
-  const labels = AXES.map((a, i) => {
-    const [x, y] = pt(i, 1.2), anchor = Math.abs(x - cx) < 4 ? "middle" : x > cx ? "start" : "end";
-    const dy = y < cy - 60 ? -6 : y > cy + 60 ? 10 : 0;
-    return `<text x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${anchor}" font-size="12.5" font-weight="700" fill="${inside[i] ? "var(--ink)" : "var(--bad)"}">${a.label}</text>
-      <text x="${x.toFixed(1)}" y="${(y + dy + 14).toFixed(1)}" text-anchor="${anchor}" font-size="11" fill="var(--muted)">${a.f(vals[i])}</text>`;
-  }).join("");
-  $("#radar").innerHTML = rings + spokes + band + shape + dots + labels;
-  const outN = inside.filter(x => !x).length;
-  $("#radar").setAttribute("aria-label", `Property radar: ${outN ? outN + " of 6 properties outside the oral-drug range" : "all six properties inside the oral-drug range"}`);
+  return { alerts: hits.length, alertKeys: hits.map(h => h.k), logS };
 }
 function renderScores(c) {
-  const q = c.extra.qed;
-  const qc = q >= 0.67 ? "var(--good)" : q >= 0.49 ? "var(--warn)" : "var(--bad)";
+  const rc = ruleChecks(c.desc), pass = rc.filter(r => r.cls !== "fail").length, x = c.extra;
   $("#scores").innerHTML = `
-    <div class="score"><span class="k">QED</span><span class="v" style="color:${qc}">${fmt(q, 2)}</span><div class="meter"><i style="width:${(q * 100).toFixed(0)}%;background:${qc}"></i></div></div>
-    <div class="score"><span class="k">ESOL logS</span><span class="v">${fmt(c.extra.logS, 1)}<small>${c.extra.logS > -4 ? "soluble" : c.extra.logS > -6 ? "moderate" : "poor"}</small></span></div>
-    <div class="score"><span class="k">Structural alerts</span><span class="v" style="color:${c.extra.alerts ? "var(--warn)" : "var(--good)"}">${c.extra.alerts}<small>of 116</small></span></div>`;
+    <div class="score"><span class="k">Solubility (ESOL)</span><span class="v">${fmt(x.logS, 1)}<small>logS · ${x.logS > -4 ? "soluble" : x.logS > -6 ? "moderate" : "poor"}</small></span></div>
+    <button type="button" class="score" id="alertTile"><span class="k">Structural alerts</span><span class="v" style="color:${x.alerts ? "var(--warn)" : "var(--good)"}">${x.alerts}<small>of 116 · ${x.alerts ? "see below" : "none"}</small></span></button>
+    <div class="score"><span class="k">Rule sets met</span><span class="v" style="color:${pass === rc.length ? "var(--good)" : pass ? "var(--warn)" : "var(--bad)"}">${pass}/${rc.length}<small>Lipinski, Veber, Ro3, CNS</small></span></div>`;
+  $("#alertTile").addEventListener("click", () => $("#alertCard").scrollIntoView({ behavior: "smooth", block: "start" }));
+}
+function alertSVG(smi, hit) {
+  const m = RD.get_mol(smi); if (!m || !m.is_valid()) { m && m.delete(); return { svg: "", hits: [] }; }
+  const hits = alertMatches(m, current.extra.alertKeys || []);
+  const show = hit == null ? hits : hits.filter(h => h.k === hit);
+  const atoms = [...new Set(show.flatMap(h => h.atoms))], bonds = [...new Set(show.flatMap(h => h.bonds))];
+  const svg = m.get_svg_with_highlights(JSON.stringify({ ...drawOpts(560, 300), atoms, bonds, highlightColour: [1, 0.73, 0.35] }));
+  m.delete(); return { svg, hits };
+}
+function renderAlerts(c, sel = null) {
+  const el = $("#alerts");
+  if (!c.extra.alerts) {
+    el.innerHTML = `<p class="okline">✓ None of the 116 alert substructures is present.</p><p class="hint">The set flags groups linked to reactivity, toxicity, instability or poor pharmacokinetics (Brenk et al. 2008, as used in RDKit).</p>`;
+    return;
+  }
+  const { svg, hits } = alertSVG(c.smiles, sel);
+  el.innerHTML = `<div class="alertfig">${svg}</div>
+    <p class="hint">Highlighted: ${sel == null ? "all matches" : "the selected alert"}. Tap an alert to show only that one. Many approved drugs carry one or two of these; they are prompts to check, not exclusions.</p>
+    <div class="alist">${hits.map((h, j) => `<button type="button" data-k="${h.k}" aria-pressed="${sel === h.k}"><code>${esc(h.smarts)}</code><small>${h.n} match${h.n > 1 ? "es" : ""}</small></button>`).join("")}</div>`;
+  el.querySelectorAll(".alist button").forEach(b => b.addEventListener("click", () => { const k = +b.dataset.k; renderAlerts(c, sel === k ? null : k); }));
+}
+
+/* ---------- complexity and 3D shape ---------- */
+const CX = [
+  { k: "pbf", label: "Plane of best fit", unit: "Å", dp: 2, v: d => d.PBF, note: "Mean distance of the heavy atoms from their best-fit plane. 0 is flat; higher is more three-dimensional." },
+  { k: "npr1", label: "NPR1", dp: 2, v: d => d.NPR1, note: "Smallest over largest principal moment of inertia. Low: rod or disc; high: sphere." },
+  { k: "npr2", label: "NPR2", dp: 2, v: d => d.NPR2, note: "Middle over largest principal moment. Low: disc; high: rod or sphere." },
+  { k: "bertz", label: "Bertz complexity", dp: 0, v: d => d.BertzCT, note: "Graph complexity from bonding patterns and atom-type variety." },
+  { k: "fsp3", label: "Fsp3", dp: 2, v: d => d.FractionCSP3, note: "Fraction of carbons that are sp3." },
+  { k: "stereo", label: "Stereocentres", int: true, v: d => d.NumAtomStereoCenters, note: "Tetrahedral stereocentres." },
+  { k: "spiro", label: "Spiro atoms", int: true, v: d => d.NumSpiroAtoms, note: "Atoms shared by two rings that meet at a single point." },
+  { k: "bridge", label: "Bridgehead atoms", int: true, v: d => d.NumBridgeheadAtoms, note: "Atoms where bridged ring systems join." },
+  { k: "phi", label: "Kier flexibility Φ", dp: 2, v: d => d.Phi, note: "Flexibility from shape indices; higher is more flexible." }
+];
+let CXS = null;
+function cxSorted() {
+  if (CXS || !SPACE?.cx) return CXS;
+  const K = SPACE.cx.keys; CXS = {};
+  K.forEach((k, j) => { CXS[k] = SPACE.cx.v.map(r => r && r[j]).filter(x => x != null && Number.isFinite(x)).sort((a, b) => a - b); });
+  return CXS;
+}
+function shapeName(n1, n2) {
+  const V = [["rod-like", 0, 1], ["disc-like", 0.5, 0.5], ["sphere-like", 1, 1]];
+  return V.map(([t, x, y]) => [t, Math.hypot(n1 - x, n2 - y)]).sort((a, b) => a[1] - b[1])[0][0];
+}
+function pmiSVG(c) {
+  const X = v => 34 + v * 272, Y = v => 22 + (1 - v) * 2 * 178, d = c.desc, S = cxSorted();
+  const out = [`<polygon points="${X(0)},${Y(1)} ${X(1)},${Y(1)} ${X(0.5)},${Y(0.5)}" fill="var(--band)" stroke="var(--muted)" stroke-width="1"/>`];
+  if (SPACE?.cx) { const i1 = SPACE.cx.keys.indexOf("npr1"), i2 = SPACE.cx.keys.indexOf("npr2");
+    out.push(`<g fill="var(--dot)" fill-opacity=".45">` + SPACE.cx.v.filter(r => r && r[i1] != null).map(r => `<circle cx="${X(r[i1]).toFixed(1)}" cy="${Y(r[i2]).toFixed(1)}" r="1.9"/>`).join("") + `</g>`); }
+  out.push(`<text x="${X(0)}" y="${Y(1) - 8}" font-size="11.5" font-weight="700" fill="var(--ink)">Rod</text>`,
+    `<text x="${X(1)}" y="${Y(1) - 8}" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--ink)">Sphere</text>`,
+    `<text x="${X(0.5)}" y="${Y(0.5) + 15}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">Disc</text>`,
+    `<text x="${X(0)}" y="${Y(0.5) + 15}" font-size="10" fill="var(--muted)">x: NPR1 · y: NPR2</text>`);
+  if (SPACE && !SPACE.cx) out.push(`<text x="${X(0.5)}" y="${Y(0.86)}" text-anchor="middle" font-size="10.5" fill="var(--muted)">Approved-drug points need the 1.1 data file</text><text x="${X(0.5)}" y="${Y(0.86) + 14}" text-anchor="middle" font-size="10.5" fill="var(--muted)">(data/drugspace.json on the website)</text>`);
+  if (Number.isFinite(d.NPR1)) out.push(`<circle cx="${X(d.NPR1).toFixed(1)}" cy="${Y(d.NPR2).toFixed(1)}" r="9" fill="none" stroke="var(--accent)" stroke-width="2.4"/><circle cx="${X(d.NPR1).toFixed(1)}" cy="${Y(d.NPR2).toFixed(1)}" r="4" fill="var(--accent)"/>`);
+  return out.join("");
+}
+function renderComplexity(c) {
+  if (!c || !$("#cx")) return;
+  const d = c.desc, S = cxSorted(), pend = d.PBF === undefined;
+  $("#pmi").innerHTML = pmiSVG(c);
+  $("#pmiNote").innerHTML = pend ? `<span class="busy"></span> Building a 3D conformer…`
+    : !Number.isFinite(d.NPR1) ? "No 3D conformer could be built for this structure."
+    : `<b>${shapeName(d.NPR1, d.NPR2)[0].toUpperCase() + shapeName(d.NPR1, d.NPR2).slice(1)}</b> (NPR1 ${fmt(d.NPR1, 2)}, NPR2 ${fmt(d.NPR2, 2)}; NPR1 + NPR2 = ${fmt(d.NPR1 + d.NPR2, 2)}, where 1 is the flat rod–disc edge).${SPACE?.cx ? " Grey: approved drugs." : " The approved-drug points and percentiles appear once the version 1.1 data file is on the website."}`;
+  const pcI = c.info?.pc?.complexity;
+  const rows = CX.map(r => {
+    const v = r.v(d), ok = v != null && Number.isFinite(+v), arr = S && S[r.k];
+    const val = v === undefined ? "…" : !ok ? "—" : r.int ? String(v) : fmt(v, r.dp);
+    const pct = ok && arr && arr.length ? pctOf(arr, +v) : null;
+    return `<div class="cxr"><b>${r.label}</b><span class="v">${val}${r.unit && ok ? `<small style="font:400 .72rem var(--f-body);color:var(--muted)"> ${r.unit}</small>` : ""}</span>
+      <span class="d">${r.note}</span>
+      ${pct != null ? `<span class="pc"><span class="tr"><i style="left:${pct.toFixed(1)}%"></i></span><span>${ord(pct)} percentile</span></span>` : ""}</div>`;
+  });
+  if (pcI != null) rows.push(`<div class="cxr"><b>PubChem complexity</b><span class="v">${fmt(pcI, 0)}</span><span class="d">PubChem's Bertz/Hendrickson-type index (Cactvs), from the PubChem record.</span></div>`);
+  $("#cx").innerHTML = rows.join("");
+}
+
+/* ---------- typicality and property profile against approved drugs ---------- */
+const MAPV = d => ({ mw: d.amw, clogp: d.CrippenClogP, tpsa: d.tpsa, hbd: d.lipinskiHBD, hba: d.lipinskiHBA, rotb: d.NumRotatableBonds, arom: d.NumAromaticRings, fsp3: d.FractionCSP3, pbf: d.PBF });
+const needsPBF = () => !!SPACE && SPACE.descriptors.includes("pbf");
+const TX = { mw: x => Math.log(Math.max(x, 1)), tpsa: x => Math.log1p(Math.max(x, 0)), hbd: x => Math.log1p(Math.max(x, 0)), hba: x => Math.log1p(Math.max(x, 0)), rotb: x => Math.log1p(Math.max(x, 0)) };
+let DSTATS = null;
+function invert(A) {
+  const n = A.length, M = A.map((r, i) => [...r, ...r.map((_, j) => +(i === j))]);
+  for (let c = 0; c < n; c++) {
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    const v = M[c][c] || 1e-12; for (let j = 0; j < 2 * n; j++) M[c][j] /= v;
+    for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c]; if (f) for (let j = 0; j < 2 * n; j++) M[r][j] -= f * M[c][j]; }
+  }
+  return M.map(r => r.slice(n));
+}
+function drugStats() {
+  if (DSTATS || !SPACE?.desc) return DSTATS;
+  const K = SPACE.descriptors, rows = SPACE.desc.filter(r => r && r.every(Number.isFinite));
+  const tx = r => r.map((v, i) => (TX[K[i]] || (x => x))(v));
+  const X = rows.map(tx), n = X.length, k = K.length;
+  const mu = K.map((_, j) => X.reduce((a, r) => a + r[j], 0) / n);
+  const C = K.map((_, i) => K.map((_, j) => X.reduce((a, r) => a + (r[i] - mu[i]) * (r[j] - mu[j]), 0) / (n - 1)));
+  const Ci = invert(C);
+  const d2 = x => { const z = x.map((v, i) => v - mu[i]); let s = 0; for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) s += z[i] * Ci[i][j] * z[j]; return s; };
+  const D = X.map(d2).sort((a, b) => a - b);
+  const sorted = K.map((_, j) => rows.map(r => r[j]).sort((a, b) => a - b));
+  return (DSTATS = { K, n, tx, d2, D, sorted, rows });
+}
+// share of a sorted array below v (ties count half), 0-100
+function pctOf(arr, v) {
+  let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; }
+  let eq = lo; while (eq < arr.length && arr[eq] === v) eq++;
+  return 100 * (lo + (eq - lo) / 2) / arr.length;
+}
+function typicality(desc) {
+  const S = drugStats(); if (!S) return null;
+  const v = MAPV(desc), raw = S.K.map(k => +v[k]);
+  if (!raw.every(Number.isFinite)) return null;
+  const d2 = S.d2(S.tx(raw));
+  const pct = 100 - pctOf(S.D, d2);                       // share of drugs further from the centre
+  const props = S.K.map((k, j) => ({ k, v: raw[j], pct: pctOf(S.sorted[j], raw[j]) }));
+  return { d2, pct, props };
+}
+const pctTxt = p => p < 1 ? "<1" : p < 10 ? p.toFixed(1) : String(Math.round(p));
+const ord = n => { const r = Math.round(n), t = r % 100; if (r < 1) return "<1st"; if (r > 99) return ">99th"; return r + (t >= 11 && t <= 13 ? "th" : ["th", "st", "nd", "rd"][r % 10] || "th"); };
+const typClass = p => p >= 25 ? ["Typical of approved drugs", "var(--good)"] : p >= 5 ? ["Less typical", "var(--warn)"] : p >= 1 ? ["Unusual for an approved drug", "var(--bad)"] : ["Outside approved-drug space", "var(--bad)"];
+const PROF = [
+  { k: "mw", label: "Molecular weight", unit: "Da", lo: 0, hi: 900, lim: [500, "Ro5"], dp: 0 },
+  { k: "clogp", label: "cLogP", unit: "Crippen", lo: -4, hi: 8, lim: [5, "Ro5"], dp: 1 },
+  { k: "tpsa", label: "TPSA", unit: "Å²", lo: 0, hi: 250, lim: [140, "Veber"], dp: 0 },
+  { k: "hbd", label: "H-bond donors", lo: 0, hi: 10, int: true, lim: [5, "Ro5"] },
+  { k: "hba", label: "H-bond acceptors", lo: 0, hi: 16, int: true, lim: [10, "Ro5"] },
+  { k: "rotb", label: "Rotatable bonds", lo: 0, hi: 20, int: true, lim: [10, "Veber"] },
+  { k: "arom", label: "Aromatic rings", lo: 0, hi: 6, int: true },
+  { k: "pbf", label: "Plane of best fit", unit: "Å", lo: 0, hi: 1.6, dp: 2 },
+  { k: "fsp3", label: "Fsp3", lo: 0, hi: 1, dp: 2 }
+];
+const PROFILE_ROW = 50, PROFILE_H = PROF.length * PROFILE_ROW + 4;
+const PNAME = Object.fromEntries(PROF.map(r => [r.k, r.label]));
+function renderTypicality(c) {
+  const el = $("#typ"), t = c.typ;
+  if (!t && Number.isNaN(c.desc.PBF)) { el.innerHTML = `<p class="hint">Typicality needs the plane of best fit, and no 3D conformer could be built for this structure.</p>`; return; }
+  if (!t) { el.innerHTML = `<p class="hint"><span class="busy"></span> Comparing with 1,294 approved drugs…</p>`; return; }
+  const [lab, col] = typClass(t.pct), p = Math.max(0, Math.min(100, t.pct));
+  const odd = t.props.filter(x => x.pct < 5 || x.pct > 95).map(x => `${PNAME[x.k]} (${ord(x.pct)} percentile)`);
+  el.innerHTML = `<div class="typ">
+      <div class="n" style="color:${col}">${pctTxt(p)}<small>%</small></div>
+      <div class="t"><b>${lab}</b><span>${p < 1 ? "Fewer than 1%" : pctTxt(p) + "%"} of approved drugs are further from the centre of drug property space.</span></div>
+      <div class="typbar"><i style="left:${p.toFixed(1)}%"></i></div>
+      <div class="typscale"><span>Atypical</span><span>Median drug</span><span>Centre</span></div>
+      ${odd.length ? `<p class="typwhy"><b>Unusual for a drug:</b> ${esc(odd.join(", "))}.</p>` : `<p class="typwhy hint">Every property is within the central 90% of approved drugs.</p>`}
+    </div>`;
+}
+function renderProfile(c) {
+  const svg = $("#profile"), S = drugStats(), C = cxSorted();
+  svg.setAttribute("viewBox", `0 0 360 ${PROFILE_H}`);
+  if (!S) { svg.innerHTML = `<text x="180" y="40" text-anchor="middle" font-size="13" fill="var(--muted)">Comparing with approved drugs…</text>`; return; }
+  const V = MAPV(c.desc), X0 = 128, X1 = 352, out = [];
+  PROF.forEach((r, ri) => {
+    const j = S.K.indexOf(r.k), arr = j >= 0 ? S.sorted[j] : (C && C[r.k]) || null;
+    const y = ri * PROFILE_ROW + 2, raw = V[r.k], has = raw != null && Number.isFinite(+raw), v = +raw;
+    if (ri) out.push(`<line x1="0" x2="360" y1="${y - 2}" y2="${y - 2}" stroke="var(--line)" stroke-width=".7"/>`);
+    const pc = has && arr?.length ? pctOf(arr, v) : null, odd = pc != null && (pc < 5 || pc > 95);
+    out.push(`<text x="0" y="${y + 14}" font-size="12" font-weight="700" fill="var(--ink)">${r.label}</text>`,
+      `<text x="0" y="${y + 30}" font-size="13" font-weight="700" fill="var(--accent)">${raw === undefined ? "…" : !has ? "—" : r.int ? v : fmt(v, r.dp)}<tspan font-size="10" font-weight="400" fill="var(--muted)">${r.unit && has ? " " + r.unit : ""}</tspan></text>`,
+      `<text x="0" y="${y + 44}" font-size="10.5" fill="${odd ? "var(--warn)" : "var(--muted)"}" font-weight="${odd ? 700 : 400}">${pc != null ? ord(pc) + " percentile" : raw === undefined ? "working out 3D shape…" : ""}</text>`);
+    if (!arr?.length) { out.push(`<text x="${(X0 + X1) / 2}" y="${y + 26}" text-anchor="middle" font-size="10" fill="var(--muted)">Reference data needs the 1.1 data file</text>`); return; }
+    const nb = r.int ? r.hi - r.lo + 1 : 30, bw = (X1 - X0) / nb, cnt = new Array(nb).fill(0);
+    const bin = x => r.int ? Math.max(0, Math.min(nb - 1, Math.round(x) - r.lo)) : Math.max(0, Math.min(nb - 1, Math.floor((x - r.lo) / (r.hi - r.lo) * nb)));
+    for (const x of arr) cnt[bin(x)]++;
+    const mx = Math.max(...cnt), top = y + 6, base = y + 36, mine = has ? bin(v) : -1;
+    const xOf = x => r.int ? X0 + (Math.max(r.lo, Math.min(r.hi, x)) - r.lo + 0.5) * bw : X0 + (Math.max(r.lo, Math.min(r.hi, x)) - r.lo) / (r.hi - r.lo) * (X1 - X0);
+    cnt.forEach((n, b) => { if (!n) return; const h = Math.max(1, n / mx * (base - top)); out.push(`<rect x="${(X0 + b * bw + 0.6).toFixed(1)}" y="${(base - h).toFixed(1)}" width="${Math.max(0.8, bw - 1.2).toFixed(1)}" height="${h.toFixed(1)}" fill="${b === mine ? "var(--accent)" : "var(--dot)"}" fill-opacity="${b === mine ? 0.45 : 0.55}"/>`); });
+    out.push(`<line x1="${X0}" x2="${X1}" y1="${base}" y2="${base}" stroke="var(--muted)" stroke-width=".6"/>`);
+    if (r.lim) { const lx = r.int ? X0 + (r.lim[0] - r.lo + 0.5) * bw + bw / 2 : xOf(r.lim[0]); out.push(`<line x1="${lx.toFixed(1)}" x2="${lx.toFixed(1)}" y1="${top - 3}" y2="${base}" stroke="var(--bad)" stroke-width="1.1" stroke-dasharray="3 2"/><text x="${(lx + 2).toFixed(1)}" y="${top + 3}" font-size="8.5" fill="var(--bad)">${r.lim[1]} ${r.lim[0]}</text>`); }
+    if (has) {
+      const mxp = xOf(v), clipped = v < r.lo || v > r.hi;
+      out.push(`<line x1="${mxp.toFixed(1)}" x2="${mxp.toFixed(1)}" y1="${top - 2}" y2="${base + 2}" stroke="var(--accent)" stroke-width="2.2"/><circle cx="${mxp.toFixed(1)}" cy="${top - 2}" r="3.6" fill="var(--accent)"/>`);
+      if (clipped) out.push(`<text x="${(mxp + (v > r.hi ? -4 : 4)).toFixed(1)}" y="${base - 4}" text-anchor="${v > r.hi ? "end" : "start"}" font-size="9" fill="var(--accent)">${v > r.hi ? "→" : "←"}</text>`);
+    }
+    out.push(`<text x="${X0}" y="${base + 10}" font-size="8.5" fill="var(--muted)">${r.lo}</text><text x="${X1}" y="${base + 10}" text-anchor="end" font-size="8.5" fill="var(--muted)">${r.int ? "≥" : ""}${r.hi}</text>`);
+  });
+  svg.innerHTML = out.join("");
 }
 
 /* ---------- drug space (PCA of 8 properties over approved drugs) ---------- */
 let SPACE = null, spaceP = null, drugFP = null, fpBusy = null;
 const SV = { W: 340, H: 250, x0: 24, x1: 334, y0: 8, y1: 222, xr: [-3.5, 9], yr: [-4, 5] };
-function loadSpace() { if (!spaceP) spaceP = fetch("data/drugspace.json").then(r => r.ok ? r.json() : null).then(j => (SPACE = j)).catch(() => null); return spaceP; }
+function loadSpace() {
+  if (!spaceP) spaceP = (async () => {
+    const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
+    const q = "?v=" + APP_VERSION;   // a new release fetches the new data file, not a cached one
+    const j = (await get("data/drugspace.json" + q)) || (await get(HOME_URL + "data/drugspace.json" + q));
+    if (!j || !Array.isArray(j.points)) { spaceP = null; return null; }   // try again next time
+    return (SPACE = j);
+  })();
+  return spaceP;
+}
 const sx = x => SV.x0 + (Math.max(SV.xr[0], Math.min(SV.xr[1], x)) - SV.xr[0]) / (SV.xr[1] - SV.xr[0]) * (SV.x1 - SV.x0);
 const sy = y => SV.y1 - (Math.max(SV.yr[0], Math.min(SV.yr[1], y)) - SV.yr[0]) / (SV.yr[1] - SV.yr[0]) * (SV.y1 - SV.y0);
 function project(d) {
-  const v = { mw: d.amw, clogp: d.CrippenClogP, tpsa: d.tpsa, hbd: d.lipinskiHBD, hba: d.lipinskiHBA, rotb: d.NumRotatableBonds, arom: d.NumAromaticRings, fsp3: d.FractionCSP3 };
+  const v = MAPV(d);
+  if (!SPACE.descriptors.every(k => Number.isFinite(+v[k]))) return null;
   const z = SPACE.descriptors.map((k, i) => (v[k] - SPACE.mean[i]) / SPACE.sd[i]);
   return SPACE.loadings.map(L => L.reduce((a, l, i) => a + l * z[i], 0));
 }
@@ -1536,7 +2038,7 @@ function drawSpaceBase() {
     `<g fill="var(--dot)" fill-opacity=".5">${pts}</g>` +
     `<text x="${SV.x1}" y="${SV.y1 + 18}" text-anchor="end" font-size="11.5" fill="var(--muted)">More polar →</text>` +
     `<text x="${SV.x0}" y="${SV.y1 + 18}" font-size="11.5" font-weight="700" fill="var(--muted)">PC1 · ${(e[0] * 100).toFixed(0)}% of variance</text>` +
-    `<text transform="translate(${SV.x0 - 10} ${SV.y1}) rotate(-90)" font-size="11.5" fill="var(--muted)"><tspan font-weight="700">PC2 · ${(e[1] * 100).toFixed(0)}%</tspan>   Larger, more aromatic →</text>`;
+    `<text transform="translate(${SV.x0 - 10} ${SV.y1}) rotate(-90)" font-size="11.5" fill="var(--muted)"><tspan font-weight="700">PC2 · ${(e[1] * 100).toFixed(0)}%</tspan>   Larger, more lipophilic →</text>`;
 }
 let qPos = null, nnHits = [];
 async function renderSpace() {
@@ -1545,29 +2047,72 @@ async function renderSpace() {
   if (!SPACE) { $("#spaceSvg").innerHTML = `<text x="170" y="135" text-anchor="middle" font-size="13" fill="var(--muted)">The drug-space data could not be loaded.</text>`; return; }
   if (!spaceBase) drawSpaceBase();
   qPos = project(current.desc);
-  const outside = qPos[0] < SV.xr[0] || qPos[0] > SV.xr[1] || qPos[1] < SV.yr[0] || qPos[1] > SV.yr[1];
-  const nn = nnHits.map((h, i) => { const p = SPACE.points[h.i]; return `<g><circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="7" fill="var(--warn)" stroke="var(--surface)" stroke-width="1.5"/><text x="${sx(p[0]).toFixed(1)}" y="${(sy(p[1]) + 3.6).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--surface)">${i + 1}</text></g>`; }).join("");
+  const placed = !!qPos; if (!qPos) qPos = [NaN, NaN];
+  const outside = placed && (qPos[0] < SV.xr[0] || qPos[0] > SV.xr[1] || qPos[1] < SV.yr[0] || qPos[1] > SV.yr[1]);
+  const nn = nnHits.map((h, i) => { const p = SPACE.points[h.i]; return `<g><circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="6.5" fill="var(--warn)" stroke="var(--surface)" stroke-width="1.2"/><text x="${sx(p[0]).toFixed(1)}" y="${(sy(p[1]) + 3.2).toFixed(1)}" text-anchor="middle" font-size="${i < 9 ? 9 : 7.5}" font-weight="700" fill="var(--surface)">${i + 1}</text></g>`; }).join("");
   const X = sx(qPos[0]), Y = sy(qPos[1]);
-  $("#spaceSvg").innerHTML = spaceBase + nn +
-    `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="11" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="5" fill="var(--accent)"/>`;
-  $("#spaceNote").textContent = outside ? "This compound lies beyond the edge of the map; it is pinned to the nearest edge." : "Tap any point to see which drug it is.";
+  $("#spaceSvg").innerHTML = spaceBase + nn.split("</g>").filter(Boolean).reverse().map(g => g + "</g>").join("") + (!placed ? "" :
+    `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="11" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="5" fill="var(--accent)"/>`);
+  $("#spaceNote").textContent = (!placed ? (current.desc.PBF === undefined ? "Placing this compound once its 3D shape is worked out… " : "This compound could not be placed: no 3D conformer for its plane of best fit. ") : "") + (outside ? "This compound lies beyond the edge of the map; it is pinned to the nearest edge. " : "") + (nnHits.length ? `Orange: approved drugs with the same scaffold. ` : "") + "Tap any point to see which drug it is.";
 }
 const POP = new Uint8Array(256).map((_, i) => { let c = 0, x = i; while (x) { c += x & 1; x >>= 1; } return c; });
 const FPOPT = JSON.stringify({ radius: 2, nBits: 2048 });
 function tanimoto(a, b, pa, pb) { let c = 0; for (let i = 0; i < a.length; i++) c += POP[a[i] & b[i]]; return c / (pa + pb - c || 1); }
 const popc = a => { let c = 0; for (let i = 0; i < a.length; i++) c += POP[a[i]]; return c; };
+/* Bemis-Murcko scaffold: drop side chains (repeatedly remove atoms with one neighbour) and keep
+   atoms double-bonded to what is left, as RDKit's MurckoScaffold does. Works on the molblock,
+   since RDKit.js has no scaffold function. Same code as tools/drugspace/scaffolds.js. */
+function murckoSmiles(mol) {
+  const mb = mol.get_molblock().split("\n");
+  const cnt = mb[3], na = +cnt.slice(0, 3), nb = +cnt.slice(3, 6);
+  const atoms = mb.slice(4, 4 + na), bonds = mb.slice(4 + na, 4 + na + nb).map(l => [+l.slice(0, 3) - 1, +l.slice(3, 6) - 1, +l.slice(6, 9), l]);
+  const adj = Array.from({ length: na }, () => []);
+  bonds.forEach(([a, b], k) => { adj[a].push(k); adj[b].push(k); });
+  const alive = new Array(na).fill(true), deg = adj.map(x => x.length), st = [];
+  deg.forEach((d, i) => { if (d <= 1) st.push(i); });
+  while (st.length) { const i = st.pop(); if (!alive[i]) continue; alive[i] = false; for (const k of adj[i]) { const [a, b] = bonds[k], j = a === i ? b : a; if (alive[j] && --deg[j] <= 1) st.push(j); } }
+  if (!alive.some(Boolean)) return "";
+  const keep = alive.slice();
+  bonds.forEach(([a, b, o]) => { if (o === 2) { if (alive[a]) keep[b] = true; if (alive[b]) keep[a] = true; } });
+  const map = new Map(); let n = 0; keep.forEach((k, i) => { if (k) map.set(i, ++n); });
+  const pad = (x, w) => String(x).padStart(w);
+  const A = atoms.filter((_, i) => keep[i]).map(l => l.slice(0, 39) + "  0" + l.slice(42, 48) + "  0" + l.slice(51));
+  const B = bonds.filter(([a, b]) => keep[a] && keep[b]).map(([a, b, o, l]) => pad(map.get(a), 3) + pad(map.get(b), 3) + pad(o, 3) + "  0" + l.slice(12));
+  const props = [];
+  for (const l of mb.slice(4 + na + nb)) {
+    const m = l.match(/^M  (CHG|ISO|RAD)/); if (!m) continue;
+    const v = l.slice(6).trim().split(/\s+/).map(Number).slice(1), pr = [];
+    for (let k = 0; k < v.length; k += 2) if (map.has(v[k] - 1)) pr.push([map.get(v[k] - 1), v[k + 1]]);
+    if (pr.length) props.push(`M  ${m[1]}${pad(pr.length, 3)}` + pr.map(([i, x]) => pad(i, 4) + pad(x, 4)).join(""));
+  }
+  const m2 = RD.get_mol(["", "  scaffold", "", pad(A.length, 3) + pad(B.length, 3) + cnt.slice(6), ...A, ...B, ...props, "M  END"].join("\n"));
+  if (!m2) return "";
+  const out = m2.is_valid() ? m2.get_smiles(JSON.stringify({ doIsomericSmiles: false })) : ""; m2.delete(); return out;
+}
 function drugFingerprints() {
   if (drugFP) return Promise.resolve(drugFP);
   if (fpBusy) return fpBusy;
   fpBusy = (async () => {
-    await rdReady; await loadSpace(); if (!SPACE) return null;
-    const out = new Array(SPACE.points.length);
-    for (let i = 0; i < out.length; i++) {
+    await rdReady; await loadSpace(); if (!SPACE) { fpBusy = null; return null; }
+    const N = SPACE.points.length, out = new Array(N);
+    // data files from before 1.1 lack descriptors and scaffolds: work them out here (slower)
+    const need = !(Array.isArray(SPACE.desc) && SPACE.desc.length === N && Array.isArray(SPACE.scaffold) && Array.isArray(SPACE.scaffolds));
+    if (need) { SPACE.desc = new Array(N).fill(null); SPACE.scaffold = new Array(N).fill(-1); SPACE.scaffolds = []; }
+    const sIdx = new Map();
+    for (let i = 0; i < N; i++) {
       const m = RD.get_mol(SPACE.points[i][2]);
-      if (m && m.is_valid()) { const f = m.get_morgan_fp_as_uint8array(FPOPT); out[i] = [f, popc(f)]; } else out[i] = null;
+      if (m && m.is_valid()) {
+        const f = m.get_morgan_fp_as_uint8array(FPOPT); out[i] = [f, popc(f)];
+        if (need) {
+          const v = MAPV(JSON.parse(m.get_descriptors())); SPACE.desc[i] = SPACE.descriptors.map(k => +v[k]);
+          const sc = murckoSmiles(m); if (!sIdx.has(sc)) { sIdx.set(sc, SPACE.scaffolds.length); SPACE.scaffolds.push(sc); } SPACE.scaffold[i] = sIdx.get(sc);
+        }
+      } else out[i] = null;
       m && m.delete();
-      if (i % 80 === 79) await new Promise(r => setTimeout(r, 0));   // keep the page responsive
+      if (i % (need ? 25 : 80) === (need ? 24 : 79)) await new Promise(r => setTimeout(r, 0));   // keep the page responsive
     }
+    drugStats();
+    if (current && activeTab === "props") { renderComplexity(current); renderProfile(current); }
     return (drugFP = out);
   })();
   return fpBusy;
@@ -1575,28 +2120,65 @@ function drugFingerprints() {
 let nnFor = null;
 async function ensureNeighbours() {
   if (!current || nnFor === current.smiles) return;
-  const want = current.smiles; nnFor = want;
-  if (!drugFP) $("#nn").innerHTML = `<p class="hint" style="padding-top:8px"><span class="busy"></span> Finding the most similar approved drugs…</p>`;
+  const c = current, want = c.smiles; nnFor = want;
+  if (!drugFP) { $("#nn").innerHTML = `<p class="hint" style="padding-top:8px"><span class="busy"></span> Comparing with 1,294 approved drugs…</p>`; $("#nnSim").innerHTML = $("#nn").innerHTML; }
   const fps = await drugFingerprints();
-  if (!fps || !current || current.smiles !== want) return;
-  const m = RD.get_mol(current.parent || current.smiles); const q = m.get_morgan_fp_as_uint8array(FPOPT); m.delete();
-  const pq = popc(q);
-  const sims = []; fps.forEach((f, i) => { if (f) sims.push({ i, s: tanimoto(q, f[0], pq, f[1]) }); });
-  sims.sort((a, b) => b.s - a.s);
-  nnHits = sims.slice(0, 3);
-  renderSpace();
-  $("#nn").innerHTML = `<p class="hint" style="margin:6px 0 2px">Most similar approved drugs (Morgan radius 2, Tanimoto)</p>` + nnHits.map((h, i) => {
+  if (current !== c) return;
+  if (!fps) { nnFor = null; $("#nn").innerHTML = $("#nnSim").innerHTML = `<p class="hint">The approved-drug set could not be loaded. Check the connection and open this tab again.</p>`; renderProfile(c); $("#typ").innerHTML = `<p class="hint">The approved-drug set could not be loaded.</p>`; return; }
+  const m = RD.get_mol(c.parent || c.smiles); const q = m.get_morgan_fp_as_uint8array(FPOPT); const qs = murckoSmiles(m); m.delete();
+  const pq = popc(q), si = qs ? SPACE.scaffolds.indexOf(qs) : -1, same = [];
+  if (si >= 0) fps.forEach((f, i) => { if (f && SPACE.scaffold[i] === si) same.push({ i, s: tanimoto(q, f[0], pq, f[1]) }); });
+  same.sort((a, b) => b.s - a.s);
+  nnHits = same.slice(0, NN_COUNT);
+  c.scaf = { smi: qs, total: same.length };
+  c.nn = nnHits.map(h => ({ i: h.i, s: h.s, smi: SPACE.points[h.i][2], name: undefined }));
+  const all = []; fps.forEach((f, i) => { if (f) all.push({ i, s: tanimoto(q, f[0], pq, f[1]) }); });
+  all.sort((a, b) => b.s - a.s);
+  c.nnSim = all.slice(0, NN_COUNT).map(h => ({ i: h.i, s: h.s, smi: SPACE.points[h.i][2], name: undefined, same: si >= 0 && SPACE.scaffold[h.i] === si }));
+  renderNnSim(c);
+  if (c.desc.PBF === undefined) {
+    if (needsPBF()) { $("#typ").innerHTML = `<p class="hint"><span class="busy"></span> Building a 3D conformer for the plane of best fit…</p>`; renderSpace(); }
+    await ensurePBF(c);
+    if (current !== c) return;
+  }
+  c.typ = typicality(c.desc);
+  renderTypicality(c); renderProfile(c); renderComplexity(c);
+  renderSpace(); scheduleReport();
+  const many = same.length > NN_COUNT;
+  const head = !qs ? `<p class="hint">This structure has no ring system, so it has no scaffold to compare with approved drugs.</p>`
+    : `<div class="scaf"><span class="th">${thumbSVG(qs, 168, 120)}</span><div><b>Bemis–Murcko scaffold</b><span class="hint">${same.length
+        ? `${same.length} approved drug${same.length > 1 ? "s" : ""} in the reference set share${same.length > 1 ? "" : "s"} this ring system and linkers${many ? `; the ${NN_COUNT} most similar are shown` : ""}, ranked by Morgan Tanimoto similarity.`
+        : "No approved drug in the reference set of 1,294 has this scaffold."}</span><code>${esc(qs)}</code></div></div>`;
+  $("#nn").innerHTML = head + (nnHits.length ? `<p class="hint" style="margin:10px 0 6px">Numbers match the orange points on the drug-space map. Tap a drug to open it.</p><div class="nngrid">` + nnHits.map((h, i) => {
     const smi = SPACE.points[h.i][2];
-    return `<button type="button" data-i="${h.i}"><span class="n">${i + 1}</span><span class="th">${thumbSVG(smi, 112, 80)}</span><span class="t" data-name="${h.i}">${h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">${h.s.toFixed(2)}</span></button>`;
-  }).join("");
+    return `<button type="button" data-i="${h.i}"><span class="th">${thumbSVG(smi, 168, 120)}<span class="n">${i + 1}</span></span><span class="t" data-name="${h.i}">${h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">Tanimoto ${h.s.toFixed(2)}</span></button>`;
+  }).join("") + `</div>` : "");
   $("#nn").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { openStructure(SPACE.points[+b.dataset.i][2], "approved drug"); }));
-  for (const h of nnHits) drugName(h.i).then(n => { const el = $(`#nn [data-name="${h.i}"]`); if (el) el.textContent = (h.s > 0.999 ? "Same structure: " : "") + (n ? titleCase(n) : n === null ? "Approved drug (name lookup failed)" : "Approved drug, no PubChem name"); });
+  const nnRef = c.nn;
+  for (const h of nnHits) drugName(h.i).then(n => {
+    const el = $(`#nn [data-name="${h.i}"]`); if (el) el.textContent = (h.s > 0.999 ? "Same: " : "") + (n ? titleCase(n) : n === null ? "Name lookup failed" : "No PubChem name");
+    const rec = nnRef && nnRef.find(x => x.i === h.i); if (rec) { rec.name = n ? titleCase(n) : ""; scheduleReport(); }
+  });
+}
+const NN_COUNT = 12;
+function renderNnSim(c) {
+  const L = c.nnSim; if (!L) return;
+  $("#nnSim").innerHTML = `<p class="hint" style="margin:0 0 8px">The ${L.length} approved drugs most similar to this compound by Morgan fingerprint (radius 2, 2048 bits, Tanimoto), whatever their scaffold. As a rough guide, values under about 0.3 are typical of unrelated molecules. <span class="tag">same scaffold</span> marks drugs also in the panel above. Tap a drug to open it.</p><div class="nngrid">`
+    + L.map((h, k) => `<button type="button" data-i="${h.i}"><span class="th">${thumbSVG(h.smi, 168, 120)}<span class="n">${k + 1}</span></span><span class="t" data-name="${h.i}">${h.name ? esc(h.name) : h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">Tanimoto ${h.s.toFixed(2)}${h.same ? `<span class="tag">same scaffold</span>` : ""}</span></button>`).join("") + `</div>`;
+  $("#nnSim").querySelectorAll("button").forEach(b => b.addEventListener("click", () => openStructure(SPACE.points[+b.dataset.i][2], "approved drug")));
+  for (const h of L) if (h.name === undefined) drugName(h.i).then(n => {
+    if (current !== c) return;
+    h.name = n ? titleCase(n) : "";
+    const el = $(`#nnSim [data-name="${h.i}"]`); if (el) el.textContent = (h.s > 0.999 ? "Same: " : "") + (n ? titleCase(n) : n === null ? "Name lookup failed" : "No PubChem name");
+    scheduleReport();
+  });
 }
 const nameCache = new Map();
 function drugName(i) {
   if (nameCache.has(i)) return nameCache.get(i);
-  const p = getJSON(`${PUG}/compound/smiles/property/Title/JSON`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "smiles=" + encodeURIComponent(SPACE.points[i][2]) })
+  const p = pcPaced(() => getJSON(`${PUG}/compound/smiles/property/Title/JSON`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "smiles=" + encodeURIComponent(SPACE.points[i][2]) }))
     .then(r => r?.PropertyTable?.Properties?.[0]?.Title || "").catch(() => null);
+  p.then(n => { if (n === null) nameCache.delete(i); });   // try again next time
   nameCache.set(i, p); return p;
 }
 (function spaceTap() {
@@ -1629,6 +2211,102 @@ function loadOCL() {
   if (!OCLp) OCLp = (async () => { const mod = await import(OCL_URL); const O = mod.default || mod; await O.Resources.registerFromUrl(OCL_RES); return O; })();
   OCLp.catch(() => { OCLp = null; });
   return OCLp;
+}
+/* 3D shape from one conformer, heavy atoms only:
+   - plane of best fit (Firth, Brown & Blagg, J. Chem. Inf. Model. 2012): mean distance of the heavy atoms
+     from their least-squares plane, in Å; 0 for a flat molecule.
+   - normalised PMI ratios NPR1 = I1/I3 and NPR2 = I2/I3 (Sauer & Schwarz, J. Chem. Inf. Comput. Sci. 2003),
+     mass-weighted: rod (0, 1), disc (0.5, 0.5), sphere (1, 1). */
+const ATOM_MASS = { C: 12.011, N: 14.007, O: 15.999, F: 18.998, P: 30.974, S: 32.065, Cl: 35.453, Br: 79.904, I: 126.904, B: 10.812, Si: 28.086, Se: 78.971, As: 74.922 };
+function eig3(A0) {
+  const A = A0.map(r => r.slice()), V = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  for (let sweep = 0; sweep < 50; sweep++) for (let p = 0; p < 2; p++) for (let q = p + 1; q < 3; q++) {   // Jacobi rotations
+    if (Math.abs(A[p][q]) < 1e-12) continue;
+    const th = 0.5 * Math.atan2(2 * A[p][q], A[q][q] - A[p][p]), co = Math.cos(th), si = Math.sin(th);
+    for (let k = 0; k < 3; k++) { const x = A[k][p], y = A[k][q]; A[k][p] = co * x - si * y; A[k][q] = si * x + co * y; }
+    for (let k = 0; k < 3; k++) { const x = A[p][k], y = A[q][k]; A[p][k] = co * x - si * y; A[q][k] = si * x + co * y; }
+    for (let k = 0; k < 3; k++) { const x = V[k][p], y = V[k][q]; V[k][p] = co * x - si * y; V[k][q] = si * x + co * y; }
+  }
+  return { val: [A[0][0], A[1][1], A[2][2]], vec: V };
+}
+function shapeFromMolfile(mf) {
+  const L = mf.split("\n"), n = parseInt(L[3].slice(0, 3)), P = [], W = [];
+  for (let i = 0; i < n; i++) { const l = L[4 + i], el = l.slice(31, 34).trim(); if (el !== "H") { P.push([+l.slice(0, 10), +l.slice(10, 20), +l.slice(20, 30)]); W.push(ATOM_MASS[el] || 12.011); } }
+  const N = P.length; if (N < 2) return { pbf: 0, npr1: NaN, npr2: NaN };
+  let pbf = 0;
+  if (N >= 4) {
+    const c = [0, 1, 2].map(k => P.reduce((a, p) => a + p[k], 0) / N), A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+    for (const p of P) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) A[i][j] += (p[i] - c[i]) * (p[j] - c[j]);
+    const e = eig3(A); let m = 0; for (let k = 1; k < 3; k++) if (e.val[k] < e.val[m]) m = k;
+    const nv = [e.vec[0][m], e.vec[1][m], e.vec[2][m]];
+    pbf = P.reduce((a, p) => a + Math.abs((p[0] - c[0]) * nv[0] + (p[1] - c[1]) * nv[1] + (p[2] - c[2]) * nv[2]), 0) / N;
+  }
+  const M = W.reduce((a, b) => a + b, 0), cm = [0, 1, 2].map(k => P.reduce((a, p, i) => a + W[i] * p[k], 0) / M);
+  const I = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  P.forEach((p, i) => { const d = p.map((v, k) => v - cm[k]), r2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2;
+    for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) I[a][b] += W[i] * ((a === b ? r2 : 0) - d[a] * d[b]); });
+  const ev = eig3(I).val.sort((a, b) => a - b);
+  return { pbf, npr1: ev[2] > 1e-9 ? ev[0] / ev[2] : NaN, npr2: ev[2] > 1e-9 ? ev[1] / ev[2] : NaN };
+}
+function setShape(d, mf) { const r = shapeFromMolfile(mf); d.PBF = r.pbf; d.NPR1 = r.npr1; d.NPR2 = r.npr2; }
+/* Bertz CT (Bertz, J. Am. Chem. Soc. 1981): a port of RDKit's GraphDescriptors.BertzCT, which RDKit.js
+   lacks; it gives RDKit's values to 1e-6 on all 1,294 reference drugs. */
+// Port of RDKit's BertzCT (rdkit.Chem.GraphDescriptors, Bertz 1981) for RDKit.js molecules.
+function bertzCT(mol) {
+  const g = JSON.parse(mol.get_json()), M = g.molecules[0], def = g.defaults;
+  const ext = (M.extensions || []).find(e => e.name === "rdkitRepresentation") || {};
+  const arB = new Set(ext.aromaticBonds || []);
+  const n = M.atoms.length; if (n < 2) return 0;
+  const Z = M.atoms.map(a => a.z ?? def.atom.z);
+  const nb = Array.from({ length: n }, () => []), bo = new Map();
+  const D = Array.from({ length: n }, (_, i) => { const r = new Float64Array(n).fill(Infinity); r[i] = 0; return r; });
+  (M.bonds || []).forEach((b, k) => {
+    let [a, c] = b.atoms; if (a > c) [a, c] = [c, a];
+    const o = arB.has(k) ? 1.5 : (b.bo ?? def.bond.bo);
+    bo.set(a * n + c, o);
+    if (!nb[a].includes(c)) nb[a].push(c); if (!nb[c].includes(a)) nb[c].push(a);
+    const w = 1 / o; if (w < D[a][c]) { D[a][c] = w; D[c][a] = w; }
+  });
+  nb.forEach(l => l.sort((x, y) => x - y));
+  for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) { const dik = D[i][k]; if (dik === Infinity) continue; for (let j = 0; j < n; j++) { const v = dik + D[k][j]; if (v < D[i][j]) D[i][j] = v; } }
+  // RDKit uses 1e8 for unconnected pairs
+  const seen = new Map(), cls = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const row = Array.from(D[i], v => v === Infinity ? 1e8 : v).sort((x, y) => x - y).slice(0, 100);
+    const key = row.map(v => v.toFixed(4)).join(",");
+    if (!seen.has(key)) seen.set(key, seen.size); cls[i] = seen.get(key) + 1;
+  }
+  const BO = (a, c) => bo.get(Math.min(a, c) * n + Math.max(a, c));
+  const types = new Map(), conn = new Map();
+  const add = (k, v) => conn.set(k, (conn.get(k) || 0) + v);
+  for (let a = 0; a < n; a++) {
+    types.set(Z[a], (types.get(Z[a]) || 0) + 1);
+    const h = cls[a], L = nb[a];
+    for (let i = 0; i < L.length; i++) {
+      const ni = L[i], ci = cls[ni], oi = BO(a, ni);
+      if (oi > 1 && ni > a) add(Math.min(h, ci) + "|" + Math.max(h, ci), oi * (oi - 1) / 2);
+      for (let j = i + 1; j < L.length; j++) { const nj = L[j], cj = cls[nj]; add(Math.min(ci, cj) + "|" + h + "|" + Math.max(ci, cj), oi * BO(a, nj)); }
+    }
+  }
+  if (!conn.size) conn.set("a", 1);
+  const H = arr => { const t = arr.reduce((x, y) => x + y, 0); if (!t) return 0; return arr.reduce((s, v) => { const p = v / t; return p > 0 ? s - p * Math.log(p) / Math.LN2 : s; }, 0); };
+  const cl = [...conn.values()], tot = cl.reduce((x, y) => x + y, 0);
+  return tot * (H(cl) + Math.log(tot) / Math.LN2) + n * H([...types.values()]);
+}
+
+// One conformer per compound (seed 1, as for the reference drugs): gives PBF and is reused by the 3D tab.
+async function ensurePBF(c) {
+  if (c.desc.PBF !== undefined) return;
+  if (!c.pbfP) c.pbfP = (async () => {
+    try {
+      const O = await loadOCL();
+      await new Promise(r => setTimeout(r, 30));
+      const smi = c.parent || c.smiles, mf = conformerMolfile(O, smi, 1);
+      c.conf1 = { smi, mf }; setShape(c.desc, mf);
+    } catch (e) { console.warn("3D shape:", e); c.desc.PBF = c.desc.NPR1 = c.desc.NPR2 = NaN; }
+    if (current === c) { renderProps(c.desc); renderComplexity(c); if (drugStats()) renderProfile(c); scheduleReport(); }
+  })();
+  return c.pbfP;
 }
 function conformerMolfile(O, smi, seed) {
   const m = O.Molecule.fromSmiles(smi);
@@ -1686,7 +2364,8 @@ async function show3D(force) {
     await loadScript(DMOL_URL).catch(() => { throw new Error("Could not load the 3D viewer."); });
     const O = await loadOCL().catch(() => { throw new Error("Could not load the conformer generator."); });
     await new Promise(r => setTimeout(r, 30));
-    const mf = conformerMolfile(O, smi, seed3d);
+    const mf = (seed3d === 1 && current.conf1?.smi === smi) ? current.conf1.mf : conformerMolfile(O, smi, seed3d);
+    if (seed3d === 1 && current.desc.PBF === undefined) { current.conf1 = { smi, mf }; setShape(current.desc, mf); renderProps(current.desc); renderComplexity(current); }
     if (model3dFor !== smi) return;
     if (!viewer3d) viewer3d = $3Dmol.createViewer($("#mol3d"), { backgroundColor: "white", antialias: true });
     viewer3d.clear(); viewer3d.addModel(mf, "sdf");
@@ -1707,27 +2386,38 @@ window.addEventListener("resize", () => { if (viewer3d && activeTab === "3d") vi
 /* ---------- everything that follows a new compound ---------- */
 function onCompound() {
   updateMini();
-  renderRadar(current); renderScores(current);
+  renderScores(current); renderAlerts(current); renderTypicality(current); if (drugStats()) renderProfile(current); else $("#profile").innerHTML = ""; renderComplexity(current);
   nnHits = []; nnFor = null; $("#tip").hidden = true;
   renderSpace();
   if (activeTab === "props") ensureNeighbours();
   else setTimeout(() => drugFingerprints(), 1500);           // warm up in the background
   if (activeTab === "3d") show3D();
 }
-function openStructure(smi, label) { showTab("scan"); analyse(smi, label); }
+function openStructure(smi, label) { while (sheetStack.length) closeSheet(); showTab("scan"); analyse(smi, label); }
 
-/* ---------- small depictions ---------- */
+/* ---------- depictions ----------
+   Labels keep a readable minimum size on large molecules, lines keep one weight
+   at every size, and F, S, P, Cl, Br and I get darker colours that read on white. */
+const ATOM_PAL = { 7: [0.13, 0.28, 0.75], 8: [0.80, 0.10, 0.15], 9: [0.05, 0.50, 0.25], 15: [0.80, 0.38, 0.0], 16: [0.70, 0.52, 0.0], 17: [0.0, 0.50, 0.12], 35: [0.58, 0.16, 0.05], 53: [0.45, 0.05, 0.55] };
+function drawOpts(w, h) {
+  const k = Math.min(1, w / 560, h / 340);
+  return { width: w, height: h, clearBackground: false, scaleBondWidth: false, atomColourPalette: ATOM_PAL,
+    bondLineWidth: +(1.25 + 0.55 * k).toFixed(2), fixedBondLength: Math.round(34 * Math.max(k, 0.6)),
+    minFontSize: Math.round(7 + 8 * k), maxFontSize: Math.round(15 + 15 * k),
+    padding: k < 0.5 ? 0.06 : 0.05, additionalAtomLabelPadding: 0.1, multipleBondOffset: 0.16 };
+}
 function thumbSVG(smi, w = 168, h = 124) {
   if (!RD) return "";
   const m = RD.get_mol(smi); if (!m || !m.is_valid()) { m && m.delete(); return ""; }
-  const s = m.get_svg_with_highlights(JSON.stringify({ width: w, height: h, bondLineWidth: 1.4, padding: 0.06, clearBackground: false }));
+  const s = m.get_svg_with_highlights(JSON.stringify(drawOpts(w, h)));
   m.delete(); return s;
 }
 
 /* ---------- history ---------- */
-function addRecent(smi, name) {
+function addRecent(smi, name, key) {
   const list = store.get("sl.recent", []).filter(r => r.smi !== smi);
-  list.unshift({ smi, name: name || "", t: Date.now() }); store.set("sl.recent", list.slice(0, 40)); renderRecent();
+  list.unshift({ smi, name: name || "", key: key || "", t: Date.now() }); store.set("sl.recent", list.slice(0, HIST_MAX));
+  if (!$("#histSheet").hidden) renderRecent();
 }
 function ago(t) {
   const s = (Date.now() - t) / 1000;
@@ -1738,6 +2428,7 @@ function ago(t) {
 function renderRecent() {
   const list = store.get("sl.recent", []);
   $("#clearHist").hidden = !list.length;
+  $("#histCount").textContent = list.length ? `${list.length} kept on this phone` : "kept on this phone only";
   $("#recent").innerHTML = list.length ? list.map((r, i) => `<div class="hitem">
       <div class="th" data-open="${i}">${thumbSVG(r.smi)}</div>
       <div class="tx" data-open="${i}" role="button" tabindex="0"><b>${esc(titleCase(r.name) || "Unnamed structure")}</b><span>${esc(r.smi)}</span><em>${ago(r.t)}</em></div>
@@ -1754,6 +2445,813 @@ function renderRecent() {
 }
 $("#clearHist").addEventListener("click", () => { if (confirm("Clear the whole history?")) { store.set("sl.recent", []); renderRecent(); } });
 
+/* ================================================================
+   1.1: share links, QR codes, report, PDF, history files, release notes
+   ================================================================ */
+
+/* ---------- SMILES in the address (#smiles=…) ---------- */
+function hashSmiles() {
+  const parts = [location.hash.replace(/^#/, ""), location.search.replace(/^\?/, "")];
+  for (const part of parts) for (const kv of part.split("&")) {
+    const i = kv.indexOf("=");
+    if (i < 0) continue;
+    const k = kv.slice(0, i).toLowerCase();
+    if (k !== "smiles" && k !== "smi") continue;
+    try { const v = decodeURIComponent(kv.slice(i + 1)).trim(); if (v) return v; } catch {}
+  }
+  return null;
+}
+// Escape only what a link needs (#, %, &, +, [, ], spaces…); ( ) = / : @ stay readable and keep QR codes small.
+const encSmiles = smi => encodeURIComponent(smi).replace(/%(28|29|3D|2F|3A|40)/g, m => decodeURIComponent(m));
+function hashParam(name) {
+  for (const part of [location.hash.replace(/^#/, ""), location.search.replace(/^\?/, "")]) for (const kv of part.split("&")) {
+    const i = kv.indexOf("="); if (i > 0 && kv.slice(0, i).toLowerCase() === name) { try { return decodeURIComponent(kv.slice(i + 1)); } catch {} }
+  }
+  return null;
+}
+const LINK_TABS = ["scan", "props", "3d", "src", "report"];
+function shareURL(smi) {
+  return location.origin + location.pathname + "#smiles=" + encSmiles(smi);
+}
+function writeHash(smi, label) {
+  try {
+    const base = location.pathname + location.search.replace(/([?&])(smiles|smi)=[^&]*/gi, "$1").replace(/[?&]$/, "");
+    // The example stays at the plain address; every other structure gets its own link.
+    history.replaceState(null, "", /^example/.test(label) ? base : base + "#smiles=" + encSmiles(smi));
+  } catch {}
+}
+window.addEventListener("hashchange", () => {
+  if (location.hash === "#whats-new") { openSheet("#notesSheet"); return; }
+  const s = hashSmiles();
+  const tab = (hashParam("tab") || "").toLowerCase();
+  if (s && (!current || (s !== current.smiles && s !== current.input))) {
+    openStructure(s, "shared link");
+    if (LINK_TABS.includes(tab)) setTimeout(() => showTab(tab), 0);
+  } else if (LINK_TABS.includes(tab)) showTab(tab);
+});
+
+/* ---------- small helpers ---------- */
+function displayName(c) { return c.name ? titleCase(c.name) : (c.formula || "Unnamed structure"); }
+const fileSlug = s => (String(s || "structure").normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").toLowerCase().slice(0, 48) || "structure");
+async function copyText(text, msg = "Copied") {
+  try { await navigator.clipboard.writeText(text); toast(msg); return; } catch {}
+  const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+  let ok = false; try { ok = document.execCommand("copy"); } catch {}
+  ta.remove(); toast(ok ? msg : "Copy is not allowed here. Press and hold the text to copy it.");
+}
+function downloadBlob(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.rel = "noopener";
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+// Share a file through the phone's share sheet; fall back to a download where files can't be shared.
+async function shareFile(blob, name, title) {
+  const f = new File([blob], name, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f], title }); return "shared"; }
+    catch (e) { if (e.name === "AbortError") return "cancelled"; }
+  }
+  downloadBlob(blob, name); return "downloaded";
+}
+/* The last few scan photos are kept on the phone, keyed by canonical SMILES, so the drawing is still there
+   for the report and PDF after Safari reloads the page (it often does after the model has run), or when the
+   structure is reopened from history or a link on the same phone. */
+const PHOTO_KEEP = 8;
+function savePhoto(smi, ph, src) {
+  let list = store.get("sl.photos", []).filter(x => x.smi !== smi);
+  list.unshift({ smi, url: ph.url, w: ph.w, h: ph.h, src: src || "", t: Date.now() });
+  for (list = list.slice(0, PHOTO_KEEP); list.length; list.pop()) {
+    try { localStorage.setItem("sl.photos", JSON.stringify(list)); return; } catch { /* storage full: drop the oldest */ }
+  }
+}
+function loadPhoto(smi) {
+  const x = store.get("sl.photos", []).find(r => r.smi === smi);
+  return x ? { url: x.url, w: x.w, h: x.h, src: x.src, t: x.t, kept: true } : null;
+}
+function photoSnapshot() {
+  if (!srcCanvas) return null;
+  try {
+    const r = crop && crop.w > 20 ? crop : { x: 0, y: 0, w: srcCanvas.width, h: srcCanvas.height };
+    const k = Math.min(1, 1000 / Math.max(r.w, r.h));   // enough for print
+    const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(r.w * k)); c.height = Math.max(1, Math.round(r.h * k));
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(srcCanvas, r.x, r.y, r.w, r.h, 0, 0, c.width, c.height);
+    const url = c.toDataURL("image/jpeg", 0.82), out = { url, w: c.width, h: c.height };
+    freeCanvas(c); return out;
+  } catch { return null; }
+}
+
+/* ---------- lookup results kept for the report and PDF ---------- */
+function stash(id, k, obj) {
+  if (id !== runId || !current || !k) return;
+  current.info[k] = Object.assign({}, current.info[k], obj);
+  scheduleReport();
+}
+let reportTimer = null;
+function scheduleReport() {
+  if (current && activeTab === "props") renderComplexity(current);
+  clearTimeout(reportTimer);
+  reportTimer = setTimeout(() => { if (activeTab === "report") renderReport(); }, 120);
+}
+
+/* ---------- QR codes (qrcode-generator, Kazuhiko Arase, MIT) ---------- */
+let QRp = null;
+function loadQR() {
+  if (!QRp) QRp = loadScript(QR_URL).then(() => { if (typeof qrcode !== "function") throw new Error("QR code library missing"); return qrcode; });
+  QRp.catch(() => { QRp = null; });
+  return QRp;
+}
+function qrMake(text) {
+  for (const level of ["M", "L"]) {
+    try { const q = qrcode(0, level); q.addData(text, "Byte"); q.make(); return q; } catch {}
+  }
+  throw new Error("This is too long for a QR code.");
+}
+function qrSVG(q, quiet = 4) {
+  const n = q.getModuleCount(), N = n + quiet * 2; let d = "";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + quiet} ${r + quiet}h1v1h-1z`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges"><rect width="${N}" height="${N}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+
+/* ---------- share sheet ---------- */
+let qrMode = "link";
+async function renderShare() {
+  if (!current) return;
+  updateMini();
+  const url = shareURL(current.smiles);
+  $("#linkText").textContent = url;
+  const text = qrMode === "link" ? url : current.smiles;
+  $("#qrNote").textContent = qrMode === "link"
+    ? "Scan with a phone camera to open this structure in Structure Lens."
+    : "Holds just the SMILES text, for scanning into other chemistry software.";
+  const box = $("#qrBox"); box.classList.remove("err");
+  try { await loadQR(); box.innerHTML = qrSVG(qrMake(text)); box.setAttribute("aria-label", "QR code: " + (qrMode === "link" ? "link to this structure" : "SMILES")); }
+  catch (e) { box.classList.add("err"); box.textContent = e.message; }
+}
+document.querySelectorAll("#qrMode button").forEach(b => b.addEventListener("click", () => {
+  qrMode = b.dataset.q; document.querySelectorAll("#qrMode button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderShare();
+}));
+async function shareLink() {
+  if (!current) return;
+  const url = shareURL(current.smiles), nm = displayName(current);
+  if (navigator.share) {
+    try { await navigator.share({ title: `${nm} · Structure Lens`, text: `${nm} (${current.smiles})`, url }); return; }
+    catch (e) { if (e.name === "AbortError") return; }
+  }
+  copyText(url, "Link copied. This browser has no share sheet.");
+}
+$("#shareLink").addEventListener("click", shareLink);
+$("#copyLink").addEventListener("click", () => current && copyText(shareURL(current.smiles), "Link copied"));
+$("#openShare").addEventListener("click", () => openSheet("#shareSheet"));
+$("#qrSave").addEventListener("click", async () => {
+  if (!current) return;
+  try {
+    await loadQR();
+    const text = qrMode === "link" ? shareURL(current.smiles) : current.smiles;
+    const q = qrMake(text), n = q.getModuleCount(), quiet = 4, cell = Math.max(6, Math.floor(720 / (n + quiet * 2)));
+    const side = (n + quiet * 2) * cell, capH = 64;
+    const c = document.createElement("canvas"); c.width = side; c.height = side + capH;
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#000";
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) g.fillRect((k + quiet) * cell, (r + quiet) * cell, cell, cell);
+    g.fillStyle = "#16202B"; g.textAlign = "center"; g.font = "bold 26px Helvetica, Arial, sans-serif";
+    g.fillText(displayName(current).slice(0, 40), side / 2, side + 18);
+    g.fillStyle = "#5B6773"; g.font = "18px Helvetica, Arial, sans-serif";
+    g.fillText(qrMode === "link" ? "Scan to open in Structure Lens" : "SMILES", side / 2, side + 46);
+    const blob = await new Promise(r => c.toBlob(r, "image/png")); freeCanvas(c);
+    const res = await shareFile(blob, fileSlug(displayName(current)) + "-qr.png", displayName(current));
+    if (res === "downloaded") toast("QR image saved");
+  } catch (e) { toast(e.message || "The QR image could not be made."); }
+});
+
+/* ---------- one-page report ---------- */
+function trimSentences(t, max = 420) {
+  t = String(t || "").replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max), i = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("; "));
+  return (i > 120 ? cut.slice(0, i + 1) : cut.replace(/\s\S*$/, "") + "…");
+}
+function lookupNote(x, busyText = "Looking up…") {
+  if (!x) return `<p class="hint"><span class="busy"></span> ${busyText}</p>`;
+  if (x.error) return `<p class="hint">Not available: ${esc(x.error)}</p>`;
+  return "";
+}
+function reportIds(c) {
+  const I = c.info, out = [];
+  if (I.pc?.cid) out.push(`<a class="chip" href="https://pubchem.ncbi.nlm.nih.gov/compound/${I.pc.cid}" target="_blank" rel="noopener">PubChem ${I.pc.cid}</a>`);
+  if (I.ch?.id) out.push(`<a class="chip" href="https://www.ebi.ac.uk/chembl/explore/compound/${I.ch.id}" target="_blank" rel="noopener">${I.ch.id}</a>`);
+  if (I.sc?.schembl) out.push(`<a class="chip" href="${schemblURL(I.sc.schembl)}" target="_blank" rel="noopener">${I.sc.schembl}</a>`);
+  if (I.wk?.qid) out.push(`<a class="chip" href="https://www.wikidata.org/wiki/${I.wk.qid}" target="_blank" rel="noopener">Wikidata ${I.wk.qid}</a>`);
+  return out.join("");
+}
+function provenance(c) {
+  const when = new Date(c.when).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  let src = c.source || "";
+  if (c.conf) src += ` · confidence ${Math.round(100 * c.conf.mean)}% (lowest token ${Math.round(100 * c.conf.min)}%)`;
+  return { when, src };
+}
+async function renderReport() {
+  const el = $("#report");
+  if (!current) { el.innerHTML = `<div class="rp-body"><p class="empty">Recognise or open a structure first.</p></div>`; return; }
+  const c = current, I = c.info, d = c.desc, x = c.extra, pv = provenance(c);
+  const big = thumbSVG(c.smiles, 560, 330);
+  const kv = [
+    ["MW", fmt(d.amw, 1)], ["cLogP", fmt(d.CrippenClogP, 2)], ["TPSA", fmt(d.tpsa, 0)], ["Typicality", c.typ ? (pctTxt(c.typ.pct) + "%") : "…"],
+    ["HBD", d.lipinskiHBD], ["HBA", d.lipinskiHBA], ["Rot. bonds", d.NumRotatableBonds], ["ESOL logS", fmt(x.logS, 1)],
+    ["Fsp3", fmt(d.FractionCSP3, 2)], ["PBF (Å)", Number.isFinite(d.PBF) ? fmt(d.PBF, 2) : "…"], ["Arom. rings", d.NumAromaticRings], ["Alerts", x.alerts]
+  ];
+  const rules = ruleChecks(d).map(r => `<span class="chip ${r.cls}" title="${esc(r.fails.join(", "))}">${esc(r.name.replace(" (fragments)", "").replace(" (heuristic)", ""))}: ${esc(r.verdict)}</span>`).join("");
+
+  // what it is
+  let what;
+  const summary = I.pc?.desc ? { t: I.pc.desc, s: I.pc.descSrc || "PubChem" } : I.wk?.extract ? { t: I.wk.extract, s: "Wikipedia" } : null;
+  if (summary) what = `<p>${esc(trimSentences(summary.t))}</p><p class="hint">Source: ${esc(summary.s)}</p>`;
+  else if (!I.pc || !I.wk) what = lookupNote(null);
+  else if (I.pc.error && I.wk.error) what = lookupNote(I.pc);
+  else what = `<p class="hint">${I.pc.similar ? "Not in PubChem; " + I.pc.similar.length + " close analogues found." : "No description found in PubChem or Wikipedia. It may be a new or little-studied structure."}</p>`;
+
+  // pharmacology
+  let pharm = lookupNote(I.ch);
+  if (I.ch && !I.ch.error) {
+    if (I.ch.id) {
+      const bits = [`<p><span class="chip ${I.ch.approved ? "pass" : "mid"}">${esc(I.ch.phase)}</span>${I.ch.firstApproval ? ` <span class="hint">&nbsp;first approved ${I.ch.firstApproval}</span>` : ""}</p>`];
+      if (I.ch.mechs?.length) bits.push(`<ul>${I.ch.mechs.slice(0, 3).map(m => `<li>${esc(m.moa)}${m.action ? ` <span class="hint">(${esc(m.action)})</span>` : ""}</li>`).join("")}</ul>`);
+      if (I.ch.targets?.length) { const t = I.ch.targets[0]; bits.push(`<p>Most-measured target: <b>${esc(t.name)}</b> <span class="hint">(${esc(t.org)}, median pChEMBL ${t.med.toFixed(1)}, n = ${t.n})</span></p>`); }
+      if (I.ch.inds?.length) bits.push(`<p class="hint">Indications: ${esc(I.ch.inds.slice(0, 4).map(i => i.term).join(", "))}${I.ch.inds.length > 4 ? "…" : ""}</p>`);
+      pharm = bits.join("");
+    } else if (I.ch.similar) pharm = `<p>Not in ChEMBL. Closest: ${I.ch.similar.slice(0, 2).map(h => `<b>${esc(h.id)}</b>${h.name ? " " + esc(titleCase(h.name)) : ""} (${fmt(h.sim, 0)}%)`).join(", ")}.</p>`;
+    else pharm = `<p class="hint">Not in ChEMBL, and nothing ≥70% similar.</p>`;
+  }
+
+  // patents and nearest drug
+  let pat = lookupNote(I.sc);
+  if (I.sc && !I.sc.error) pat = I.sc.cid ? (I.sc.count ? `<p><b>${I.sc.count.toLocaleString("en-GB")}</b> patent documents in ${I.sc.families.toLocaleString("en-GB")} families, and ${I.sc.lit.toLocaleString("en-GB")} articles (PubChem).</p>` : `<p class="hint">PubChem lists no patents for this structure.</p>`)
+    : `<p class="hint">${I.sc.schembl ? "In SureChEMBL (" + esc(I.sc.schembl) + ") but not in PubChem." : "Not in PubChem or SureChEMBL, so no patents mention it."}</p>`;
+  let near = "";
+  if (c.nn && c.scaf) {
+    const same = c.nn.filter(h => h.s > 0.999), others = c.nn.filter(h => h.s <= 0.999), lnk = r => `<a href="#smiles=${encSmiles(r.smi)}"><b>${esc(r.name || "…")}</b></a>`;
+    const rest = c.scaf.total - same.length;
+    if (!c.scaf.smi) near = `<p class="hint">No ring system, so no scaffold to compare with approved drugs.</p>`;
+    else near = (same.length ? `<p>This is an approved drug: <b>${esc(same[0].name || "…")}</b>.</p>` : "")
+      + (others.length ? `<p>${rest} ${same.length ? "other " : ""}approved drug${rest > 1 ? "s share" : " shares"} its scaffold: ${others.slice(0, 4).map(lnk).join(", ")}${rest > 4 ? ` and ${rest - 4} more on the Properties tab` : ""}.</p>`
+        : `<p class="hint">No ${same.length ? "other " : ""}approved drug in the reference set shares its scaffold.</p>`);
+  } else near = `<p class="hint"><span class="busy"></span> Comparing with approved drugs…</p>`;
+  const nb = c.nnSim?.filter(h => h.s <= 0.999).slice(0, 3);
+  if (nb?.length) near += `<p>Nearest by fingerprint: ${nb.map(r => `<a href="#smiles=${encSmiles(r.smi)}"><b>${esc(r.name || "…")}</b></a> <span class="hint">(${r.s.toFixed(2)})</span>`).join(", ")}.</p>`;
+
+  const photo = c.photo ? `<figure><img src="${c.photo.url}" alt="The photo the structure was read from"><figcaption>Photo</figcaption></figure>` : "";
+  el.innerHTML = `
+    <header class="rp-head">
+      <div style="min-width:0">
+        <p class="rp-kicker">Structure report</p>
+        <h2 class="rp-name">${esc(displayName(c))}</h2>
+        <p class="rp-sub"><span class="formula" style="font-size:.95rem">${formulaHTML(c.formula)}</span> · MW ${fmt(d.amw, 2)}</p>
+      </div>
+      <a class="rp-qr" id="rpQr" href="#" aria-label="Show the link and QR code"></a>
+    </header>
+    <div class="rp-fig${photo ? " two" : ""}"><div>${big}</div>${photo}</div>
+    <div class="rp-body">
+      <dl class="ids rp-ids">
+        <dt>SMILES</dt><dd>${esc(c.smiles)}</dd>
+        <dt>InChIKey</dt><dd>${esc(c.key || "—")}</dd>
+      </dl>
+      ${reportIds(c) ? `<div class="links">${reportIds(c)}</div>` : ""}
+      <div class="kgrid">${kv.map(([k, v]) => `<div><span>${k}</span><b>${v ?? "—"}</b></div>`).join("")}</div>
+      <div class="links">${rules}</div>
+      <section class="rp-sec"><h3>What it is</h3>${what}</section>
+      <section class="rp-sec"><h3>Pharmacology</h3>${pharm}</section>
+      <section class="rp-sec"><h3>Patents and approved drugs</h3>${pat}${near}</section>
+    </div>
+    <footer class="rp-foot"><span>${esc(pv.src)}</span><span>${esc(pv.when)}</span><span>Structure Lens ${APP_VERSION}</span></footer>`;
+  $("#rpQr").addEventListener("click", e => { e.preventDefault(); openSheet("#shareSheet"); });
+  try { await loadQR(); const q = $("#rpQr"); if (q && current === c) q.innerHTML = qrSVG(qrMake(shareURL(c.smiles)), 2) + "<span>Open link</span>"; } catch { const q = $("#rpQr"); if (q) q.hidden = true; }
+}
+
+/* ---------- PDF (jsPDF, MIT) ---------- */
+const LIGHT = { bg: "#F3F5F7", surface: "#FFFFFF", ink: "#16202B", muted: "#5B6773", line: "#D9DFE5", accent: "#2148C0", "accent-ink": "#FFFFFF",
+  good: "#1E7A4C", warn: "#A35C00", bad: "#B4232C", dot: "#8A96A3", plate: "#FFFFFF", band: "#E9EEF8", "accent-soft": "#E6ECFB" };
+// Standard PDF fonts cover Latin-1 only; spell out anything else.
+const PDF_MAP = { "Φ": "Phi", "φ": "phi", "κ": "kappa", "χ": "chi", "α": "alpha", "≤": "<=", "≥": ">=", "→": "->", "←": "<-", "↗": "", "−": "-", "‐": "-", "‑": "-", "‒": "-", "×": "x", "≈": "~", "±": "+/-",
+  "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "ε": "epsilon", "ζ": "zeta", "η": "eta", "θ": "theta", "ι": "iota", "κ": "kappa", "λ": "lambda",
+  "μ": "µ", "ν": "nu", "ξ": "xi", "π": "pi", "ρ": "rho", "σ": "sigma", "τ": "tau", "υ": "upsilon", "φ": "phi", "χ": "chi", "ψ": "psi", "ω": "omega",
+  "Δ": "Delta", "Σ": "Sigma", "Ω": "Omega", "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
+  "⁰": "0", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁺": "+", "⁻": "-", " ": " ", " ": " ", " ": " ", "​": "", " ": " ", " ": " " };
+const WINANSI = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+// µ, ² and ³ are in WinAnsi but missing from some viewers' stand-in fonts, so they are spelled out too.
+const T = s => String(s ?? "").replace(/[µμ]/g, "u").replace(/²/g, "^2").replace(/³/g, "^3").replace(/[^\x00-\xff]/g, ch => PDF_MAP[ch] ?? (WINANSI.includes(ch) ? ch : (ch.normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^\x00-\xff]/g, "") || "?")));
+function svgToPNG(svg, w, h, scale = 2) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      const u = c.toDataURL("image/png"); freeCanvas(c); res(u);
+    };
+    img.onerror = () => rej(new Error("A chart could not be drawn for the PDF."));
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  });
+}
+// Charts on screen use theme variables; the PDF always uses the light palette.
+function printSVG(el, W, H) {
+  const inner = el.innerHTML.replace(/var\(--([a-z-]+)\)/g, (m, k) => LIGHT[k] || "#000");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Helvetica, Arial, sans-serif">${inner}</svg>`;
+}
+let jsPDFp = null;
+function loadJsPDF() {
+  if (!jsPDFp) jsPDFp = loadScript(JSPDF_URL).then(() => { if (!window.jspdf?.jsPDF) throw new Error("PDF library missing"); return window.jspdf.jsPDF; });
+  jsPDFp.catch(() => { jsPDFp = null; });
+  return jsPDFp;
+}
+const withTimeout = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(undefined), ms))]);
+
+async function buildPDF(onStep = () => {}) {
+  if (!current) throw new Error("Recognise or open a structure first.");
+  const c = current;
+  onStep("Loading the PDF maker…");
+  const [jsPDF] = await Promise.all([loadJsPDF(), loadQR().catch(() => null)]);
+  onStep("Collecting results…");
+  await withTimeout(drugFingerprints(), 15000);
+  await withTimeout(ensureNeighbours(), 25000);
+  for (let i = 0; i < 20 && !c.nn && current === c; i++) await new Promise(r => setTimeout(r, 150));
+  if (c.nn) {
+    const names = await withTimeout(Promise.all(c.nn.map(h => drugName(h.i))), 6000);
+    if (names) names.forEach((n, i) => { if (n && !c.nn[i].name) c.nn[i].name = titleCase(n); });
+  }
+  if (c.nnSim) {
+    const names = await withTimeout(Promise.all(c.nnSim.map(h => drugName(h.i))), 8000);
+    if (names) names.forEach((n, i) => { if (n && !c.nnSim[i].name) c.nnSim[i].name = titleCase(n); });
+  }
+  // let lookups that are still running finish (up to 12 s)
+  for (let i = 0; i < 24 && ["pc", "ch", "wk", "sc", "xr"].some(k => !c.info[k] || (k === "ch" && c.info.ch.id && !c.info.ch.targets && !c.info.ch.error) || (k === "sc" && c.info.sc.cid && c.info.sc.count && c.info.sc.count <= PAT_LIST_MAX && !c.info.sc.listed && !c.info.sc.error)); i++) await new Promise(r => setTimeout(r, 500));
+  if (current !== c) throw new Error("The structure changed while the PDF was being made.");
+  await loadSpace(); if (SPACE) { await renderSpace(); }
+
+  onStep("Drawing figures…");
+  const I = c.info, d = c.desc, x = c.extra, pv = provenance(c), nm = displayName(c), link = shareURL(c.smiles);
+  // bigger bonds than on screen so small molecules fill the panel; large ones are still scaled to fit
+  let molSvg = ""; { const m = RD.get_mol(c.smiles); if (m && m.is_valid()) molSvg = m.get_svg_with_highlights(JSON.stringify({ ...drawOpts(560, 330), fixedBondLength: 58, minFontSize: 16, maxFontSize: 34, bondLineWidth: 2 })); m && m.delete(); }
+  const molPng = molSvg ? await svgToPNG(molSvg, 560, 330, 4) : null;
+  const profPng = drugStats() ? await svgToPNG(printSVG($("#profile"), 360, PROFILE_H), 360, PROFILE_H, 3).catch(() => null) : null;
+  const pmiPng = Number.isFinite(d.NPR1) ? await svgToPNG(printSVG($("#pmi"), 340, 236), 340, 236, 3).catch(() => null) : null;
+  let alertPng = null;
+  if (x.alerts) { const a = alertSVG(c.smiles, null); if (a.svg) alertPng = await svgToPNG(a.svg, 560, 300, 3).catch(() => null); }
+  const spacePng = SPACE ? await svgToPNG(printSVG($("#spaceSvg"), 340, 250), 340, 250, 3).catch(() => null) : null;
+
+  const nnPngs = [], simPngs = [];
+  for (const h of (c.nn || [])) nnPngs.push(await svgToPNG(thumbSVG(h.smi, 220, 150), 220, 150, 3).catch(() => null));
+  for (const h of (c.nnSim || [])) simPngs.push(await svgToPNG(thumbSVG(h.smi, 220, 150), 220, 150, 3).catch(() => null));
+
+  onStep("Writing the PDF…");
+  const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
+  const addImg = (u, fmtName, ...a) => { if (!u) return false; try { doc.addImage(u, fmtName, ...a); return true; } catch (e) { console.warn("PDF figure skipped:", e.message); return false; } };
+  doc.setProperties({ title: `${nm} · Structure Lens report`, subject: `Structure report for ${c.smiles}`, creator: `Structure Lens ${APP_VERSION}`, keywords: c.key || "" });
+  const W = 210, H = 297, M = 15, CW = W - 2 * M, FOOT = 12;
+  const COL = { ink: [22, 32, 43], muted: [91, 103, 115], accent: [33, 72, 192], line: [217, 223, 229], good: [30, 122, 76], warn: [163, 92, 0], bad: [180, 35, 44], band: [233, 238, 248], soft: [243, 245, 247] };
+  const tc = k => doc.setTextColor(...COL[k]), dc = k => doc.setDrawColor(...COL[k]), fc = k => doc.setFillColor(...COL[k]);
+  const PT = 0.3528;
+  let y = M;
+  const space = h => { if (y + h > H - M - FOOT) { doc.addPage(); y = M; return true; } return false; };
+  const font = (size, style = "normal", face = "helvetica") => { doc.setFont(face, style); doc.setFontSize(size); };
+  // text block that wraps by words (or by characters for codes like SMILES)
+  // a value can be plain text or { t, url }; linked text is drawn in the accent colour
+  const vt = v => (v && typeof v === "object") ? v.t : v;
+  const vu = v => (v && typeof v === "object") ? v.url : null;
+  const L_ = (t, url) => url ? { t, url } : t;
+  function linkLines(lines, x0, yTop, lineH, url, align) {
+    if (!url) return;
+    lines.forEach((ln, k) => { const w = doc.getTextWidth(ln); if (w > 0) doc.link(align === "right" ? x0 - w : x0, yTop + k * lineH, w, lineH, { url }); });
+  }
+  function text(s, { size = 9.5, style = "normal", face = "helvetica", col = "ink", x0 = M, w = CW, lf = 1.32, gap = 1.6, chars = false, url = null } = {}) {
+    if (s == null || s === "") return;
+    if (url) col = "accent";
+    font(size, style, face); tc(col);
+    let lines;
+    if (chars) { const per = Math.max(8, Math.floor(w / (size * PT * 0.6))); lines = []; const t = T(s); for (let i = 0; i < t.length; i += per) lines.push(t.slice(i, i + per)); }
+    else lines = doc.splitTextToSize(T(s), w);
+    const L = size * PT * lf;
+    for (const ln of lines) { space(L); doc.text(ln, x0, y + size * PT * 0.95); linkLines([ln], x0, y, L, url); y += L; }
+    y += gap;
+  }
+  function heading(s, sub) {
+    space(16); y += 3;
+    font(12.5, "bold"); tc("accent"); doc.text(T(s), M, y + 4.4);
+    if (sub) { font(8.5); tc("muted"); doc.text(T(sub), W - M, y + 4.4, { align: "right" }); }
+    y += 6.5; dc("line"); doc.setLineWidth(0.3); doc.line(M, y, W - M, y); y += 3.2;
+  }
+  function pairs(rows, { cols = 2, keyW = 30, size = 9 } = {}) {
+    const colW = (CW - (cols - 1) * 6) / cols;
+    for (let i = 0; i < rows.length; i += cols) {
+      const chunk = rows.slice(i, i + cols);
+      font(size);
+      const hs = chunk.map(([k, v]) => doc.splitTextToSize(T(vt(v) ?? "—"), colW - keyW).length);
+      const h = Math.max(...hs) * size * PT * 1.3 + 1.2;
+      space(h);
+      chunk.forEach(([k, v], j) => {
+        const x0 = M + j * (colW + 6);
+        font(size - 0.5); tc("muted"); doc.text(T(k), x0, y + size * PT * 0.95);
+        const ls = doc.splitTextToSize(T(vt(v) ?? "—"), colW - keyW);
+        font(size); tc(vu(v) ? "accent" : "ink"); doc.text(ls, x0 + keyW, y + size * PT * 0.95, { lineHeightFactor: 1.3 });
+        linkLines(ls, x0 + keyW, y, size * PT * 1.3, vu(v));
+      });
+      y += h;
+    }
+    y += 1.5;
+  }
+  function table(head, rows, widths, { size = 8.5, aligns = [] } = {}) {
+    const L = size * PT * 1.3;
+    const drawHead = () => { font(size - 0.5, "bold"); tc("muted"); let x0 = M; head.forEach((h, j) => { doc.text(T(h), aligns[j] === "right" ? x0 + widths[j] - 1 : x0, y + size * PT, { align: aligns[j] || "left" }); x0 += widths[j]; }); y += L + 0.6; dc("line"); doc.setLineWidth(0.2); doc.line(M, y - 0.6, M + widths.reduce((a, b) => a + b, 0), y - 0.6); };
+    space(L * 3); drawHead();
+    for (const r of rows) {
+      font(size);
+      const cells = r.map((v, j) => doc.splitTextToSize(T(vt(v) ?? ""), widths[j] - 2));
+      const h = Math.max(...cells.map(cl => cl.length)) * L + 1.4;
+      if (space(h)) drawHead();
+      let x0 = M;
+      cells.forEach((cl, j) => {
+        const url = vu(r[j]), xx = aligns[j] === "right" ? x0 + widths[j] - 1 : x0;
+        font(size, j === 0 ? "bold" : "normal"); tc(url ? "accent" : "ink");
+        doc.text(cl, xx, y + size * PT, { align: aligns[j] || "left", lineHeightFactor: 1.3 });
+        linkLines(cl, xx, y + 0.2, L, url, aligns[j]);
+        x0 += widths[j];
+      });
+      y += h; dc("line"); doc.line(M, y - 0.7, M + widths.reduce((a, b) => a + b, 0), y - 0.7);
+    }
+    y += 2;
+  }
+  function qrAt(text, x0, y0, size) {
+    try {
+      const q = qrMake(text), n = q.getModuleCount(), cell = size / (n + 8);
+      doc.setFillColor(255, 255, 255); doc.rect(x0, y0, size, size, "F"); doc.setFillColor(0, 0, 0);
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) doc.rect(x0 + (k + 4) * cell, y0 + (r + 4) * cell, cell + 0.02, cell + 0.02, "F");
+      doc.link(x0, y0, size, size, { url: link });
+      return true;
+    } catch { return false; }
+  }
+
+  /* --- page 1: identity --- */
+  font(7.5, "bold"); tc("accent"); doc.text("STRUCTURE LENS  ·  STRUCTURE REPORT", M, y + 3);
+  font(7.5); tc("muted"); doc.text(T(new Date().toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })), W - M, y + 3, { align: "right" });
+  y += 7;
+  const qrSize = 30, hasQR = typeof qrcode === "function" && qrAt(link, W - M - qrSize, y, qrSize);
+  if (hasQR) { font(6.5); tc("muted"); doc.text("Scan to open this structure", W - M - qrSize / 2, y + qrSize + 3, { align: "center" }); }
+  const headW = hasQR ? CW - qrSize - 6 : CW, y0 = y;
+  text(nm, { size: 20, style: "bold", w: headW, lf: 1.12, gap: 1 });
+  text(`${c.formula || ""}  ·  MW ${fmt(d.amw, 2)}  ·  monoisotopic ${fmt(d.exactmw, 4)}`, { size: 10, col: "muted", w: headW, gap: 1 });
+  if (I.pc?.iupac) text(I.pc.iupac, { size: 8.5, col: "muted", w: headW, gap: 1 });
+  y = Math.max(y, y0 + (hasQR ? qrSize + 6 : 0)) + 2;
+
+  // the scanned drawing and the structure read from it
+  if (molPng) {
+    const ph = c.photo, boxH = ph ? 84 : 78;
+    space(boxH + 2);
+    fc("soft"); doc.roundedRect(M, y, CW, boxH, 2, 2, "F");
+    const panel = (x0, w, label) => { doc.setFillColor(255, 255, 255); doc.roundedRect(x0, y + 2, w, boxH - 4, 1.5, 1.5, "F"); if (label) { font(7.5, "bold"); tc("muted"); doc.text(T(label), x0 + 2.5, y + 6.2); } };
+    if (ph) {
+      const pw = (CW - 6) / 2, top = y + 8, avail = boxH - 12;
+      panel(M + 2, pw, "SCANNED DRAWING");
+      const k = Math.min((pw - 4) / ph.w, avail / ph.h), iw = ph.w * k, ih = ph.h * k;
+      addImg(ph.url, "JPEG", M + 2 + (pw - iw) / 2, top + (avail - ih) / 2, iw, ih);
+      panel(M + 4 + pw, pw, "RECOGNISED STRUCTURE");
+      const mh = Math.min(avail, (pw - 4) * 330 / 560), mw = mh * 560 / 330;
+      addImg(molPng, "PNG", M + 4 + pw + (pw - mw) / 2, top + (avail - mh) / 2, mw, mh);
+      y += boxH + 1;
+      text(`Read by ${ph.src || pv.src || "DECIMER"}${ph.kept ? `, scanned ${new Date(ph.t).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}. Check the structure against the drawing: recognition can make mistakes.`, { size: 7.5, col: "muted", gap: 2 });
+    } else {
+      panel(M + 2, CW - 4, "");
+      const mh = Math.min(boxH - 4, (CW - 10) * 330 / 560), mw = mh * 560 / 330;
+      addImg(molPng, "PNG", M + (CW - mw) / 2, y + (boxH - mh) / 2, mw, mh);
+      y += boxH + 1;
+      text(`No scanned drawing: this structure was ${/link/.test(pv.src || "") ? "opened from a link" : "entered as " + (pv.src || "SMILES")}.`, { size: 7.5, col: "muted", gap: 2 });
+    }
+    y += 2;
+  }
+
+  heading("Identifiers");
+  text("SMILES", { size: 8, col: "muted", gap: 0.3 }); text(c.smiles, { size: 8.5, face: "courier", chars: true, gap: 1.6 });
+  if (c.input && c.input !== c.smiles) { text("SMILES as read (before RDKit canonicalisation)", { size: 8, col: "muted", gap: 0.3 }); text(c.input, { size: 8.5, face: "courier", chars: true, gap: 1.6 }); }
+  text("InChIKey", { size: 8, col: "muted", gap: 0.3 }); text(c.key || "—", { size: 8.5, face: "courier", gap: 1.6 });
+  text("InChI", { size: 8, col: "muted", gap: 0.3 }); text(c.inchi || "—", { size: 8, face: "courier", chars: true, gap: 1.6 });
+  if (c.scaf) { text("Bemis-Murcko scaffold", { size: 8, col: "muted", gap: 0.3 }); text(c.scaf.smi || "none (no ring system)", { size: 8.5, face: "courier", chars: true, gap: 1.6 }); }
+  pairs([
+    ["PubChem CID", I.pc?.cid ? L_(String(I.pc.cid), `https://pubchem.ncbi.nlm.nih.gov/compound/${I.pc.cid}`) : "—"],
+    ["ChEMBL", I.ch?.id ? L_(I.ch.id, `https://www.ebi.ac.uk/chembl/explore/compound/${I.ch.id}`) : "—"],
+    ["SureChEMBL", I.sc?.schembl ? L_(I.sc.schembl, schemblURL(I.sc.schembl)) : "—"],
+    ["Wikidata", I.wk?.qid ? L_(I.wk.qid, `https://www.wikidata.org/wiki/${I.wk.qid}`) : "—"],
+    ["Read by", pv.src || "—"], ["Analysed", pv.when]
+  ], { keyW: 26 });
+  font(8.5); tc("accent"); space(5);
+  doc.textWithLink("Open this structure in Structure Lens", M, y + 3, { url: link });
+  doc.textWithLink("Open the interactive 3D model", M + 70, y + 3, { url: link + "&tab=3d" });
+  y += 6;
+
+  /* --- properties --- */
+  heading("Calculated properties", `RDKit.js ${RD ? RD.version() : ""}`);
+  const dr = descRows(d).map(([k, v, u]) => [k, `${v ?? "—"}${u && u !== "Crippen" ? " " + u : ""}`]);
+  dr.push(["Typicality", c.typ ? `${pctTxt(c.typ.pct)}% (${typClass(c.typ.pct)[0].toLowerCase()}; Mahalanobis D^2 ${fmt(c.typ.d2, 1)})` : "—"],
+    ["ESOL logS", `${fmt(x.logS, 2)} (${x.logS > -4 ? "soluble" : x.logS > -6 ? "moderately soluble" : "poorly soluble"})`], ["Structural alerts", `${x.alerts} of 116`]);
+  pairs(dr, { cols: 3, keyW: 25, size: 8.5 });
+  heading("Rule checks");
+  for (const r of ruleChecks(d)) {
+    space(6); font(9, "bold"); tc("ink"); doc.text(T(r.name), M, y + 3.4);
+    font(9, "bold"); tc(r.cls === "pass" ? "good" : r.cls === "mid" ? "warn" : "bad"); doc.text(T(r.verdict), M + 48, y + 3.4);
+    font(8); tc("muted"); doc.text(T(r.checks.map(k => (k.ok ? "" : "FAILS ") + k.t).join(" · ")), M + 88, y + 3.4);
+    y += 5.4;
+  }
+  y += 2;
+  // property profile + drug space side by side
+  const half = (CW - 6) / 2;
+  if (profPng || spacePng) {
+    heading("Against approved drugs", "1,294 FDA-approved drugs (ClinTox)");
+    if (c.typ) { const [lab] = typClass(c.typ.pct); text(`Typicality ${pctTxt(c.typ.pct)}%: ${lab}. ${c.typ.pct < 1 ? "Fewer than 1%" : pctTxt(c.typ.pct) + "%"} of approved drugs lie further from the centre of drug property space (Mahalanobis distance over the eight properties shown, log scale for MW, TPSA and counts).`, { size: 8.5, gap: 2 }); }
+    const ph = half * PROFILE_H / 360, sh = half * 250 / 340;
+    space(Math.max(ph, sh) + 2);
+    if (profPng) addImg(profPng, "PNG", M, y, half, ph);
+    if (spacePng) {
+      addImg(spacePng, "PNG", M + half + 6, y, half, sh);
+      font(7.5); tc("muted");
+      doc.text(doc.splitTextToSize("Map: PCA of the same eight properties. Blue: this compound; orange: approved drugs with the same scaffold, numbered as below.", half), M + half + 6, y + sh + 3);
+    }
+    font(7.5); tc("muted");
+    y += Math.max(ph, sh + 14) + 1;
+    doc.text(doc.splitTextToSize("Profile: grey bars, distribution over approved drugs; blue, this compound with its percentile; red dashed, Lipinski and Veber limits. The first eight properties make up the typicality score; Fsp3 is shown for comparison.", CW), M, y + 2.5);
+    y += 7;
+  }
+  if (x.alerts) {
+    heading("Structural alerts", `${x.alerts} of 116`);
+    const hits = alertSVG(c.smiles, null).hits;
+    if (alertPng) { const w = 90, h = w * 300 / 560; space(h + 2); addImg(alertPng, "PNG", M, y, w, h); const y0 = y; y = y0; font(8); tc("ink");
+      hits.forEach((hh, i) => { doc.setFont("courier", "normal"); doc.setFontSize(7.5); const ls = doc.splitTextToSize(T(hh.smarts), CW - w - 6); doc.text(ls, M + w + 6, y + 3); y += ls.length * 3.2 + 1.2; });
+      y = Math.max(y, y0 + h) + 2; }
+    text("Substructures linked to reactivity, toxicity, instability or poor pharmacokinetics (Brenk et al. 2008, the set used in RDKit). Matches are highlighted. Many approved drugs carry one or two; they are prompts to check, not exclusions.", { size: 7.5, col: "muted" });
+  }
+  {
+    space(70);
+    heading("Complexity and 3D shape", "percentiles among approved drugs");
+    const S = cxSorted(), w = 70, h = w * 236 / 340;
+    const rows = CX.map(r => { const v = r.v(d), ok = v != null && Number.isFinite(+v); const arr = S && S[r.k];
+      return [r.label + (r.unit ? ` (${r.unit})` : ""), ok ? (r.int ? String(v) : fmt(v, r.dp)) : "—", ok && arr?.length ? ord(pctOf(arr, +v)) : ""]; });
+    if (I.pc?.complexity != null) rows.push(["PubChem complexity", fmt(I.pc.complexity, 0), ""]);
+    space(Math.max(h, rows.length * 4.6 + 6) + 2);
+    const y0 = y;
+    if (pmiPng) addImg(pmiPng, "PNG", M, y, w, h);
+    const tx = M + (pmiPng ? w + 6 : 0), cw = [52, 22, 24];
+    font(7.8, "bold"); tc("muted"); doc.text("Measure", tx, y + 3); doc.text("Value", tx + cw[0] + cw[1], y + 3, { align: "right" }); doc.text("Percentile", tx + cw[0] + cw[1] + cw[2], y + 3, { align: "right" });
+    y += 5;
+    for (const [k, v, pc] of rows) { font(8.3); tc("ink"); doc.text(T(k), tx, y + 3); font(8.3, "bold"); doc.text(T(v), tx + cw[0] + cw[1], y + 3, { align: "right" }); font(8); tc("muted"); doc.text(T(pc), tx + cw[0] + cw[1] + cw[2], y + 3, { align: "right" }); y += 4.6; }
+    y = Math.max(y, y0 + h) + 2;
+    if (Number.isFinite(d.NPR1)) text(`PMI triangle: this compound (blue) is ${shapeName(d.NPR1, d.NPR2)}; grey points are approved drugs. PBF and NPR from one OpenChemLib conformer (MMFF94s+), heavy atoms; reference drugs computed the same way.`, { size: 7.5, col: "muted" });
+  }
+  if (c.scaf) {
+    heading("Approved drugs with the same scaffold", c.scaf.total ? `${c.scaf.total} in the reference set` : "");
+    if (!c.scaf.smi) text("This structure has no ring system, so it has no scaffold to compare.", { col: "muted" });
+    else if (!c.nn.length) text("No approved drug in the reference set of 1,294 has this Bemis-Murcko scaffold.", { col: "muted" });
+    else text(`Drugs whose Bemis-Murcko scaffold (ring systems and linkers) is identical to this compound's, ranked by Morgan Tanimoto similarity (radius 2, 2048 bits)${c.scaf.total > c.nn.length ? `; the ${c.nn.length} most similar are shown` : ""}. Numbers match the drug-space map; each name opens that drug in Structure Lens.`, { size: 7.5, col: "muted", gap: 1.4 });
+  }
+  function drugGrid(list, pngs, badge) {
+    const per = 4, gw = 3, cw = (CW - (per - 1) * gw) / per, ih = cw * 150 / 220, ch = ih + 11.5;
+    list.forEach((h, i) => {
+      const col = i % per;
+      if (col === 0) { if (i) y += ch + gw; space(ch + 1); }
+      const x0 = M + col * (cw + gw);
+      dc("line"); doc.setLineWidth(0.2); doc.roundedRect(x0, y, cw, ch, 1.5, 1.5, "S");
+      if (pngs[i]) addImg(pngs[i], "PNG", x0 + 0.8, y + 0.8, cw - 1.6, ih - 0.8);
+      fc(badge); doc.circle(x0 + 3.6, y + 3.6, 2.3, "F"); font(6.5, "bold"); doc.setTextColor(255, 255, 255); doc.text(String(i + 1), x0 + 3.6, y + 4.45, { align: "center" });
+      const nmTxt = doc.splitTextToSize(T(h.s > 0.999 ? `Same: ${h.name || "approved drug"}` : (h.name || "Approved drug")), cw - 3)[0];
+      font(7.8, "bold"); tc("accent"); doc.text(nmTxt, x0 + 1.6, y + ih + 3.8);
+      doc.link(x0, y, cw, ch, { url: shareURL(h.smi) });
+      font(7.2); tc("muted"); doc.text(T(`Tanimoto ${h.s.toFixed(2)}${h.same ? " · same scaffold" : ""}`), x0 + 1.6, y + ih + 8);
+    });
+    y += ch + 4;
+  }
+  if (c.nn?.length) drugGrid(c.nn, nnPngs, "warn");
+  if (c.nnSim?.length) {
+    heading("Approved drugs: nearest neighbours", "Morgan radius 2, 2048 bits, Tanimoto");
+    text(`The ${c.nnSim.length} approved drugs most similar by Morgan fingerprint, whatever their scaffold. As a rough guide, Tanimoto values under about 0.3 are typical of unrelated molecules. Each name opens that drug in Structure Lens.`, { size: 7.5, col: "muted", gap: 1.4 });
+    drugGrid(c.nnSim, simPngs, "accent");
+  }
+
+  /* --- Wikipedia --- */
+  heading("Wikipedia", I.wk?.qid ? `Wikidata ${I.wk.qid}` : "");
+  if (I.wk?.qid) text(`www.wikidata.org/wiki/${I.wk.qid}`, { size: 8, url: `https://www.wikidata.org/wiki/${I.wk.qid}`, gap: 1.2 });
+  if (!I.wk) text("The lookup had not finished.", { col: "muted" });
+  else if (I.wk.error) text("Not available: " + I.wk.error, { col: "muted" });
+  else if (I.wk.title) {
+    text(I.wk.title + (I.wk.desc ? " — " + I.wk.desc : ""), { size: 10, style: "bold" });
+    text(I.wk.extract, { size: 9.5 });
+    text(`Matched by ${I.wk.via}.`, { size: 7.5, col: "muted", gap: 0.4 });
+    if (I.wk.url) text(I.wk.url.replace(/^https?:\/\//, ""), { size: 8, url: I.wk.url });
+  } else text(I.wk.qid ? "On Wikidata but no English Wikipedia article." : "No Wikipedia article found.", { col: "muted" });
+
+  /* --- ChEMBL --- */
+  heading("ChEMBL", I.ch?.id || "");
+  if (I.ch?.id) text(`www.ebi.ac.uk/chembl/explore/compound/${I.ch.id}`, { size: 8, url: `https://www.ebi.ac.uk/chembl/explore/compound/${I.ch.id}`, gap: 1.2 });
+  if (!I.ch) text("The lookup had not finished.", { col: "muted" });
+  else if (I.ch.error) text("Not available: " + I.ch.error, { col: "muted" });
+  else if (I.ch.id) {
+    const rows = [["Name", I.ch.name || "—"], ["Max phase", I.ch.phase]];
+    if (I.ch.firstApproval) rows.push(["First approval", String(I.ch.firstApproval)]);
+    if (I.ch.apka != null) rows.push(["Most acidic pKa", fmt(I.ch.apka, 2) + " (ChemAxon)"]);
+    if (I.ch.bpka != null) rows.push(["Most basic pKa", fmt(I.ch.bpka, 2) + " (ChemAxon)"]);
+    if (I.ch.logd != null) rows.push(["logD 7.4", fmt(I.ch.logd, 2) + " (ChemAxon)"]);
+    pairs(rows, { keyW: 28 });
+    if (I.ch.mechs?.length) { text("Mechanism of action", { size: 9, style: "bold", gap: 0.6 }); for (const m of I.ch.mechs) text(`•  ${m.moa}${m.action ? ` (${m.action})` : ""}`, { size: 9, gap: 0.4 }); y += 1.2; }
+    if (I.ch.inds?.length) { text("Indications", { size: 9, style: "bold", gap: 0.6 }); text(I.ch.inds.map(i => `${i.term}${i.phase ? ` (phase ${i.phase})` : ""}`).join("; "), { size: 9 }); }
+    if (I.ch.targets?.length) {
+      text(`Targets with the most potency data (${I.ch.actTotal} activities with a pChEMBL value)`, { size: 9, style: "bold", gap: 0.8 });
+      table(["Target", "Organism · measures", "Median", "Best", "n"], I.ch.targets.map(t => [t.id ? L_(t.name, `https://www.ebi.ac.uk/chembl/explore/target/${t.id}`) : t.name, `${t.org} · ${t.types}`, t.med.toFixed(2), t.max.toFixed(2), String(t.n)]), [62, 66, 18, 16, 18], { aligns: ["left", "left", "right", "right", "right"] });
+    }
+  } else if (I.ch.similar) {
+    text("Not in ChEMBL. Most similar compounds (≥70%):", { col: "muted" });
+    table(["ChEMBL ID", "Name", "Similarity"], I.ch.similar.map(h => [L_(h.id, `https://www.ebi.ac.uk/chembl/explore/compound/${h.id}`), h.name || "—", fmt(h.sim, 0) + "%"]), [40, 110, 30], { aligns: ["left", "left", "right"] });
+  } else text("No exact or ≥70% similar compound in ChEMBL.", { col: "muted" });
+
+  /* --- Patents --- */
+  space(44);
+  heading("Patents", I.sc?.schembl ? `PubChem · ${I.sc.schembl}` : "PubChem");
+  if (!I.sc) text("The lookup had not finished.", { col: "muted" });
+  else if (I.sc.error) text("Not available: " + I.sc.error, { col: "muted" });
+  else if (I.sc.cid) {
+    pairs([["Patent documents", (I.sc.count || 0).toLocaleString("en-GB")], ["Patent families", (I.sc.families || 0).toLocaleString("en-GB")],
+      ["Literature", (I.sc.lit || 0).toLocaleString("en-GB") + " articles"], ["SureChEMBL", I.sc.schembl ? L_(I.sc.schembl, schemblURL(I.sc.schembl)) : "—"]], { keyW: 32 });
+    if (I.sc.docs?.length) {
+      table(["Document", "Title", "Priority", "Assignee"], I.sc.docs.map(x => [L_(x.id, gpURL(x.id)), x.title || "—", x.date || "", x.assignee || ""]), [38, 82, 20, 40]);
+      text(`${I.sc.docs.length} of ${I.sc.count.toLocaleString("en-GB")} documents, WO, US and EP first. Document numbers open Google Patents.`, { size: 7.5, col: "muted", gap: 0.8 });
+    } else if (I.sc.count > PAT_LIST_MAX) text("Too many patents to list here; follow the link below to browse them.", { size: 8, col: "muted", gap: 0.8 });
+    if (I.sc.count) text("All patents for this compound in PubChem", { size: 8, url: `https://pubchem.ncbi.nlm.nih.gov/compound/${I.sc.cid}#section=Patents`, gap: 0.4 });
+    if (I.sc.schembl) text(`${I.sc.schembl} in SureChEMBL`, { size: 8, url: schemblURL(I.sc.schembl) });
+  } else if (I.sc.schembl) { text("In SureChEMBL but not in PubChem, so patent counts are not available.", { col: "muted" }); text(`${I.sc.schembl} in SureChEMBL`, { size: 8, url: schemblURL(I.sc.schembl) }); }
+  else text("Not in PubChem or SureChEMBL, so no patents mention this exact structure.", { col: "muted" });
+
+  /* --- PubChem --- */
+  heading("PubChem", I.pc?.cid ? `CID ${I.pc.cid}` : "");
+  if (I.pc?.cid) text(`pubchem.ncbi.nlm.nih.gov/compound/${I.pc.cid}`, { size: 8, url: `https://pubchem.ncbi.nlm.nih.gov/compound/${I.pc.cid}`, gap: 1.2 });
+  if (!I.pc) text("The lookup had not finished.", { col: "muted" });
+  else if (I.pc.error) text("Not available: " + I.pc.error, { col: "muted" });
+  else if (I.pc.cid) {
+    if (I.pc.desc) { text(I.pc.desc, { size: 9.5 }); text("Description: " + (I.pc.descSrc || "PubChem"), { size: 7.5, col: "muted" }); }
+    pairs([["Title", I.pc.title], ["XLogP3", I.pc.xlogp ?? "—"], ["Complexity", I.pc.complexity ?? "—"], ["Charge", I.pc.charge ?? 0]], { keyW: 22 });
+    if (I.pc.syns?.length) { text("Synonyms", { size: 8, col: "muted", gap: 0.3 }); text(I.pc.syns.join("; "), { size: 8.5 }); }
+  } else if (I.pc.similar) {
+    text("No exact match. Nearest compounds (≥90% similar):", { col: "muted" });
+    table(["Compound", "CID", "Formula", "MW"], I.pc.similar.map(p => [p.title, L_(String(p.cid), `https://pubchem.ncbi.nlm.nih.gov/compound/${p.cid}`), p.formula || "", fmt(p.mw, 2)]), [80, 30, 45, 25], { aligns: ["left", "left", "left", "right"] });
+  } else text("No exact or close (≥90%) match in PubChem.", { col: "muted" });
+
+  /* --- UniChem --- */
+  heading("Other databases (UniChem)", I.xr?.list ? `${I.xr.list.length} sources` : "");
+  if (!I.xr) text("The lookup had not finished.", { col: "muted" });
+  else if (I.xr.error) text("Not available: " + I.xr.error, { col: "muted" });
+  else if (I.xr.list?.length) pairs(I.xr.list.map(r => [r.short, L_(`${r.id}${r.more ? ` (+${r.more} more)` : ""}`, r.url || null)]), { cols: 3, keyW: 22, size: 8 });
+  else text("This InChIKey is not in UniChem, so the structure is probably not in any public database.", { col: "muted" });
+
+  /* --- methods and sources --- */
+  heading("Methods, sources and licences");
+  text("Recognition: DECIMER Image Transformer (Rajan, Brinkhaus, Steinbeck et al., Nat. Commun. 2023), MIT licence, run on the phone with ONNX Runtime Web. Recognised structures can contain errors; check the drawing against the depiction above.", { size: 8 });
+  text("Properties: RDKit (BSD 3-Clause) via RDKit.js. Typicality: Mahalanobis distance over eight properties against 1,294 FDA-approved drugs, as a percentile of the drugs' own distances. Plane of best fit (Firth, Brown and Blagg 2012): mean distance of the heavy atoms from their least-squares plane in one OpenChemLib conformer (seed 1, MMFF94s+), computed the same way for the reference drugs. Scaffolds: Bemis and Murcko 1996. Structural alerts: Brenk et al. 2008 (the set used in RDKit). ESOL logS from Delaney 2004. Drug-space map: ClinTox (MoleculeNet; Wu et al. 2018; Gayvert et al. 2016). The interactive 3D model (linked above) uses OpenChemLib (BSD 3-Clause) and 3Dmol.js (BSD 3-Clause).", { size: 8 });
+  text("Data: PubChem (NCBI; patent links from SureChEMBL, IBM and Google Patents), ChEMBL and SureChEMBL (EMBL-EBI, CC BY-SA 3.0), UniChem (EMBL-EBI), Wikidata (CC0) and Wikipedia (CC BY-SA 4.0). Retrieved at the time shown at the top of page 1.", { size: 8 });
+  text(`This PDF was made on the device with jsPDF (MIT); QR code by qrcode-generator (MIT). "QR Code" is a registered trademark of DENSO WAVE INCORPORATED. Calculated values are estimates for orientation, not measurements.`, { size: 8 });
+  text("References", { size: 9, style: "bold", gap: 0.8 });
+  for (const [t, u] of [
+    ["Rajan K. et al. DECIMER.ai: an open platform for automated optical chemical structure identification, segmentation and recognition in scientific publications. Nat. Commun. 14, 5045 (2023).", "https://doi.org/10.1038/s41467-023-40782-0"],
+    ["Bemis G. W., Murcko M. A. The properties of known drugs. 1. Molecular frameworks. J. Med. Chem. 39, 2887-2893 (1996).", "https://doi.org/10.1021/jm9602928"],
+    ["Firth N. C., Brown N., Blagg J. Plane of best fit: a novel method to characterize the three-dimensionality of molecules. J. Chem. Inf. Model. 52, 2516-2525 (2012).", "https://doi.org/10.1021/ci300293f"],
+    ["Sauer W. H. B., Schwarz M. K. Molecular shape diversity of combinatorial libraries: a prerequisite for broad bioactivity. J. Chem. Inf. Comput. Sci. 43, 987-1003 (2003).", null],
+    ["Bertz S. H. The first general index of molecular complexity. J. Am. Chem. Soc. 103, 3599-3601 (1981).", "https://doi.org/10.1021/ja00402a071"],
+    ["Lovering F., Bikker J., Humblet C. Escape from flatland: increasing saturation as an approach to improving clinical success. J. Med. Chem. 52, 6752-6756 (2009).", "https://doi.org/10.1021/jm901241e"],
+    ["Brenk R. et al. Lessons learnt from assembling screening libraries for drug discovery for neglected diseases. ChemMedChem 3, 435-444 (2008).", "https://doi.org/10.1002/cmdc.200700139"],
+    ["Mahalanobis P. C. On the generalised distance in statistics. Proc. Natl Inst. Sci. India 2, 49-55 (1936).", null],
+    ["Delaney J. S. ESOL: estimating aqueous solubility directly from molecular structure. J. Chem. Inf. Comput. Sci. 44, 1000-1005 (2004).", "https://doi.org/10.1021/ci034243x"],
+    ["Wu Z. et al. MoleculeNet: a benchmark for molecular machine learning. Chem. Sci. 9, 513-530 (2018).", "https://doi.org/10.1039/C7SC02664A"],
+    ["Gayvert K. M., Madhukar N. S., Elemento O. A data-driven approach to predicting successes and failures of clinical trials. Cell Chem. Biol. 23, 1294-1301 (2016).", "https://doi.org/10.1016/j.chembiol.2016.07.023"],
+    ["RDKit: open-source cheminformatics.", "https://www.rdkit.org"]
+  ]) { text(t, { size: 7.5, gap: u ? 0.2 : 1.2 }); if (u) text(u, { size: 7.5, url: u, gap: 1.2 }); }
+  text("Software licences", { size: 9, style: "bold", gap: 0.8 });
+  text("Full licence texts for Structure Lens and the software it uses (THIRD_PARTY_LICENSES.md)", { size: 7.5, url: "https://github.com/nathbroon/structure-lens/blob/main/THIRD_PARTY_LICENSES.md", gap: 0.6 });
+  text("Structure Lens on GitHub (BSD 3-Clause)", { size: 7.5, url: "https://github.com/nathbroon/structure-lens", gap: 1.2 });
+
+  /* --- footer on every page --- */
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    dc("line"); doc.setLineWidth(0.2); doc.line(M, H - M - 4, W - M, H - M - 4);
+    font(7.5); tc("muted");
+    doc.text(T(`${nm} · Structure Lens ${APP_VERSION}`), M, H - M);
+    doc.link(M, H - M - 3, doc.getTextWidth(T(`${nm} · Structure Lens ${APP_VERSION}`)), 4, { url: link });
+    doc.text(`Page ${i} of ${n}`, W - M, H - M, { align: "right" });
+  }
+  return { blob: doc.output("blob"), name: `${fileSlug(nm)}-structure-lens.pdf`, title: `${nm} · Structure Lens report` };
+}
+let pdfBusy = false;
+async function pdfAction(mode, btn) {
+  if (pdfBusy) return;
+  pdfBusy = true;
+  const btns = ["#pdfBtn", "#sharePdfBtn", "#pdfBtn2", "#sharePdf2"].map(s => $(s));
+  const label = btn.innerHTML; btns.forEach(b => b.disabled = true);
+  try {
+    const r = await buildPDF(t => { btn.innerHTML = `<span class="busy"></span> ${esc(t)}`; });
+    if (mode === "share") { const res = await shareFile(r.blob, r.name, r.title); if (res === "downloaded") toast("Sharing files isn't available here, so the PDF was downloaded."); }
+    else { downloadBlob(r.blob, r.name); toast("PDF saved"); }
+  } catch (e) { toast(e.message || "The PDF could not be made."); }
+  finally { btn.innerHTML = label; btns.forEach(b => b.disabled = false); pdfBusy = false; }
+}
+$("#pdfBtn").addEventListener("click", e => pdfAction("save", e.currentTarget));
+$("#pdfBtn2").addEventListener("click", e => pdfAction("save", e.currentTarget));
+$("#sharePdfBtn").addEventListener("click", e => pdfAction("share", e.currentTarget));
+$("#sharePdf2").addEventListener("click", e => pdfAction("share", e.currentTarget));
+
+/* ---------- history as a JSON file ---------- */
+$("#histExport").addEventListener("click", () => {
+  const items = store.get("sl.recent", []);
+  if (!items.length) { toast("The history is empty."); return; }
+  const out = {
+    format: "structure-lens-history", formatVersion: 1, app: `Structure Lens ${APP_VERSION}`, exported: new Date().toISOString(), count: items.length,
+    items: items.map(r => ({ smiles: r.smi, name: r.name || "", inchikey: r.key || "", time: r.t ? new Date(r.t).toISOString() : null, link: shareURL(r.smi) }))
+  };
+  const day = new Date().toISOString().slice(0, 10);
+  downloadBlob(new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }), `structure-lens-history-${day}.json`);
+  toast(`Exported ${items.length} structure${items.length > 1 ? "s" : ""}`);
+});
+$("#histImport").addEventListener("change", async e => {
+  const input = e.target, file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    await rdReady;
+    let data; try { data = JSON.parse(await file.text()); } catch { throw new Error("That file is not valid JSON."); }
+    const raw = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : null;
+    if (!raw) throw new Error("No structures found. Use a file exported from Structure Lens.");
+    const list = store.get("sl.recent", []), bySmi = new Map(list.map(r => [r.smi, r]));
+    let added = 0, merged = 0, bad = 0;
+    for (const it of raw) {
+      const smi0 = typeof it === "string" ? it : (it?.smiles ?? it?.smi ?? it?.SMILES);
+      if (typeof smi0 !== "string" || !smi0.trim() || smi0.length > 2000) { bad++; continue; }
+      const m = RD.get_mol(smi0.trim());
+      if (!m || !m.is_valid()) { m && m.delete(); bad++; continue; }
+      const smi = m.get_smiles(); m.delete();
+      const t = Number.isFinite(it?.t) ? it.t : (Date.parse(it?.time) || Date.now());
+      const name = typeof it?.name === "string" ? it.name.slice(0, 200) : "";
+      const key = typeof it?.inchikey === "string" ? it.inchikey.slice(0, 40) : (typeof it?.key === "string" ? it.key.slice(0, 40) : "");
+      const old = bySmi.get(smi);
+      if (old) { merged++; if (!old.name && name) old.name = name; if (!old.key && key) old.key = key; if (t > (old.t || 0)) old.t = t; }
+      else { const r = { smi, name, key, t }; bySmi.set(smi, r); added++; }
+    }
+    const all = [...bySmi.values()].sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, HIST_MAX);
+    store.set("sl.recent", all); renderRecent();
+    toast(`Imported ${added} new${merged ? `, ${merged} already here` : ""}${bad ? `, ${bad} skipped (not valid structures)` : ""}.`);
+  } catch (err) { toast(err.message || "The file could not be imported."); }
+  finally { input.value = ""; }
+});
+
+/* ---------- release notes ---------- */
+const RELEASES = [
+  { v: "1.1.0", date: "25 November 2026", groups: [
+    ["New", [
+      "<b>Report tab.</b> A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug.",
+      "<b>PDF report.</b> Save or share a multi-page PDF with everything the app found: all descriptors, the radar and drug-space charts, PubChem, ChEMBL targets, Wikipedia, patents, cross-references and the input photo. A link in the PDF opens the interactive 3D model in the app.",
+      "<b>Share links.</b> The address now carries the SMILES (<code>#smiles=…</code>), so a link opens straight to that structure on any device, with no photo and no model download. Add <code>&amp;tab=3d</code> (or props, src, report) to open a tab.",
+      "<b>Share button.</b> Send the link through your phone's share sheet, or copy it.",
+      "<b>QR codes.</b> A QR code of the link (or of the SMILES alone) for any structure, on the Report tab, in the share sheet and on the PDF. Save it as an image.",
+      "<b>History files.</b> Export the history as JSON and import it on another phone. Imports merge with what is there and skip anything that isn't a valid structure.",
+      "<b>Release notes.</b> This page. Link to it with <code>#whats-new</code>.",
+      "<b>Redesigned Properties tab.</b> A typicality score against approved drugs, a property profile showing where each property falls among 1,294 approved drugs, rule checks with every criterion, structural alerts highlighted on the structure, and descriptors grouped by kind.",
+      "<b>Plane of best fit replaces Fsp3.</b> PBF (Firth, Brown and Blagg 2012) measures 3D shape from a conformer: the mean distance of the heavy atoms from their best-fit plane. It is used in the property profile, the typicality score and the drug-space map, with the reference drugs computed by the same method.",
+      "<b>Nearest approved drugs.</b> A separate panel lists the 12 approved drugs most similar by Morgan fingerprint, whatever their scaffold, marking those that also share the scaffold. It is in the PDF too.",
+      "<b>Scanned drawing in the PDF.</b> The PDF shows the scanned drawing and the recognised structure side by side, labelled. The last eight scan photos are kept on the phone, so the drawing is still there after Safari reloads the page or when the structure is reopened from history.",
+      "<b>Complexity and 3D shape.</b> A new card with the PMI triangle (rod, disc, sphere) against approved drugs, and plane of best fit, NPR1, NPR2, Bertz complexity, Fsp3, stereocentres, spiro and bridgehead atoms and Kier flexibility, each with its percentile among approved drugs, plus PubChem's complexity value. Kappa and chi indices are under All descriptors.",
+      "<b>Typicality replaces QED.</b> The Mahalanobis distance from the centre of approved-drug property space, given as the share of approved drugs that are further out. It uses the covariance of real drugs and no fitted weights.",
+      "<b>Same-scaffold drugs.</b> Approved drugs that share the compound's Bemis–Murcko scaffold, ranked by similarity (up to 12), with the scaffold drawn. They replace the three nearest drugs by fingerprint alone.",
+      "<b>Links in the PDF.</b> Database IDs, ChEMBL targets, patents, cross-references, similar drugs, references and licences are live links."
+    ]],
+    ["Changed", [
+      "Sources are now in the order Wikipedia, ChEMBL, Patents, PubChem, Other databases, in the app and in the PDF.",
+      "<b>Patents now come from PubChem.</b> SureChEMBL's new interface no longer accepts requests from other websites, so patent and literature counts, patent numbers, titles, priority dates and assignees come from PubChem. The SureChEMBL ID still links to SureChEMBL.",
+      "<b>Sharper structure drawings.</b> Atom labels stay readable on large molecules, line weights are consistent, fluorine, chlorine, sulfur and the other heteroatoms have darker colours, and the PDF draws structures at four times the resolution.",
+      "A copy of the page opened from somewhere other than the website now fetches the model and the drug-space data from the website, so recognition, the drug-space map and similar drugs still work.",
+      "History moved from the tab bar to the clock button at the top; Report takes its place in the tab bar.",
+      "History now keeps up to 300 structures (was 40) and stores each InChIKey.",
+      "Licences list jsPDF and QR Code Generator. Full texts are in THIRD_PARTY_LICENSES.md."
+    ]]
+  ] },
+  { v: "1.0.0", date: "1 November 2026", groups: [
+    ["First release", [
+      "Photograph a drawn structure and read it with DECIMER, running on the phone.",
+      "Properties: drug-likeness radar, QED, ESOL logS, structural alerts, rule checks and a map of 1,294 approved drugs.",
+      "3D model with OpenChemLib and 3Dmol.js.",
+      "Lookups in PubChem, ChEMBL, Wikipedia, SureChEMBL and UniChem.",
+      "History on the phone, settings, connection check and licences."
+    ]]
+  ] }
+];
+function renderNotes() {
+  $("#verChip").textContent = "Version " + APP_VERSION;
+  $("#notesBody").innerHTML = RELEASES.map(r => `<div class="card rel">
+      <h3>Version ${r.v} <span>${r.date}</span></h3>
+      ${r.groups.map(([g, items]) => `<h4>${g}</h4><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul>`).join("")}
+    </div>`).join("");
+  $("#newChip").hidden = store.get("sl.seenVersion", "") === APP_VERSION;
+}
+function markNotesSeen() { store.set("sl.seenVersion", APP_VERSION); $("#newChip").hidden = true; }
+$("#notesBtn").addEventListener("click", () => openSheet("#notesSheet"));
+$("#newChip").addEventListener("click", () => openSheet("#notesSheet"));
+
 /* ---------- misc wiring ---------- */
 $("#recalc").addEventListener("click", () => { const s = $("#smiIn").value.trim(); if (s) analyse(s, "edited"); });
 document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
@@ -1764,8 +3262,12 @@ document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click"
 
 $("#strSt").dataset.base = "conf";
 loadSettingsUI();
-rdReady.then(renderRecent);
-rdReady.then(() => analyse(EXAMPLE.smiles, EXAMPLE.label)).catch(() => {
+renderNotes();
+const startSmiles = hashSmiles();
+if (location.hash === "#whats-new") openSheet("#notesSheet");
+const startTab = (hashParam("tab") || "").toLowerCase();
+rdReady.then(() => analyse(startSmiles || EXAMPLE.smiles, startSmiles ? "shared link" : EXAMPLE.label))
+  .then(() => { if (startSmiles && LINK_TABS.includes(startTab)) showTab(startTab); }).catch(() => {
   $("#depict").innerHTML = `<p class="empty" style="padding:24px">RDKit could not load. Check your connection and reload.</p>`;
 });
 </script>

@@ -1,0 +1,56 @@
+# Release notes
+
+The same notes are in the app: Settings › What's new, or open the app's address with `#whats-new` at the end.
+
+## 1.1.0 · 25 November 2026
+
+### New
+- **Report tab.** A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug, with a QR code that opens it again.
+- **PDF report.** Save or share a multi-page A4 PDF with everything the app found: all descriptors, typicality, ESOL and alerts, rule checks, the property profile and drug-space charts, approved drugs with the same scaffold, PubChem (description, synonyms), ChEMBL (phase, mechanism, indications, potency by target), Wikipedia, patents, UniChem cross-references, the photo the structure was read from, a link to the interactive 3D model, and a methods, references and licences page. Made on the device with jsPDF.
+- **Live links in the PDF.** PubChem, ChEMBL, SureChEMBL and Wikidata IDs, ChEMBL targets, Wikipedia, each patent (Google Patents), UniChem cross-references, each similar drug (opens in Structure Lens), reference DOIs and licences.
+- **Share links.** The address carries the SMILES (`#smiles=…`), so a link opens straight to that structure on any device with no photo and no model download. `?smiles=…` also works, and `&tab=3d` (or `props`, `src`, `report`) opens that tab.
+- **Share button** (top bar). Sends the link through the phone's share sheet, or copies it where there is no share sheet.
+- **QR codes** of the link or of the SMILES alone, on the Report tab, in the share sheet and on the PDF. Save the QR code as an image.
+- **History files.** Export the history as JSON; import it on another phone. Imports merge with the existing list, keep the newest date and skip anything RDKit can't read.
+- **Redesigned Properties tab.** A typicality score, a property profile showing where each property falls among 1,294 approved drugs (with percentiles and Lipinski/Veber limits), rule checks listing every criterion, structural alerts highlighted on the structure (tap one to isolate it), and descriptors grouped by kind.
+- **Plane of best fit replaces Fsp3.** PBF (Firth, Brown & Blagg, J. Chem. Inf. Model. 2012) is the mean distance of the heavy atoms from their best-fit plane in a 3D conformer. The app builds one conformer (OpenChemLib, seed 1, MMFF94s+), which the 3D tab then reuses, and the 1,294 reference drugs were computed the same way. PBF is in the property profile, the typicality score, the drug-space PCA (axes recomputed; PC2 is now "larger, more lipophilic") and the descriptor list.
+- **Nearest approved drugs**: a separate panel (and PDF section) with the 12 approved drugs most similar by Morgan fingerprint, whatever their scaffold, marking those that also share the scaffold. The Report tab names the three nearest.
+- Properties tab panels in the order: drug-likeness, property profile, drug space, rule checks, structural alerts, complexity and 3D shape, same-scaffold drugs, nearest neighbours, all descriptors.
+- **Scanned drawing in the PDF**, labelled, beside the recognised structure. The last eight scan photos are kept on the phone (keyed by canonical SMILES), so the drawing is still there after Safari reloads the page or when the structure is reopened from history.
+- **Fsp3** stays in the property profile (after the eight typicality properties), the Report tab and the PDF, alongside the plane of best fit.
+- **Complexity and 3D shape** card: the PMI triangle (normalised principal-moment ratios, Sauer & Schwarz 2003) against approved drugs, plus plane of best fit, NPR1, NPR2, Bertz CT (Bertz 1981), Fsp3 (Lovering et al. 2009), stereocentres, spiro atoms, bridgehead atoms and Kier flexibility Φ, each with its percentile among approved drugs, and PubChem's complexity value when the compound is in PubChem. All descriptors adds kappa and chi indices. PBF and NPR are worked out whenever the Properties tab opens, whatever the data file holds.
+- The page asks for `data/drugspace.json?v=<version>`, so phones fetch the new data file after an update instead of a cached copy.
+- **Typicality replaces QED.** The Mahalanobis distance from the centre of approved-drug property space over eight RDKit properties (MW, cLogP, TPSA, HBD, HBA, rotatable bonds, aromatic rings, PBF; log scale for MW, TPSA and counts), using the covariance of the approved drugs, reported as the share of approved drugs further from the centre. No fitted weights or desirability functions. QED is also gone from the ChEMBL panel and the PDF.
+- **Same-scaffold drugs.** The approved drugs shown are those with the same Bemis–Murcko scaffold as the compound (up to 12, ranked by Morgan Tanimoto similarity), with the scaffold drawn. Previously the three nearest drugs by fingerprint alone. `data/drugspace.json` now stores each drug's descriptors and scaffold (see `tools/drugspace/scaffolds.js`).
+- **Release notes** in the app, with a "New" chip on the Scan tab until you have seen them.
+
+### Changed
+- Sources are in the order Wikipedia, ChEMBL, Patents, PubChem, Other databases, in the app and the PDF.
+- **Patents come from PubChem.** SureChEMBL's new API no longer accepts requests from other websites, so the app now shows PubChem's patent, patent-family and literature counts and, for up to 10,000 patents, eight patent numbers with title, priority date and assignee (WO, US and EP first). The SureChEMBL ID from UniChem still links to SureChEMBL.
+- **Sharper structure drawings.** Atom labels keep a readable minimum size on large molecules, line weights are consistent, and F, Cl, Br, I, S and P use darker colours. The PDF draws structures at four times the resolution.
+- PubChem requests for drug names and patent titles are spaced out to stay within PubChem's limit of five a second.
+- A copy of the page opened from somewhere other than the website (a download, another host) fetches the model and the drug-space data from https://nathbroon.github.io/structure-lens/, so recognition, the drug-space map and similar drugs still work.
+- History moved from the tab bar to the clock button in the top bar; the Report tab takes its place.
+- History keeps up to 300 structures (was 40) and stores each InChIKey.
+- Licences list jsPDF and QR Code Generator; full texts are in `THIRD_PARTY_LICENSES.md`.
+
+### History file format
+```json
+{
+  "format": "structure-lens-history", "formatVersion": 1,
+  "app": "Structure Lens 1.1.0", "exported": "2026-11-25T15:00:00.000Z", "count": 1,
+  "items": [{ "smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O", "name": "Caffeine",
+              "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "time": "2026-11-25T14:58:00.000Z",
+              "link": "https://nathbroon.github.io/structure-lens/#smiles=Cn1c(=O)c2c(ncn2C)n(C)c1=O" }]
+}
+```
+Import also accepts a plain array of SMILES strings or of `{ "smiles": … }` objects.
+
+## 1.0.0 · 1 November 2026
+
+First release.
+- Photograph a drawn structure and read it with DECIMER running on the phone.
+- Properties: drug-likeness radar, QED, ESOL logS, structural alerts, rule checks and a map of 1,294 approved drugs.
+- 3D model with OpenChemLib and 3Dmol.js.
+- Lookups in PubChem, ChEMBL, Wikipedia, SureChEMBL and UniChem.
+- History on the phone, settings, connection check and licences.
