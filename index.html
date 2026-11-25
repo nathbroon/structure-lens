@@ -446,6 +446,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
   <div class="mini" data-mini></div>
   <div class="card">
     <div class="ch"><h2>Drug-likeness</h2><span class="src">against 1,294 approved drugs</span></div>
+    <p class="hint" id="cmpNote" hidden></p>
     <div id="typ"></div>
     <div class="scores" id="scores"></div>
     <details class="fold"><summary>How typicality is calculated</summary><div>
@@ -646,7 +647,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
         <li><b>Structure Lens</b><a href="https://github.com/nathbroon/structure-lens/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">This app. Source on <a href="https://github.com/nathbroon/structure-lens" target="_blank" rel="noopener">GitHub</a>.</span></li>
         <li><b>DECIMER Image Transformer</b><a href="https://github.com/Kohulan/DECIMER-Image_Transformer/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Structure recognition model, converted to run in the browser. Rajan, Brinkhaus, Steinbeck et al., <a href="https://doi.org/10.1038/s41467-023-40782-0" target="_blank" rel="noopener">Nat. Commun. 2023</a>.</span></li>
         <li><b>RDKit</b><a href="https://github.com/rdkit/rdkit/blob/master/license.txt" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Depictions, descriptors, fingerprints and InChI, via <a href="https://www.npmjs.com/package/@rdkit/rdkit" target="_blank" rel="noopener">RDKit.js</a>. Structural alerts are the Brenk et al. 2008 set used in RDKit; scaffolds follow Bemis and Murcko 1996.</span></li>
-        <li><b>ONNX Runtime Web</b><a href="https://github.com/microsoft/onnxruntime/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Runs the DECIMER model on the phone.</span></li>
+        <li><b>ONNX Runtime Web</b><a href="https://www.npmjs.com/package/onnxruntime-web" target="_blank" rel="noopener">MIT</a><span class="what">Runs the DECIMER model on the phone.</span></li>
         <li><b>3Dmol.js</b><a href="https://github.com/3dmol/3Dmol.js/blob/master/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Interactive 3D viewer.</span></li>
         <li><b>OpenChemLib JS</b><a href="https://github.com/cheminfo/openchemlib-js/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">3D conformer generation and MMFF94s minimisation, for the 3D view and the plane of best fit.</span></li>
         <li><b>ClinTox dataset</b><a href="https://moleculenet.org/datasets-1" target="_blank" rel="noopener">MoleculeNet</a><span class="what">FDA-approved drug structures behind the drug-space map. Wu et al., Chem. Sci. 2018; Gayvert et al., Cell Chem. Biol. 2016.</span></li>
@@ -775,7 +776,7 @@ async function getJSONOnce(url, opts, ms) {
     try { return JSON.parse(text); } catch { throw new Error("Unexpected reply from the service"); }
   } finally { clearTimeout(timer); }
 }
-async function getJSON(url, opts = {}, ms = 30000) {
+async function getJSON(url, opts = {}, ms = 20000) {
   for (let attempt = 0; ; attempt++) {
     try { return await getJSONOnce(url, opts, ms); }
     catch (e) {
@@ -1293,6 +1294,34 @@ function formulaHTML(f) {
   }).join(" · ");
 }
 
+// Neutral parent for comparison with the approved drugs, after RDKit's rdMolStandardize.Uncharger:
+// protonate anions and deprotonate cations that carry H, but keep as many anions as there are
+// cations that cannot lose a proton (quaternary N, nitro, N-oxides), preferring anions bonded to them.
+function neutralise(smi) {
+  const m = RD.get_mol(smi); if (!m || !m.is_valid()) { m && m.delete(); return smi; }
+  const G = JSON.parse(m.get_json()), M = G.molecules[0], D = G.defaults;
+  const A = M.atoms.map(a => ({ chg: a.chg ?? D.atom.chg ?? 0, h: a.impHs ?? D.atom.impHs ?? 0, nb: [] }));
+  if (!A.some(a => a.chg)) { m.delete(); return smi; }
+  (M.bonds || []).forEach(b => { A[b.atoms[0]].nb.push(b.atoms[1]); A[b.atoms[1]].nb.push(b.atoms[0]); });
+  const zero = new Set();
+  let fixed = 0;
+  A.forEach((a, i) => { if (a.chg > 0) { if (a.h > 0) zero.add(i); else fixed += a.chg; } });
+  const neg = A.map((a, i) => i).filter(i => A[i].chg < 0)
+    .sort((i, j) => (A[j].nb.some(k => A[k].chg > 0) - A[i].nb.some(k => A[k].chg > 0)));   // bonded to a cation: keep first
+  let keep = fixed;
+  for (const i of neg) { if (keep > 0) { keep += A[i].chg; continue; } zero.add(i); }
+  if (!zero.size) { m.delete(); return smi; }
+  const mb = m.get_molblock().split("\n"); m.delete();
+  const out = mb.map(l => {
+    const t = l.match(/^M  CHG/); if (!t) return l;
+    const v = l.slice(6).trim().split(/\s+/).map(Number).slice(1), keepPairs = [];
+    for (let k = 0; k < v.length; k += 2) if (!zero.has(v[k] - 1)) keepPairs.push([v[k], v[k + 1]]);
+    return keepPairs.length ? "M  CHG" + String(keepPairs.length).padStart(3) + keepPairs.map(([i, c]) => String(i).padStart(4) + String(c).padStart(4)).join("") : null;
+  }).filter(l => l !== null);
+  const m2 = RD.get_mol(out.join("\n")); if (!m2 || !m2.is_valid()) { m2 && m2.delete(); return smi; }
+  const s = m2.get_smiles(); m2.delete(); return s;
+}
+
 function largestFragment(smi) {
   const parts = smi.split(".").filter(Boolean);
   if (parts.length < 2) return smi;
@@ -1333,15 +1362,20 @@ async function analyse(smiles, sourceLabel) {
   lastConf = null;
   const svg = mol.get_svg_with_highlights(JSON.stringify(drawOpts(560, 340)));
   const canon = mol.get_smiles();
-  const desc = JSON.parse(mol.get_descriptors());
+  let desc = JSON.parse(mol.get_descriptors());
+  // Properties are calculated for the neutral parent (largest fragment, uncharged as RDKit's Uncharger does),
+  // the form the approved drugs are stored in, so salts and charged forms compare like for like.
+  const cmpSmi = neutralise(largestFragment(canon));
+  let descIn = null, pm = null;
+  if (cmpSmi !== canon) { pm = RD.get_mol(cmpSmi); if (pm && pm.is_valid()) { descIn = desc; desc = JSON.parse(pm.get_descriptors()); } else { pm && pm.delete(); pm = null; } }
   const inchi = mol.get_inchi();
-  let extra = { alerts: 0, alertKeys: [], logS: NaN }; try { extra = extras(mol, desc); } catch (e) { console.warn(e); }
-  mol.delete();
+  let extra = { alerts: 0, alertKeys: [], logS: NaN }; try { extra = extras(pm || mol, desc); } catch (e) { console.warn(e); }
+  mol.delete(); pm && pm.delete();
   const key = inchi ? RD.get_inchikey_for_inchi(inchi) : "";
   const formula = inchi ? (inchi.split("/")[1] || "") : "";
 
   current = { smiles: canon, key, inchi, formula, desc, extra, name: "", thumb: thumbSVG(canon, 160, 120),
-    input: smiles, source: sourceLabel, conf: runConf, when: Date.now(), info: {}, nn: null, typ: null, scaf: null,
+    input: smiles, source: sourceLabel, conf: runConf, when: Date.now(), info: {}, nn: null, typ: null, scaf: null, cmpSmi: descIn ? cmpSmi : null, descIn,
     photo: /^DECIMER/.test(sourceLabel) ? photoSnapshot() : null };
   if (current.photo) savePhoto(canon, current.photo, sourceLabel);
   else { current.photo = loadPhoto(canon); if (current.photo?.src) current.source = current.photo.src + " (from an earlier scan on this phone)"; }
@@ -1365,23 +1399,28 @@ async function analyse(smiles, sourceLabel) {
   const ch = chembl(id, pKey, parent).then(n => names.chembl = n).catch(e => fail("#chSt", "#chBody", e, id));
   const uc = unichem(id, pKey).catch(e => { fail("#xrSt", "#xrBody", e, id); return null; });
   patents(id, pc, uc).catch(e => fail("#scSt", "#scBody", e, id));
-  wikipedia(id, pKey, () => Promise.all([pc, ch]).then(() => names.chembl || names.pubchem)).catch(e => fail("#wkSt", "#wkBody", e, id));
+  wikipedia(id, pKey, () => Promise.race([Promise.all([pc, ch]), pc.then(() => new Promise(r => setTimeout(r, 6000)))]).then(() => names.chembl || names.pubchem)).catch(e => fail("#wkSt", "#wkBody", e, id));
 
   Promise.all([pc, ch]).then(() => {
     if (id !== runId) return;
     const nm = names.pubchem || names.chembl;
-    if (nm) { current.name = nm; updateMini(); scheduleReport(); $("#cName").textContent = titleCase(nm); $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${fmt(desc.amw, 2)}` : ""; }
+    if (nm) { current.name = nm; updateMini(); scheduleReport(); $("#cName").textContent = titleCase(nm); $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${fmt((descIn || desc).amw, 2)}` : ""; }
     else $("#cSub").textContent = "No name found in PubChem or ChEMBL. This may be a novel structure.";
     addRecent(canon, nm, key);
   });
 }
 function titleCase(s) { return s && s === s.toUpperCase() ? s.charAt(0) + s.slice(1).toLowerCase() : s; }
 function fail(st, body, e, id = runId) {
-  const msg = isNetErr(e) ? "Could not connect to the service. The browser blocked the request or there is no connection." : (e && e.message) || "Lookup failed";
+  const svc = { "www.ebi.ac.uk": "ChEMBL or UniChem (EMBL-EBI)", "pubchem.ncbi.nlm.nih.gov": "PubChem", "query.wikidata.org": "Wikidata", "en.wikipedia.org": "Wikipedia" }[e?.host] || e?.host || "the service";
+  const msg = isNetErr(e) ? `Could not get an answer from ${svc}. The service may be down or busy (this happens with public databases), or the phone may be offline. Try again in a few minutes.`
+    : e?.timeout ? `${svc} took too long to answer. It may be busy; try again in a few minutes.`
+    : e?.status >= 500 ? `${svc} has a server problem (HTTP ${e.status}). Try again later.` : (e && e.message) || "Lookup failed";
   if (DOTS[st]) stash(id, DOTS[st], { error: msg });
   const detail = e ? `${e.host ? e.host + " · " : ""}${e.name || "Error"}: ${e.message || ""}` : "";
   setSt(st, "error", "err");
-  $(body).innerHTML = `<p class="empty">${esc(msg)}</p>${detail ? `<p class="hint" style="font-family:var(--f-mono);font-size:.75rem;overflow-wrap:anywhere">${esc(detail)}</p>` : ""}`;
+  $(body).innerHTML = `<p class="empty">${esc(msg)}</p>${detail ? `<p class="hint" style="font-family:var(--f-mono);font-size:.75rem;overflow-wrap:anywhere">${esc(detail)}</p>` : ""}<button type="button" class="btn" data-retry style="margin-top:6px">Try again</button>`;
+  const b = $(body).querySelector("[data-retry]");
+  if (b) b.addEventListener("click", () => { if (current) analyse(current.input || current.smiles, current.source); });
 }
 
 function descRows(d) {
@@ -1635,9 +1674,10 @@ async function unichem(id, key) {
   stash(id, "xr", { list: [...grouped.entries()].map(([name, list]) => ({ name, short: list[0].shortName || name, id: list[0].compoundId, more: list.length - 1, url: xlink(list[0]) || "" })) });
   $("#xrBody").innerHTML = grouped.size ? `<div class="syn">${[...grouped.entries()].slice(0, 30).map(([name, list]) => {
       const s = list[0], u = xlink(s);
-      const lbl = `${esc(s.shortName || name)}: ${esc(s.compoundId)}${list.length > 1 ? ` +${list.length - 1}` : ""}`;
+      const gated = /guidetopharmacology|ccdc\.cam/.test(u || "") ? " 🔒" : "";
+      const lbl = `${esc(s.shortName || name)}: ${esc(s.compoundId)}${list.length > 1 ? ` +${list.length - 1}` : ""}${gated}`;
       return u ? `<a class="chip" href="${esc(u)}" target="_blank" rel="noopener" title="${esc(name)}">${lbl}</a>` : `<span class="chip" title="${esc(name)}">${lbl}</span>`;
-    }).join("")}</div>` : `<p class="empty">This InChIKey is not in UniChem, so the structure is probably not in any public database.</p>`;
+    }).join("")}</div>${[...grouped.values()].some(l => /guidetopharmacology|ccdc\.cam/.test(xlink(l[0]) || "")) ? `<p class="hint">🔒 The site asks you to sign in (free) to see the entry.</p>` : ""}` : `<p class="empty">This InChIKey is not in UniChem, so the structure is probably not in any public database.</p>`;
   return schembl;
 }
 
@@ -1838,7 +1878,7 @@ function renderAlerts(c, sel = null) {
     el.innerHTML = `<p class="okline">✓ None of the 116 alert substructures is present.</p><p class="hint">The set flags groups linked to reactivity, toxicity, instability or poor pharmacokinetics (Brenk et al. 2008, as used in RDKit).</p>`;
     return;
   }
-  const { svg, hits } = alertSVG(c.smiles, sel);
+  const { svg, hits } = alertSVG(c.cmpSmi || c.smiles, sel);
   el.innerHTML = `<div class="alertfig">${svg}</div>
     <p class="hint">Highlighted: ${sel == null ? "all matches" : "the selected alert"}. Tap an alert to show only that one. Many approved drugs carry one or two of these; they are prompts to check, not exclusions.</p>
     <div class="alist">${hits.map((h, j) => `<button type="button" data-k="${h.k}" aria-pressed="${sel === h.k}"><code>${esc(h.smarts)}</code><small>${h.n} match${h.n > 1 ? "es" : ""}</small></button>`).join("")}</div>`;
@@ -2125,7 +2165,7 @@ async function ensureNeighbours() {
   const fps = await drugFingerprints();
   if (current !== c) return;
   if (!fps) { nnFor = null; $("#nn").innerHTML = $("#nnSim").innerHTML = `<p class="hint">The approved-drug set could not be loaded. Check the connection and open this tab again.</p>`; renderProfile(c); $("#typ").innerHTML = `<p class="hint">The approved-drug set could not be loaded.</p>`; return; }
-  const m = RD.get_mol(c.parent || c.smiles); const q = m.get_morgan_fp_as_uint8array(FPOPT); const qs = murckoSmiles(m); m.delete();
+  const m = RD.get_mol(c.cmpSmi || c.smiles); const q = m.get_morgan_fp_as_uint8array(FPOPT); const qs = murckoSmiles(m); m.delete();
   const pq = popc(q), si = qs ? SPACE.scaffolds.indexOf(qs) : -1, same = [];
   if (si >= 0) fps.forEach((f, i) => { if (f && SPACE.scaffold[i] === si) same.push({ i, s: tanimoto(q, f[0], pq, f[1]) }); });
   same.sort((a, b) => b.s - a.s);
@@ -2299,14 +2339,48 @@ async function ensurePBF(c) {
   if (c.desc.PBF !== undefined) return;
   if (!c.pbfP) c.pbfP = (async () => {
     try {
-      const O = await loadOCL();
-      await new Promise(r => setTimeout(r, 30));
-      const smi = c.parent || c.smiles, mf = conformerMolfile(O, smi, 1);
+      const smi = c.cmpSmi || c.smiles, mf = await conformerAsync(smi, 1);
       c.conf1 = { smi, mf }; setShape(c.desc, mf);
     } catch (e) { console.warn("3D shape:", e); c.desc.PBF = c.desc.NPR1 = c.desc.NPR2 = NaN; }
     if (current === c) { renderProps(c.desc); renderComplexity(c); if (drugStats()) renderProfile(c); scheduleReport(); }
   })();
   return c.pbfP;
+}
+/* Conformers are built in a background worker so the page stays responsive: a large flexible molecule
+   can take 10-30 s on a phone. If workers are unavailable it falls back to the page itself. */
+let confWorker = null, confSeq = 0;
+const confWait = new Map();
+function confWorkerGet() {
+  if (confWorker !== null) return confWorker;
+  try {
+    const src = `import O from "${OCL_URL}";
+const ready = O.Resources.registerFromUrl("${OCL_RES}");
+self.onmessage = async e => {
+  const { id, smi, seed } = e.data;
+  try {
+    await ready;
+    const m = O.Molecule.fromSmiles(smi); m.addImplicitHydrogens();
+    const conf = new O.ConformerGenerator(seed, false).getOneConformerAsMolecule(m);
+    if (!conf) throw new Error("No conformer could be generated for this structure.");
+    try { const ff = new O.ForceFieldMMFF94(conf, "MMFF94s+", {}); ff.minimise({ maxIts: 600 }); } catch (x) {}
+    self.postMessage({ id, mf: conf.toMolfile() });
+  } catch (err) { self.postMessage({ id, err: String(err && err.message || err) }); }
+};`;
+    confWorker = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })), { type: "module" });
+    confWorker.onmessage = e => { const w = confWait.get(e.data.id); if (!w) return; confWait.delete(e.data.id); e.data.err ? w.reject(new Error(e.data.err)) : w.resolve(e.data.mf); };
+    confWorker.onerror = e => { console.warn("Conformer worker failed; using the page instead.", e.message || e); confWorker = false; for (const [, w] of confWait) w.fallback(); confWait.clear(); };
+  } catch (e) { confWorker = false; }
+  return confWorker;
+}
+async function conformerAsync(smi, seed) {
+  const viaPage = async () => { const O = await loadOCL(); await new Promise(r => setTimeout(r, 30)); return conformerMolfile(O, smi, seed); };
+  const w = confWorkerGet();
+  if (!w) return viaPage();
+  return new Promise((resolve, reject) => {
+    const id = ++confSeq;
+    confWait.set(id, { resolve: mf => resolve(faceOn(mf)), reject, fallback: () => viaPage().then(resolve, reject) });
+    w.postMessage({ id, smi, seed });
+  });
 }
 function conformerMolfile(O, smi, seed) {
   const m = O.Molecule.fromSmiles(smi);
@@ -2356,7 +2430,7 @@ function paint3D() {
 }
 async function show3D(force) {
   if (!current) return;
-  const smi = current.parent || current.smiles;
+  const smi = current.cmpSmi || current.smiles;
   if (!force && model3dFor === smi && viewer3d) { viewer3d.resize(); viewer3d.render(); return; }
   model3dFor = smi;
   msg3d(`<span><span class="busy"></span> Building a 3D model…</span>`);
@@ -2364,7 +2438,7 @@ async function show3D(force) {
     await loadScript(DMOL_URL).catch(() => { throw new Error("Could not load the 3D viewer."); });
     const O = await loadOCL().catch(() => { throw new Error("Could not load the conformer generator."); });
     await new Promise(r => setTimeout(r, 30));
-    const mf = (seed3d === 1 && current.conf1?.smi === smi) ? current.conf1.mf : conformerMolfile(O, smi, seed3d);
+    const mf = (seed3d === 1 && current.conf1?.smi === smi) ? current.conf1.mf : await conformerAsync(smi, seed3d);
     if (seed3d === 1 && current.desc.PBF === undefined) { current.conf1 = { smi, mf }; setShape(current.desc, mf); renderProps(current.desc); renderComplexity(current); }
     if (model3dFor !== smi) return;
     if (!viewer3d) viewer3d = $3Dmol.createViewer($("#mol3d"), { backgroundColor: "white", antialias: true });
@@ -2386,6 +2460,8 @@ window.addEventListener("resize", () => { if (viewer3d && activeTab === "3d") vi
 /* ---------- everything that follows a new compound ---------- */
 function onCompound() {
   updateMini();
+  $("#cmpNote").hidden = !current.descIn;
+  if (current.descIn) $("#cmpNote").innerHTML = `All properties on this tab are for the neutral parent, <code style="word-break:break-all">${esc(current.cmpSmi)}</code>, the form the approved drugs are stored in. As drawn: MW ${fmt(current.descIn.amw, 2)}.`;
   renderScores(current); renderAlerts(current); renderTypicality(current); if (drugStats()) renderProfile(current); else $("#profile").innerHTML = ""; renderComplexity(current);
   nnHits = []; nnFor = null; $("#tip").hidden = true;
   renderSpace();
@@ -2470,8 +2546,15 @@ function hashParam(name) {
   return null;
 }
 const LINK_TABS = ["scan", "props", "3d", "src", "report"];
+// Links to a structure (share, QR codes, PDF) must work on any phone: a copy of the page opened from
+// Files, a preview pane or this computer would otherwise produce file:// or private addresses.
+function appBase() {
+  const h = location.hostname;
+  const local = location.protocol !== "https:" || !h || /^(localhost|127\.|10\.|192\.168\.|\[?::1)/.test(h) || /\.local$|claude|usercontent|sandbox|preview/.test(h);
+  return local ? HOME_URL : location.origin + location.pathname;
+}
 function shareURL(smi) {
-  return location.origin + location.pathname + "#smiles=" + encSmiles(smi);
+  return appBase() + "#smiles=" + encSmiles(smi);
 }
 function writeHash(smi, label) {
   try {
@@ -2794,7 +2877,7 @@ async function buildPDF(onStep = () => {}) {
   const profPng = drugStats() ? await svgToPNG(printSVG($("#profile"), 360, PROFILE_H), 360, PROFILE_H, 3).catch(() => null) : null;
   const pmiPng = Number.isFinite(d.NPR1) ? await svgToPNG(printSVG($("#pmi"), 340, 236), 340, 236, 3).catch(() => null) : null;
   let alertPng = null;
-  if (x.alerts) { const a = alertSVG(c.smiles, null); if (a.svg) alertPng = await svgToPNG(a.svg, 560, 300, 3).catch(() => null); }
+  if (x.alerts) { const a = alertSVG(c.cmpSmi || c.smiles, null); if (a.svg) alertPng = await svgToPNG(a.svg, 560, 300, 3).catch(() => null); }
   const spacePng = SPACE ? await svgToPNG(printSVG($("#spaceSvg"), 340, 250), 340, 250, 3).catch(() => null) : null;
 
   const nnPngs = [], simPngs = [];
@@ -2896,7 +2979,7 @@ async function buildPDF(onStep = () => {}) {
   if (hasQR) { font(6.5); tc("muted"); doc.text("Scan to open this structure", W - M - qrSize / 2, y + qrSize + 3, { align: "center" }); }
   const headW = hasQR ? CW - qrSize - 6 : CW, y0 = y;
   text(nm, { size: 20, style: "bold", w: headW, lf: 1.12, gap: 1 });
-  text(`${c.formula || ""}  ·  MW ${fmt(d.amw, 2)}  ·  monoisotopic ${fmt(d.exactmw, 4)}`, { size: 10, col: "muted", w: headW, gap: 1 });
+  text(`${c.formula || ""}  ·  MW ${fmt((c.descIn || d).amw, 2)}  ·  monoisotopic ${fmt((c.descIn || d).exactmw, 4)}`, { size: 10, col: "muted", w: headW, gap: 1 });
   if (I.pc?.iupac) text(I.pc.iupac, { size: 8.5, col: "muted", w: headW, gap: 1 });
   y = Math.max(y, y0 + (hasQR ? qrSize + 6 : 0)) + 2;
 
@@ -2946,6 +3029,7 @@ async function buildPDF(onStep = () => {}) {
 
   /* --- properties --- */
   heading("Calculated properties", `RDKit.js ${RD ? RD.version() : ""}`);
+  if (c.descIn) text(`Calculated for the neutral parent, ${c.cmpSmi}, the form the approved drugs are compared in. As drawn: MW ${fmt(c.descIn.amw, 2)}.`, { size: 8, col: "muted", gap: 1.4, chars: true });
   const dr = descRows(d).map(([k, v, u]) => [k, `${v ?? "—"}${u && u !== "Crippen" ? " " + u : ""}`]);
   dr.push(["Typicality", c.typ ? `${pctTxt(c.typ.pct)}% (${typClass(c.typ.pct)[0].toLowerCase()}; Mahalanobis D^2 ${fmt(c.typ.d2, 1)})` : "—"],
     ["ESOL logS", `${fmt(x.logS, 2)} (${x.logS > -4 ? "soluble" : x.logS > -6 ? "moderately soluble" : "poorly soluble"})`], ["Structural alerts", `${x.alerts} of 116`]);
@@ -2978,7 +3062,7 @@ async function buildPDF(onStep = () => {}) {
   }
   if (x.alerts) {
     heading("Structural alerts", `${x.alerts} of 116`);
-    const hits = alertSVG(c.smiles, null).hits;
+    const hits = alertSVG(c.cmpSmi || c.smiles, null).hits;
     if (alertPng) { const w = 90, h = w * 300 / 560; space(h + 2); addImg(alertPng, "PNG", M, y, w, h); const y0 = y; y = y0; font(8); tc("ink");
       hits.forEach((hh, i) => { doc.setFont("courier", "normal"); doc.setFontSize(7.5); const ls = doc.splitTextToSize(T(hh.smarts), CW - w - 6); doc.text(ls, M + w + 6, y + 3); y += ls.length * 3.2 + 1.2; });
       y = Math.max(y, y0 + h) + 2; }
@@ -3213,6 +3297,9 @@ const RELEASES = [
       "<b>Release notes.</b> This page. Link to it with <code>#whats-new</code>.",
       "<b>Redesigned Properties tab.</b> A typicality score against approved drugs, a property profile showing where each property falls among 1,294 approved drugs, rule checks with every criterion, structural alerts highlighted on the structure, and descriptors grouped by kind.",
       "<b>Plane of best fit replaces Fsp3.</b> PBF (Firth, Brown and Blagg 2012) measures 3D shape from a conformer: the mean distance of the heavy atoms from their best-fit plane. It is used in the property profile, the typicality score and the drug-space map, with the reference drugs computed by the same method.",
+      "<b>Links checked.</b> Shared links, QR codes and links in the PDF now always point to the public site, even from a copy of the page saved on the phone. A failed lookup explains that the database may be busy and offers Try again; Wikipedia no longer waits for a slow ChEMBL. Sites that ask you to sign in are marked 🔒.",
+      "<b>Salts and charged forms</b> are compared as their neutral parent (largest fragment, uncharged as RDKit's Uncharger does), the form the approved drugs are stored in. The Properties tab says so when it applies.",
+      "<b>3D conformers are built in the background</b>, so the page no longer freezes while a large molecule's shape is worked out.",
       "<b>Nearest approved drugs.</b> A separate panel lists the 12 approved drugs most similar by Morgan fingerprint, whatever their scaffold, marking those that also share the scaffold. It is in the PDF too.",
       "<b>Scanned drawing in the PDF.</b> The PDF shows the scanned drawing and the recognised structure side by side, labelled. The last eight scan photos are kept on the phone, so the drawing is still there after Safari reloads the page or when the structure is reopened from history.",
       "<b>Complexity and 3D shape.</b> A new card with the PMI triangle (rod, disc, sphere) against approved drugs, and plane of best fit, NPR1, NPR2, Bertz complexity, Fsp3, stereocentres, spiro and bridgehead atoms and Kier flexibility, each with its percentile among approved drugs, plus PubChem's complexity value. Kappa and chi indices are under All descriptors.",

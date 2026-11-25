@@ -117,7 +117,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## ONNX Runtime Web 1.30.0
 
-Runs the DECIMER model. https://github.com/microsoft/onnxruntime
+Runs the DECIMER model. https://onnxruntime.ai · https://www.npmjs.com/package/onnxruntime-web (the GitHub repository, github.com/microsoft/onnxruntime, was withdrawn in November 2026)
 
 ```
 MIT License
