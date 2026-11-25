@@ -123,6 +123,12 @@ button.chip{cursor:pointer}
 .chip.mid{background:var(--warn-soft);color:var(--warn);border-color:transparent}
 
 /* compound strip at the top of the other tabs */
+#formula{display:none}
+.jump{display:flex;gap:6px;overflow-x:auto;margin:-2px -16px 10px;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.jump::-webkit-scrollbar{display:none}
+.jump button{flex:none;appearance:none;border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 12px;font:600 .8rem var(--f-body);cursor:pointer}
+.jump button:active{background:var(--accent-soft)}
+#tab-props .card{scroll-margin-top:72px}
 .mini{display:flex;align-items:center;gap:12px;min-width:0}
 .mini .th{width:64px;height:48px;flex:none;background:var(--plate);border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
 .mini .th svg{width:100%;height:100%}
@@ -157,11 +163,13 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .rule:first-child{border-top:none;padding-top:0}
 .rule .rh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.92rem}
 .rule .rh small{display:block;font-size:.74rem;color:var(--muted);font-weight:400}
+.crit2{margin-top:3px;font-size:.76rem;color:var(--muted);line-height:1.5}
+.crit2 .no{color:var(--bad)}
 .crit{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .crit span{font:500 .74rem var(--f-body);padding:2px 8px;border-radius:999px;border:1px solid currentColor}
 .crit .ok{color:var(--good)}
 .crit .no{color:var(--bad);font-weight:700;background:var(--bad-soft)}
-.pmi{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+.pmi{width:100%;max-width:300px;height:auto;display:block;margin:0 auto}
 .pmi text{font-family:var(--f-body)}
 .cx{display:flex;flex-direction:column}
 .cxr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline}
@@ -170,6 +178,17 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .cxr .v{font:700 1rem var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
 .cxr .d{grid-column:1/-1;font-size:.76rem;color:var(--muted)}
 .cxr .pc{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:.72rem;color:var(--muted)}
+.cxr.c2{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 2.6em 4.2em;gap:8px;padding:7px 0;align-items:center}
+.cxr.c2 b{font-size:.86rem;font-weight:600}
+.cxr.c2 .v{font-size:.9rem}
+.cxr.c2 .v small{font:400 .7rem var(--f-body);color:var(--muted)}
+.cxr.c2 .pcs{font-size:.72rem;color:var(--muted);text-align:right}
+.cxr.c2 .tr.none{background:none}
+.cxhead{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 2.6em 4.2em;gap:8px;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 0 2px}
+.cxhead span:nth-child(3),.cxhead span:nth-child(4){text-align:right}
+.cxdefs{margin:0 0 8px;font-size:.8rem}
+.cxdefs dt{font-weight:700;margin-top:6px}
+.cxdefs dd{margin:0;color:var(--muted)}
 .cxr .tr{position:relative;height:6px;border-radius:3px;background:var(--line)}
 .cxr .tr i{position:absolute;top:-3px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
 .alertfig{background:var(--plate);border-radius:10px;border:1px solid var(--line);overflow:hidden}
@@ -212,6 +231,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .nn .n{position:absolute;left:3px;top:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--warn);color:var(--surface);font:700 .68rem var(--f-body);display:grid;place-items:center}
 .nn.sim .n{background:var(--accent)}
 .nn .tag{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font:600 .62rem var(--f-body);vertical-align:1px}
+.nn .more{margin-top:8px;width:100%}
 .nn .t{min-width:0;font-weight:700;font-size:.8rem;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:0 2px}
 .nn .s{font:500 .7rem var(--f-mono);color:var(--muted);padding:0 2px}
 
@@ -374,10 +394,10 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
   <div class="plates">
     <div class="pl" id="photoPl">
       <span class="pl-cap">Photo</span>
-      <div class="empty-photo" id="noPhoto">
+      <label class="empty-photo" id="noPhoto" for="camIn" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        Photograph a drawn structure, then drag across it to crop.
-      </div>
+        Tap to photograph a drawn structure.<br><small>Then drag across the photo to crop.</small>
+      </label>
       <div id="imgBox" hidden>
         <div class="stage" id="stage"><canvas id="view" width="10" height="10" aria-label="Captured image. Drag to crop."></canvas></div>
         <div class="imgtools">
@@ -405,7 +425,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
       Example
     </button>
   </div>
-  <button class="btn primary" type="button" id="recBtn" disabled>Recognise structure</button>
+  <button class="btn primary" type="button" id="recBtn" disabled hidden>Recognise structure</button>
   <p class="engine" id="engineLine"></p>
   <p class="hint" id="capSt" hidden></p>
 
@@ -481,6 +501,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
     <p class="hint" id="pmiNote"></p>
     <div class="cx" id="cx"></div>
     <details class="fold"><summary>About these measures</summary><div>
+      <dl class="cxdefs" id="cxDefs"></dl>
       <p class="hint"><b>Plane of best fit</b> (Firth, Brown and Blagg 2012) and the <b>normalised PMI ratios</b> (Sauer and Schwarz 2003) describe 3D shape. Both come from one conformer (OpenChemLib, MMFF94s+), using heavy atoms; the reference drugs were treated the same way, so the comparison is like for like. One conformer is a snapshot: flexible molecules can adopt other shapes.</p>
       <p class="hint"><b>Bertz CT</b> (Bertz 1981) grows with size, branching, multiple bonds and heteroatom variety. <b>Fsp3</b> (Lovering et al. 2009) is the fraction of carbons that are sp3. <b>Kier Φ</b> (Kier 1989) indexes flexibility from atom counts and shape indices. <b>PubChem complexity</b> is PubChem's own Bertz/Hendrickson-type index, shown when the compound is in PubChem.</p>
     </div></details>
@@ -556,7 +577,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h7v-4"/></svg>
       Link and QR</button>
   </div>
-  <p class="hint">This page is the one-page summary. The PDF adds everything else the app found: all descriptors, the radar and drug-space charts, bioactivity, patents, cross-references and the input photo. For the 3D model, the PDF links to the interactive view in the app.</p>
+  <p class="hint">The PDF has this summary plus the charts, similar drugs, bioactivity, patents, cross-references and all descriptors. Its links open each database entry and the 3D model.</p>
 </section>
 
 </main>
@@ -598,17 +619,19 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
         </select>
       </div>
       <div id="devBox" style="display:flex;flex-direction:column;gap:12px">
-        <div class="field">
-          <label for="sModel">Model folder (relative to this page, or a full URL)</label>
-          <input type="text" id="sModel" autocapitalize="off" spellcheck="false">
-        </div>
         <p class="hint" id="modelInfo">The model downloads once (about 84 MB) and is kept on the phone.</p>
         <div class="row">
           <button class="btn slim" type="button" id="dlModel">Download model now</button>
-          <label class="btn slim" for="modelFiles">Load model files from phone</label>
-          <input id="modelFiles" type="file" multiple accept=".onnx,.json,application/json,application/octet-stream">
           <button class="btn slim" type="button" id="dropModel">Remove stored model</button>
         </div>
+        <details class="fold"><summary>Model files</summary><div style="display:flex;flex-direction:column;gap:12px">
+          <div class="field">
+            <label for="sModel">Model folder (relative to this page, or a full URL)</label>
+            <input type="text" id="sModel" autocapitalize="off" spellcheck="false">
+          </div>
+          <div class="row"><label class="btn slim" for="modelFiles">Load model files from phone</label></div>
+          <input id="modelFiles" type="file" multiple accept=".onnx,.json,application/json,application/octet-stream">
+        </div></details>
       </div>
       <div id="apiBox" style="display:flex;flex-direction:column;gap:12px">
         <div class="field">
@@ -625,13 +648,14 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
     </div>
 
     <div class="card" id="diagPanel">
-      <div class="ch"><h2>Connection check</h2></div>
-      <p class="hint">Tests this browser against every service the app uses and lists what failed and why.</p>
+      <details class="fold"><summary>Connection check</summary><div>
+      <p class="hint">If lookups fail, this tests the browser against every service the app uses and lists what failed and why.</p>
       <div class="row">
         <button class="btn slim" type="button" id="diagRun">Run connection check</button>
         <button class="btn slim" type="button" id="diagCopy" hidden>Copy report</button>
       </div>
       <pre class="diag" id="diagOut" hidden></pre>
+      </div></details>
     </div>
 
     <div class="card">
@@ -1462,12 +1486,27 @@ const DESC_GROUPS = [
   ["Rings", ["Rings", "Arom. rings", "Aliph. rings", "Sat. rings", "Heterocycles"]],
   ["Topological indices", ["κ1", "κ2", "κ3", "χ0v", "χ1v", "χ2v", "χ3v", "χ4v", "Hall–Kier α"]]
 ];
+const JUMP_LABEL = { "Drug-likeness": "Summary", "Property profile": "Profile", "Drug space": "Map", "Rule checks": "Rules", "Structural alerts": "Alerts", "Complexity and 3D shape": "3D shape", "Approved drugs with the same scaffold": "Same scaffold", "Approved drugs: nearest neighbours": "Nearest drugs", "All descriptors": "All descriptors" };
+function buildJump() {
+  const tab = $("#tab-props"); if (!tab || tab.querySelector(".jump")) return;
+  const nav = document.createElement("nav"); nav.className = "jump"; nav.setAttribute("aria-label", "Jump to");
+  tab.querySelectorAll(".card").forEach((card, i) => {
+    const h = card.querySelector("h2") || card.querySelector("summary"); if (!h) return;
+    const t = (h.firstChild?.textContent || h.textContent).trim(), lab = JUMP_LABEL[t]; if (!lab) return;
+    card.id ||= "pc-" + i;
+    const b = document.createElement("button"); b.type = "button"; b.textContent = lab;
+    b.addEventListener("click", () => { const d = card.querySelector("details"); if (lab === "All descriptors" && d) d.open = true; card.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    nav.appendChild(b);
+  });
+  tab.querySelector(".mini").after(nav);
+}
 function renderProps(d) {
+  buildJump();
   const P = new Map(descRows(d).map(r => [r[0], r]));
   const cell = ([k, v, u]) => `<div class="prop"><span class="k">${k}</span><span class="v">${v}${u ? `<span class="u">${u}</span>` : ""}</span></div>`;
   $("#props").innerHTML = DESC_GROUPS.map(([g, keys]) => `<div class="dgroup"><h3>${g}</h3><div class="props">${keys.filter(k => P.has(k)).map(k => cell(P.get(k))).join("")}</div></div>`).join("");
   $("#rules").innerHTML = ruleChecks(d).map(r => `<div class="rule"><div class="rh"><span><b>${r.name}</b><small>${RULE_NOTE[r.name] || ""}</small></span><span class="chip ${r.cls}">${r.verdict}</span></div>
-    <div class="crit">${r.checks.map(c => `<span class="${c.ok ? "ok" : "no"}">${c.ok ? "✓" : "✗"} ${c.t}</span>`).join("")}</div></div>`).join("");
+    <div class="crit2">${r.checks.map(c => c.ok ? `<span>${c.t}</span>` : `<b class="no">✗ ${c.t}</b>`).join(" · ")}</div></div>`).join("");
 }
 
 /* ---------- PubChem ---------- */
@@ -1805,7 +1844,7 @@ $("#shareBtn").addEventListener("click", () => openSheet("#shareSheet"));
 $("#sheetDone").addEventListener("click", () => closeSheet("#sheet"));
 document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeSheet(b.dataset.close)));
 document.addEventListener("keydown", e => { if (e.key === "Escape" && sheetStack.length) closeSheet(); });
-$("#bannerCheck").addEventListener("click", () => { openSheet("#sheet"); $("#diagPanel").scrollIntoView({ block: "start" }); connectionCheck(); });
+$("#bannerCheck").addEventListener("click", () => { openSheet("#sheet"); $("#diagPanel details").open = true; $("#diagPanel").scrollIntoView({ block: "start" }); connectionCheck(); });
 
 /* ---------- theme: match phone / light / dark ---------- */
 function applyTheme(t) {
@@ -1817,7 +1856,7 @@ applyTheme(store.get("sl.theme", "system"));
 document.querySelectorAll("#themeSeg button").forEach(b => b.addEventListener("click", () => { store.set("sl.theme", b.dataset.t); applyTheme(b.dataset.t); }));
 
 /* ---------- photo plate ---------- */
-function showPhoto() { $("#imgBox").hidden = false; $("#noPhoto").hidden = true; $("#recBtn").disabled = false; }
+function showPhoto() { $("#imgBox").hidden = false; $("#noPhoto").hidden = true; $("#recBtn").hidden = false; $("#recBtn").disabled = false; }
 
 /* ---------- compound strip on the other tabs ---------- */
 function updateMini() {
@@ -1875,7 +1914,7 @@ function alertSVG(smi, hit) {
 function renderAlerts(c, sel = null) {
   const el = $("#alerts");
   if (!c.extra.alerts) {
-    el.innerHTML = `<p class="okline">✓ None of the 116 alert substructures is present.</p><p class="hint">The set flags groups linked to reactivity, toxicity, instability or poor pharmacokinetics (Brenk et al. 2008, as used in RDKit).</p>`;
+    el.innerHTML = `<p class="okline">✓ None found</p><p class="hint">Checks 116 groups linked to reactivity, toxicity, instability or poor pharmacokinetics (Brenk et al. 2008).</p>`;
     return;
   }
   const { svg, hits } = alertSVG(c.cmpSmi || c.smiles, sel);
@@ -1927,18 +1966,17 @@ function renderComplexity(c) {
   $("#pmi").innerHTML = pmiSVG(c);
   $("#pmiNote").innerHTML = pend ? `<span class="busy"></span> Building a 3D conformer…`
     : !Number.isFinite(d.NPR1) ? "No 3D conformer could be built for this structure."
-    : `<b>${shapeName(d.NPR1, d.NPR2)[0].toUpperCase() + shapeName(d.NPR1, d.NPR2).slice(1)}</b> (NPR1 ${fmt(d.NPR1, 2)}, NPR2 ${fmt(d.NPR2, 2)}; NPR1 + NPR2 = ${fmt(d.NPR1 + d.NPR2, 2)}, where 1 is the flat rod–disc edge).${SPACE?.cx ? " Grey: approved drugs." : " The approved-drug points and percentiles appear once the version 1.1 data file is on the website."}`;
+    : `<b>${shapeName(d.NPR1, d.NPR2)[0].toUpperCase() + shapeName(d.NPR1, d.NPR2).slice(1)}</b> · NPR1 ${fmt(d.NPR1, 2)}, NPR2 ${fmt(d.NPR2, 2)}${SPACE?.cx ? " · grey: approved drugs" : ". Approved-drug points appear once the version 1.1 data file is on the website."}`;
   const pcI = c.info?.pc?.complexity;
   const rows = CX.map(r => {
     const v = r.v(d), ok = v != null && Number.isFinite(+v), arr = S && S[r.k];
     const val = v === undefined ? "…" : !ok ? "—" : r.int ? String(v) : fmt(v, r.dp);
     const pct = ok && arr && arr.length ? pctOf(arr, +v) : null;
-    return `<div class="cxr"><b>${r.label}</b><span class="v">${val}${r.unit && ok ? `<small style="font:400 .72rem var(--f-body);color:var(--muted)"> ${r.unit}</small>` : ""}</span>
-      <span class="d">${r.note}</span>
-      ${pct != null ? `<span class="pc"><span class="tr"><i style="left:${pct.toFixed(1)}%"></i></span><span>${ord(pct)} percentile</span></span>` : ""}</div>`;
+    return `<div class="cxr c2"><b>${r.label}</b><span class="tr">${pct != null ? `<i style="left:${pct.toFixed(1)}%"></i>` : ""}</span><span class="pcs">${pct != null ? ord(pct) : ""}</span><span class="v">${val}${r.unit && ok ? `<small> ${r.unit}</small>` : ""}</span></div>`;
   });
-  if (pcI != null) rows.push(`<div class="cxr"><b>PubChem complexity</b><span class="v">${fmt(pcI, 0)}</span><span class="d">PubChem's Bertz/Hendrickson-type index (Cactvs), from the PubChem record.</span></div>`);
-  $("#cx").innerHTML = rows.join("");
+  if (pcI != null) rows.push(`<div class="cxr c2"><b>PubChem complexity</b><span class="tr none"></span><span class="pcs"></span><span class="v">${fmt(pcI, 0)}</span></div>`);
+  $("#cx").innerHTML = `<div class="cxhead"><span></span><span>vs approved drugs</span><span>%ile</span><span>Value</span></div>` + rows.join("");
+  if (!$("#cxDefs").childElementCount) $("#cxDefs").innerHTML = CX.map(r => `<dt>${r.label}</dt><dd>${r.note}</dd>`).join("") + `<dt>PubChem complexity</dt><dd>PubChem's Bertz/Hendrickson-type index (Cactvs), from the PubChem record.</dd>`;
 }
 
 /* ---------- typicality and property profile against approved drugs ---------- */
@@ -2008,7 +2046,7 @@ function renderTypicality(c) {
   const odd = t.props.filter(x => x.pct < 5 || x.pct > 95).map(x => `${PNAME[x.k]} (${ord(x.pct)} percentile)`);
   el.innerHTML = `<div class="typ">
       <div class="n" style="color:${col}">${pctTxt(p)}<small>%</small></div>
-      <div class="t"><b>${lab}</b><span>${p < 1 ? "Fewer than 1%" : pctTxt(p) + "%"} of approved drugs are further from the centre of drug property space.</span></div>
+      <div class="t"><b>${lab}</b><span>${p < 1 ? "Fewer than 1%" : pctTxt(p) + "%"} of approved drugs are less typical.</span></div>
       <div class="typbar"><i style="left:${p.toFixed(1)}%"></i></div>
       <div class="typscale"><span>Atypical</span><span>Median drug</span><span>Centre</span></div>
       ${odd.length ? `<p class="typwhy"><b>Unusual for a drug:</b> ${esc(odd.join(", "))}.</p>` : `<p class="typwhy hint">Every property is within the central 90% of approved drugs.</p>`}
@@ -2187,13 +2225,14 @@ async function ensureNeighbours() {
   const many = same.length > NN_COUNT;
   const head = !qs ? `<p class="hint">This structure has no ring system, so it has no scaffold to compare with approved drugs.</p>`
     : `<div class="scaf"><span class="th">${thumbSVG(qs, 168, 120)}</span><div><b>Bemis–Murcko scaffold</b><span class="hint">${same.length
-        ? `${same.length} approved drug${same.length > 1 ? "s" : ""} in the reference set share${same.length > 1 ? "" : "s"} this ring system and linkers${many ? `; the ${NN_COUNT} most similar are shown` : ""}, ranked by Morgan Tanimoto similarity.`
+        ? `${same.length} approved drug${same.length > 1 ? "s" : ""} share${same.length > 1 ? "" : "s"} this ring system and linkers${many ? `; the ${NN_COUNT} most similar are listed` : ""}.`
         : "No approved drug in the reference set of 1,294 has this scaffold."}</span><code>${esc(qs)}</code></div></div>`;
-  $("#nn").innerHTML = head + (nnHits.length ? `<p class="hint" style="margin:10px 0 6px">Numbers match the orange points on the drug-space map. Tap a drug to open it.</p><div class="nngrid">` + nnHits.map((h, i) => {
+  $("#nn").innerHTML = head + (nnHits.length ? `<p class="hint" style="margin:10px 0 6px">Numbers match the map. Tap a drug to open it.</p><div class="nngrid">` + nnHits.map((h, i) => {
     const smi = SPACE.points[h.i][2];
     return `<button type="button" data-i="${h.i}"><span class="th">${thumbSVG(smi, 168, 120)}<span class="n">${i + 1}</span></span><span class="t" data-name="${h.i}">${h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">Tanimoto ${h.s.toFixed(2)}</span></button>`;
   }).join("") + `</div>` : "");
-  $("#nn").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { openStructure(SPACE.points[+b.dataset.i][2], "approved drug"); }));
+  $("#nn").querySelectorAll(".nngrid button").forEach(b => b.addEventListener("click", () => { openStructure(SPACE.points[+b.dataset.i][2], "approved drug"); }));
+  collapseGrid($("#nn"));
   const nnRef = c.nn;
   for (const h of nnHits) drugName(h.i).then(n => {
     const el = $(`#nn [data-name="${h.i}"]`); if (el) el.textContent = (h.s > 0.999 ? "Same: " : "") + (n ? titleCase(n) : n === null ? "Name lookup failed" : "No PubChem name");
@@ -2201,11 +2240,21 @@ async function ensureNeighbours() {
   });
 }
 const NN_COUNT = 12;
+// show the first six cards, with a button for the rest
+function collapseGrid(box, n = 6) {
+  const g = box.querySelector(".nngrid"); if (!g) return;
+  const cards = [...g.children]; if (cards.length <= n) return;
+  cards.slice(n).forEach(x => x.hidden = true);
+  const b = document.createElement("button"); b.type = "button"; b.className = "btn slim more"; b.textContent = `Show all ${cards.length}`;
+  b.addEventListener("click", () => { const open = b.dataset.open !== "1"; cards.slice(n).forEach(x => x.hidden = !open); b.dataset.open = open ? "1" : ""; b.textContent = open ? "Show fewer" : `Show all ${cards.length}`; });
+  g.after(b);
+}
 function renderNnSim(c) {
   const L = c.nnSim; if (!L) return;
-  $("#nnSim").innerHTML = `<p class="hint" style="margin:0 0 8px">The ${L.length} approved drugs most similar to this compound by Morgan fingerprint (radius 2, 2048 bits, Tanimoto), whatever their scaffold. As a rough guide, values under about 0.3 are typical of unrelated molecules. <span class="tag">same scaffold</span> marks drugs also in the panel above. Tap a drug to open it.</p><div class="nngrid">`
+  $("#nnSim").innerHTML = `<p class="hint" style="margin:0 0 8px">Whatever the scaffold. Tanimoto below about 0.3 is typical of unrelated molecules.</p><div class="nngrid">`
     + L.map((h, k) => `<button type="button" data-i="${h.i}"><span class="th">${thumbSVG(h.smi, 168, 120)}<span class="n">${k + 1}</span></span><span class="t" data-name="${h.i}">${h.name ? esc(h.name) : h.s > 0.999 ? "Same structure" : "…"}</span><span class="s">Tanimoto ${h.s.toFixed(2)}${h.same ? `<span class="tag">same scaffold</span>` : ""}</span></button>`).join("") + `</div>`;
-  $("#nnSim").querySelectorAll("button").forEach(b => b.addEventListener("click", () => openStructure(SPACE.points[+b.dataset.i][2], "approved drug")));
+  $("#nnSim").querySelectorAll(".nngrid button").forEach(b => b.addEventListener("click", () => openStructure(SPACE.points[+b.dataset.i][2], "approved drug")));
+  collapseGrid($("#nnSim"));
   for (const h of L) if (h.name === undefined) drugName(h.i).then(n => {
     if (current !== c) return;
     h.name = n ? titleCase(n) : "";
@@ -2916,7 +2965,7 @@ async function buildPDF(onStep = () => {}) {
     y += gap;
   }
   function heading(s, sub) {
-    space(16); y += 3;
+    space(28); y += 3;   // keep a heading with at least a few lines of what follows
     font(12.5, "bold"); tc("accent"); doc.text(T(s), M, y + 4.4);
     if (sub) { font(8.5); tc("muted"); doc.text(T(sub), W - M, y + 4.4, { align: "right" }); }
     y += 6.5; dc("line"); doc.setLineWidth(0.3); doc.line(M, y, W - M, y); y += 3.2;
@@ -2985,7 +3034,7 @@ async function buildPDF(onStep = () => {}) {
 
   // the scanned drawing and the structure read from it
   if (molPng) {
-    const ph = c.photo, boxH = ph ? 84 : 78;
+    const ph = c.photo, boxH = ph ? 72 : 60;
     space(boxH + 2);
     fc("soft"); doc.roundedRect(M, y, CW, boxH, 2, 2, "F");
     const panel = (x0, w, label) => { doc.setFillColor(255, 255, 255); doc.roundedRect(x0, y + 2, w, boxH - 4, 1.5, 1.5, "F"); if (label) { font(7.5, "bold"); tc("muted"); doc.text(T(label), x0 + 2.5, y + 6.2); } };
@@ -3009,31 +3058,49 @@ async function buildPDF(onStep = () => {}) {
     y += 2;
   }
 
-  heading("Identifiers");
-  text("SMILES", { size: 8, col: "muted", gap: 0.3 }); text(c.smiles, { size: 8.5, face: "courier", chars: true, gap: 1.6 });
-  if (c.input && c.input !== c.smiles) { text("SMILES as read (before RDKit canonicalisation)", { size: 8, col: "muted", gap: 0.3 }); text(c.input, { size: 8.5, face: "courier", chars: true, gap: 1.6 }); }
-  text("InChIKey", { size: 8, col: "muted", gap: 0.3 }); text(c.key || "—", { size: 8.5, face: "courier", gap: 1.6 });
-  text("InChI", { size: 8, col: "muted", gap: 0.3 }); text(c.inchi || "—", { size: 8, face: "courier", chars: true, gap: 1.6 });
-  if (c.scaf) { text("Bemis-Murcko scaffold", { size: 8, col: "muted", gap: 0.3 }); text(c.scaf.smi || "none (no ring system)", { size: 8.5, face: "courier", chars: true, gap: 1.6 }); }
+  /* --- summary --- */
+  heading("Summary", c.descIn ? "as the neutral parent" : "");
+  {
+    const typ = c.typ, tcls = typ ? (typ.pct >= 25 ? "good" : typ.pct >= 5 ? "warn" : "bad") : "ink";
+    const cells = [
+      ["MW", fmt(d.amw, 1)], ["cLogP", fmt(d.CrippenClogP, 2)], ["TPSA", fmt(d.tpsa, 0)], ["Typicality", typ ? pctTxt(typ.pct) + "%" : "—", tcls],
+      ["HBD", String(d.lipinskiHBD)], ["HBA", String(d.lipinskiHBA)], ["Rot. bonds", String(d.NumRotatableBonds)], ["ESOL logS", fmt(x.logS, 1)],
+      ["Arom. rings", String(d.NumAromaticRings)], ["Fsp3", fmt(d.FractionCSP3, 2)], ["PBF (Å)", Number.isFinite(d.PBF) ? fmt(d.PBF, 2) : "—"], ["Alerts", `${x.alerts} of 116`, x.alerts ? "warn" : "good"]
+    ];
+    const cols = 4, gw = 2, cw = (CW - (cols - 1) * gw) / cols, chh = 11.5;
+    space(Math.ceil(cells.length / cols) * (chh + gw));
+    cells.forEach(([k, v, col], i) => {
+      const cx = M + (i % cols) * (cw + gw), cy = y + Math.floor(i / cols) * (chh + gw);
+      fc("soft"); doc.roundedRect(cx, cy, cw, chh, 1.5, 1.5, "F");
+      font(7); tc("muted"); doc.text(T(k), cx + 2.5, cy + 4.2);
+      font(11, "bold"); tc(col || "ink"); doc.text(T(v), cx + 2.5, cy + 9.4);
+    });
+    y += Math.ceil(cells.length / cols) * (chh + gw) + 1;
+    // one line of verdicts
+    space(6); let xx = M; font(8.5, "bold"); tc("ink");
+    if (typ) { const lab = typClass(typ.pct)[0] + ".  "; tc(tcls); doc.text(T(lab), xx, y + 3.5); xx += doc.getTextWidth(T(lab)); }
+    for (const r of ruleChecks(d)) {
+      const t1 = r.name.replace(" (fragments)", "").replace(" (heuristic)", "") + " ", t2 = r.verdict + "   ";
+      font(8.5); tc("ink"); if (xx + doc.getTextWidth(T(t1 + t2)) > W - M) { y += 4.6; space(5); xx = M; }
+      doc.text(T(t1), xx, y + 3.5); xx += doc.getTextWidth(T(t1));
+      font(8.5, "bold"); tc(r.cls === "pass" ? "good" : r.cls === "mid" ? "warn" : "bad"); doc.text(T(t2), xx, y + 3.5); xx += doc.getTextWidth(T(t2));
+    }
+    y += 7;
+    if (c.descIn) text(`Calculated for the neutral parent, ${c.cmpSmi}, the form the approved drugs are compared in. As drawn: MW ${fmt(c.descIn.amw, 2)}.`, { size: 7.5, col: "muted", gap: 1.4, chars: true });
+  }
+  text("SMILES", { size: 7.5, col: "muted", gap: 0.2 }); text(c.smiles, { size: 8.5, face: "courier", chars: true, gap: 1.2 });
+  text("InChIKey", { size: 7.5, col: "muted", gap: 0.2 }); text(c.key || "—", { size: 8.5, face: "courier", gap: 1.4 });
   pairs([
     ["PubChem CID", I.pc?.cid ? L_(String(I.pc.cid), `https://pubchem.ncbi.nlm.nih.gov/compound/${I.pc.cid}`) : "—"],
     ["ChEMBL", I.ch?.id ? L_(I.ch.id, `https://www.ebi.ac.uk/chembl/explore/compound/${I.ch.id}`) : "—"],
     ["SureChEMBL", I.sc?.schembl ? L_(I.sc.schembl, schemblURL(I.sc.schembl)) : "—"],
-    ["Wikidata", I.wk?.qid ? L_(I.wk.qid, `https://www.wikidata.org/wiki/${I.wk.qid}`) : "—"],
-    ["Read by", pv.src || "—"], ["Analysed", pv.when]
+    ["Wikidata", I.wk?.qid ? L_(I.wk.qid, `https://www.wikidata.org/wiki/${I.wk.qid}`) : "—"]
   ], { keyW: 26 });
   font(8.5); tc("accent"); space(5);
   doc.textWithLink("Open this structure in Structure Lens", M, y + 3, { url: link });
   doc.textWithLink("Open the interactive 3D model", M + 70, y + 3, { url: link + "&tab=3d" });
   y += 6;
 
-  /* --- properties --- */
-  heading("Calculated properties", `RDKit.js ${RD ? RD.version() : ""}`);
-  if (c.descIn) text(`Calculated for the neutral parent, ${c.cmpSmi}, the form the approved drugs are compared in. As drawn: MW ${fmt(c.descIn.amw, 2)}.`, { size: 8, col: "muted", gap: 1.4, chars: true });
-  const dr = descRows(d).map(([k, v, u]) => [k, `${v ?? "—"}${u && u !== "Crippen" ? " " + u : ""}`]);
-  dr.push(["Typicality", c.typ ? `${pctTxt(c.typ.pct)}% (${typClass(c.typ.pct)[0].toLowerCase()}; Mahalanobis D^2 ${fmt(c.typ.d2, 1)})` : "—"],
-    ["ESOL logS", `${fmt(x.logS, 2)} (${x.logS > -4 ? "soluble" : x.logS > -6 ? "moderately soluble" : "poorly soluble"})`], ["Structural alerts", `${x.alerts} of 116`]);
-  pairs(dr, { cols: 3, keyW: 25, size: 8.5 });
   heading("Rule checks");
   for (const r of ruleChecks(d)) {
     space(6); font(9, "bold"); tc("ink"); doc.text(T(r.name), M, y + 3.4);
@@ -3046,7 +3113,7 @@ async function buildPDF(onStep = () => {}) {
   const half = (CW - 6) / 2;
   if (profPng || spacePng) {
     heading("Against approved drugs", "1,294 FDA-approved drugs (ClinTox)");
-    if (c.typ) { const [lab] = typClass(c.typ.pct); text(`Typicality ${pctTxt(c.typ.pct)}%: ${lab}. ${c.typ.pct < 1 ? "Fewer than 1%" : pctTxt(c.typ.pct) + "%"} of approved drugs lie further from the centre of drug property space (Mahalanobis distance over the eight properties shown, log scale for MW, TPSA and counts).`, { size: 8.5, gap: 2 }); }
+    if (c.typ) { const [lab] = typClass(c.typ.pct); text(`Typicality ${pctTxt(c.typ.pct)}% (${lab.toLowerCase()}): the share of approved drugs further from the centre of drug property space, by Mahalanobis distance over the first eight properties below.`, { size: 8, col: "muted", gap: 2 }); }
     const ph = half * PROFILE_H / 360, sh = half * 250 / 340;
     space(Math.max(ph, sh) + 2);
     if (profPng) addImg(profPng, "PNG", M, y, half, ph);
@@ -3086,13 +3153,14 @@ async function buildPDF(onStep = () => {}) {
     if (Number.isFinite(d.NPR1)) text(`PMI triangle: this compound (blue) is ${shapeName(d.NPR1, d.NPR2)}; grey points are approved drugs. PBF and NPR from one OpenChemLib conformer (MMFF94s+), heavy atoms; reference drugs computed the same way.`, { size: 7.5, col: "muted" });
   }
   if (c.scaf) {
+    space(52);
     heading("Approved drugs with the same scaffold", c.scaf.total ? `${c.scaf.total} in the reference set` : "");
     if (!c.scaf.smi) text("This structure has no ring system, so it has no scaffold to compare.", { col: "muted" });
     else if (!c.nn.length) text("No approved drug in the reference set of 1,294 has this Bemis-Murcko scaffold.", { col: "muted" });
     else text(`Drugs whose Bemis-Murcko scaffold (ring systems and linkers) is identical to this compound's, ranked by Morgan Tanimoto similarity (radius 2, 2048 bits)${c.scaf.total > c.nn.length ? `; the ${c.nn.length} most similar are shown` : ""}. Numbers match the drug-space map; each name opens that drug in Structure Lens.`, { size: 7.5, col: "muted", gap: 1.4 });
   }
   function drugGrid(list, pngs, badge) {
-    const per = 4, gw = 3, cw = (CW - (per - 1) * gw) / per, ih = cw * 150 / 220, ch = ih + 11.5;
+    const per = 6, gw = 2.4, cw = (CW - (per - 1) * gw) / per, ih = cw * 150 / 220, ch = ih + 10.5;
     list.forEach((h, i) => {
       const col = i % per;
       if (col === 0) { if (i) y += ch + gw; space(ch + 1); }
@@ -3100,17 +3168,17 @@ async function buildPDF(onStep = () => {}) {
       dc("line"); doc.setLineWidth(0.2); doc.roundedRect(x0, y, cw, ch, 1.5, 1.5, "S");
       if (pngs[i]) addImg(pngs[i], "PNG", x0 + 0.8, y + 0.8, cw - 1.6, ih - 0.8);
       fc(badge); doc.circle(x0 + 3.6, y + 3.6, 2.3, "F"); font(6.5, "bold"); doc.setTextColor(255, 255, 255); doc.text(String(i + 1), x0 + 3.6, y + 4.45, { align: "center" });
-      const nmTxt = doc.splitTextToSize(T(h.s > 0.999 ? `Same: ${h.name || "approved drug"}` : (h.name || "Approved drug")), cw - 3)[0];
-      font(7.8, "bold"); tc("accent"); doc.text(nmTxt, x0 + 1.6, y + ih + 3.8);
+      const nmTxt = doc.splitTextToSize(T(h.s > 0.999 ? `Same: ${h.name || "approved drug"}` : (h.name || "Approved drug")), cw - 2.5)[0];
+      font(7.2, "bold"); tc("accent"); doc.text(nmTxt, x0 + 1.4, y + ih + 3.6);
       doc.link(x0, y, cw, ch, { url: shareURL(h.smi) });
-      font(7.2); tc("muted"); doc.text(T(`Tanimoto ${h.s.toFixed(2)}${h.same ? " · same scaffold" : ""}`), x0 + 1.6, y + ih + 8);
+      font(6.6); tc("muted"); doc.text(T(`${h.s.toFixed(2)}${h.same ? " · same scaffold" : ""}`), x0 + 1.4, y + ih + 7.6);
     });
     y += ch + 4;
   }
   if (c.nn?.length) drugGrid(c.nn, nnPngs, "warn");
   if (c.nnSim?.length) {
     heading("Approved drugs: nearest neighbours", "Morgan radius 2, 2048 bits, Tanimoto");
-    text(`The ${c.nnSim.length} approved drugs most similar by Morgan fingerprint, whatever their scaffold. As a rough guide, Tanimoto values under about 0.3 are typical of unrelated molecules. Each name opens that drug in Structure Lens.`, { size: 7.5, col: "muted", gap: 1.4 });
+    text("Most similar by Morgan fingerprint, whatever the scaffold; numbers under each drug are Tanimoto similarities (below about 0.3 is typical of unrelated molecules). Each drug opens in Structure Lens.", { size: 7.5, col: "muted", gap: 1.4 });
     drugGrid(c.nnSim, simPngs, "accent");
   }
 
@@ -3186,6 +3254,19 @@ async function buildPDF(onStep = () => {}) {
   else if (I.xr.error) text("Not available: " + I.xr.error, { col: "muted" });
   else if (I.xr.list?.length) pairs(I.xr.list.map(r => [r.short, L_(`${r.id}${r.more ? ` (+${r.more} more)` : ""}`, r.url || null)]), { cols: 3, keyW: 22, size: 8 });
   else text("This InChIKey is not in UniChem, so the structure is probably not in any public database.", { col: "muted" });
+
+  /* --- appendix: identifiers and every descriptor --- */
+  heading("Appendix: identifiers and all descriptors", `RDKit.js ${RD ? RD.version() : ""}`);
+  if (c.input && c.input !== c.smiles) { text("SMILES as read (before RDKit canonicalisation)", { size: 7.5, col: "muted", gap: 0.2 }); text(c.input, { size: 8, face: "courier", chars: true, gap: 1.2 }); }
+  if (c.descIn) { text("Neutral parent used for the calculations", { size: 7.5, col: "muted", gap: 0.2 }); text(c.cmpSmi, { size: 8, face: "courier", chars: true, gap: 1.2 }); }
+  text("InChI", { size: 7.5, col: "muted", gap: 0.2 }); text(c.inchi || "—", { size: 8, face: "courier", chars: true, gap: 1.2 });
+  if (c.scaf) { text("Bemis-Murcko scaffold", { size: 7.5, col: "muted", gap: 0.2 }); text(c.scaf.smi || "none (no ring system)", { size: 8, face: "courier", chars: true, gap: 1.6 }); }
+  {
+    const dr = descRows(d).map(([k, v, u]) => [k, `${v ?? "—"}${u && u !== "Crippen" ? " " + u : ""}`]);
+    dr.push(["Typicality", c.typ ? `${pctTxt(c.typ.pct)}% (D^2 ${fmt(c.typ.d2, 1)})` : "—"], ["ESOL logS", `${fmt(x.logS, 2)} (${x.logS > -4 ? "soluble" : x.logS > -6 ? "moderate" : "poor"})`], ["Structural alerts", `${x.alerts} of 116`],
+      ["Read by", pv.src || "—"], ["Analysed", pv.when]);
+    pairs(dr, { cols: 3, keyW: 25, size: 8 });
+  }
 
   /* --- methods and sources --- */
   heading("Methods, sources and licences");
@@ -3297,6 +3378,8 @@ const RELEASES = [
       "<b>Release notes.</b> This page. Link to it with <code>#whats-new</code>.",
       "<b>Redesigned Properties tab.</b> A typicality score against approved drugs, a property profile showing where each property falls among 1,294 approved drugs, rule checks with every criterion, structural alerts highlighted on the structure, and descriptors grouped by kind.",
       "<b>Plane of best fit replaces Fsp3.</b> PBF (Firth, Brown and Blagg 2012) measures 3D shape from a conformer: the mean distance of the heavy atoms from their best-fit plane. It is used in the property profile, the typicality score and the drug-space map, with the reference drugs computed by the same method.",
+      "<b>Simpler to use.</b> Properties has jump links to each panel; rule checks and complexity measures are compact rows with explanations folded away; similar drugs show six at first with Show all. The Recognise button appears once there is a photo, and tapping the empty photo box opens the camera. Model files and the connection check are folded in Settings.",
+      "<b>Shorter PDF.</b> Page 1 is a summary: structure (and the scanned drawing), twelve key numbers, typicality and rule verdicts, the main identifiers and links. Similar drugs are six to a row, and the full identifiers and descriptor list are in an appendix at the end.",
       "<b>Links checked.</b> Shared links, QR codes and links in the PDF now always point to the public site, even from a copy of the page saved on the phone. A failed lookup explains that the database may be busy and offers Try again; Wikipedia no longer waits for a slow ChEMBL. Sites that ask you to sign in are marked 🔒.",
       "<b>Salts and charged forms</b> are compared as their neutral parent (largest fragment, uncharged as RDKit's Uncharger does), the form the approved drugs are stored in. The Properties tab says so when it applies.",
       "<b>3D conformers are built in the background</b>, so the page no longer freezes while a large molecule's shape is worked out.",
