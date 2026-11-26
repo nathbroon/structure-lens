@@ -41,8 +41,10 @@ phone and use Recognition settings > "Load model files from phone".
 ## What the app shows
 Five tabs along the bottom, three buttons along the top.
 
-- **Scan**: the photo with Take photo, Choose image and Example below it,
-  then the detected structure, name, formula, InChIKey and SMILES.
+- **Scan**: the photo with Take photo, Choose image and Example (a random
+  approved drug drawn by hand) below it, and a field for a name, CAS number,
+  InChI or SMILES; then the detected structure, name, formula, InChIKey and
+  SMILES.
 - **Properties**, compared with 1,294 FDA-approved drugs (ClinTox):
   - *Typicality*: the Mahalanobis distance from the centre of approved-drug
     property space over eight RDKit properties, given as the share of
@@ -80,24 +82,29 @@ Five tabs along the bottom, three buttons along the top.
   phone; export and import as JSON.
 - **Share** (top bar): share or copy the structure's link, and a QR code of
   the link or of the SMILES.
-- **Settings** (gear): theme, recognition, connection check, release notes,
+- **Offline mode** (Settings; a padlock in the top bar while on): keeps every
+  structure on the phone. Name search and all database lookups are off, and a
+  Content Security Policy added before anything loads makes the browser refuse
+  any connection except to this site, jsDelivr (the libraries) and a custom
+  model folder if one is set. Those downloads carry nothing the user scanned
+  or typed. A recognition server is not used. Switching it reloads the page.
+- **Settings** (gear): offline mode, theme, recognition, connection check, release notes,
   and the licences of every component and data source.
 
 ## Links
 Any structure can be opened directly:
-`https://nathbroon.github.io/structure-lens/#smiles=CC(=O)Oc1ccccc1C(=O)O`.
+`https://structure-lens.croftware.com/#smiles=CC(=O)Oc1ccccc1C(=O)O`.
 Escape `#` as `%23`, `+` as `%2B` and `[` `]` as `%5B` `%5D` (the Share
 button does this). Add `&tab=3d` (or `props`, `src`, `report`) to open a
 tab. `#whats-new` opens the release notes.
 
 If `decimer/` or `data/` is missing next to `index.html` (for example a
 downloaded copy), the page fetches them from
-`https://nathbroon.github.io/structure-lens/`.
+`https://structure-lens.croftware.com/`.
 
 ## Updating an existing deployment
-For 1.1 only text files changed. On GitHub use **Add file > Upload files**
-and upload `index.html`, `README.md`, `CHANGELOG.md` and
-`THIRD_PARTY_LICENSES.md`, then commit. The model files stay as they are.
+For 1.2 upload `index.html`, `README.md`, `CHANGELOG.md` and
+`data/drugspace.json` with **Add file > Upload files** on GitHub, then commit. The model files stay as they are.
 
 ## About the model
 `decimer/` is the DECIMER TFLite model, split into parts of 9.5 MB

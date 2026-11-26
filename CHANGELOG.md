@@ -2,6 +2,16 @@
 
 The same notes are in the app: Settings › What's new, or open the app's address with `#whats-new` at the end.
 
+## 1.2.0 · 26 November 2026
+
+### New
+- **Type a name.** A field under the photo buttons takes a drug or trade name, CAS number, InChI or SMILES. SMILES are read on the phone by RDKit; names, CAS numbers and InChI are resolved by PubChem (its top match), and the source line says what was typed.
+- **Offline mode** (Settings, with a padlock in the top bar while it is on). Keeps every structure on the phone. Name search, PubChem, ChEMBL, Wikipedia, SureChEMBL and UniChem lookups are off, a recognition server is never used, and the Sources tab says why. Enforced by the browser: a Content Security Policy, added before anything else loads, refuses any connection or image except from the site itself, jsDelivr (the libraries) and a custom model folder if one is set. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF all still work. Switching it reloads the app with the current structure.
+- **Approved-drug names in the data file.** `data/drugspace.json` now carries the PubChem title of each of the 1,294 reference drugs, so similar drugs are named at once and in Offline mode, without one PubChem request per drug.
+
+### Changed
+- Links, QR codes and the link preview use the site's own address, `https://structure-lens.croftware.com/` (the GitHub Pages address redirects there).
+
 ## 1.1.1 · 26 November 2026
 
 ### Changed
