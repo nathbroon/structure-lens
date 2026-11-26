@@ -46,3 +46,10 @@
 `qed_params.json` holds RDKit's QED parameters, acceptor SMARTS and 116
 structural alerts (exported from rdkit.Chem.QED). From version 1.1 the page
 uses only the alerts; QED was replaced by the typicality score.
+
+7. Names. `names` holds the PubChem title of each drug (Title property, looked
+   up by SMILES with PUG REST, November 2026), in the order of `points`, so the
+   page can name similar drugs without a request per drug and in Offline mode.
+   Systematic names longer than about 60 characters are left blank (the page
+   then shows "Approved drug" or asks PubChem), and a few brand or registry
+   titles were replaced by the INN, e.g. Mycobutin by rifabutin.

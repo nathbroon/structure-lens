@@ -368,10 +368,6 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .nostr svg{width:36px;height:36px;color:var(--muted)}
 .nostr p{margin:0;max-width:34ch}
 .nostr .btn{margin-top:8px}
-.lookup{display:flex;gap:8px}
-.lookup input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
-.lookup input:focus{outline:2px solid var(--accent);outline-offset:1px}
-.lookup .btn{min-width:72px}
 .linkbtn{appearance:none;border:none;background:none;padding:0;font:inherit;color:var(--accent);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .offpill{appearance:none;flex:none;display:grid;place-items:center;width:34px;height:34px;margin-right:2px;padding:0;border-radius:50%;border:none;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);cursor:pointer}
 .offpill svg{width:18px!important;height:18px!important;display:block}
@@ -399,11 +395,6 @@ body.offline .offpill{background:var(--seal-ok);color:var(--seal);box-shadow:0 0
 .tb-lock{display:none}
 body.offline .tb-lock{display:grid;place-items:center;position:absolute;right:-7px;bottom:-4px;width:15px;height:15px;border-radius:50%;background:var(--seal);color:var(--seal-ok);box-shadow:0 0 0 2px var(--surface)}
 body.offline .tb-lock svg{width:9px;height:9px}
-.lookup{position:relative}
-.lookup-lock{display:none}
-body.offline .lookup-lock{display:grid;place-items:center;position:absolute;left:12px;top:0;bottom:0;color:var(--muted);pointer-events:none}
-body.offline .lookup-lock svg{width:16px;height:16px}
-body.offline .lookup input{padding-left:36px}
 .seal{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px 4px}
 .seal h2{margin:4px 0 0;font:700 1.15rem var(--f-display)}
 .seal .hint{max-width:30ch}
@@ -491,7 +482,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
 
 <!-- ============ SCAN ============ -->
 <section class="tab" id="tab-scan" role="tabpanel" aria-label="Scan">
-  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Type a name or SMILES ›</button>
+  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Reports, PDF, share links and Offline mode ›</button>
   <div class="plates">
     <div class="pl" id="photoPl">
       <span class="pl-cap">Photo</span>
@@ -526,11 +517,6 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
       Example
     </button>
   </div>
-  <form class="lookup" id="nameForm" role="search" autocomplete="off">
-    <span class="lookup-lock" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
-    <input id="nameIn" type="search" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Name, CAS number or SMILES" placeholder="Or type a name or SMILES">
-    <button class="btn" type="submit" id="nameGo">Open</button>
-  </form>
   <button class="btn primary" type="button" id="recBtn" disabled hidden>Recognise structure</button>
   <p class="engine" id="engineLine" hidden></p>
   <p class="hint" id="capSt" hidden></p>
@@ -733,7 +719,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
     <div class="card" id="offCard">
       <div class="ch"><h2>Offline mode</h2><span class="sealtag" id="offSt" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Sealed</span></div>
       <label class="switchrow">
-        <span><b>Keep structures on this phone</b><small>Turns off name search and every database lookup. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.</small></span>
+        <span><b>Keep structures on this phone</b><small>Turns off every database lookup. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.</small></span>
         <input type="checkbox" id="offTog" role="switch">
       </label>
       <details class="fold"><summary>What this guarantees</summary><div>
@@ -907,7 +893,7 @@ const DEFAULTS = {
   modelBase: "decimer/"
 };
 const EXAMPLE = { smiles: "Cn1c(=O)c2c(ncn2C)n(C)c1=O", label: "example · caffeine" };
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.1.0";
 const JSPDF_URL = "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js";
 const QR_URL = "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.js";
 const HIST_MAX = 300;
@@ -1164,36 +1150,6 @@ async function recognise() {
 }
 $("#recBtn").addEventListener("click", recognise);
 
-/* ---------- type a name, CAS number, InChI or SMILES ---------- */
-function nameNote() {
-  $("#nameIn").placeholder = OFFLINE ? "Or type a SMILES" : "Or type a name or SMILES";
-  $("#nameIn").setAttribute("aria-label", OFFLINE ? "SMILES" : "Name, CAS number or SMILES");
-}
-async function openTyped(e) {
-  e.preventDefault();
-  const t = $("#nameIn").value.trim(); if (!t) return;
-  await rdReady;
-  let m = null; try { m = /\s/.test(t) ? null : RD.get_mol(t); } catch {}
-  const isSmiles = !!(m && m.is_valid()); if (m) m.delete();
-  if (isSmiles) { $("#nameIn").blur(); await analyse(t, "typed SMILES"); return $("#strPanel").scrollIntoView({ behavior: "smooth", block: "start" }); }
-  const inchi = /^InChI=/i.test(t), cas = /^\d{2,7}-\d{2}-\d$/.test(t);
-  if (OFFLINE) { toast(`Offline mode is on, so ${inchi ? "an InChI" : cas ? "a CAS number" : "a name"} can't be looked up. Type a SMILES instead, or turn Offline mode off in Settings.`); return; }
-  const btn = $("#nameGo"); btn.disabled = true; btn.innerHTML = '<span class="busy"></span>';
-  try {
-    const r = await getJSON(`${PUG}/compound/${inchi ? "inchi" : "name"}/property/SMILES,Title/JSON`,
-      { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: (inchi ? "inchi=" : "name=") + encodeURIComponent(t) });
-    const hit = r?.PropertyTable?.Properties?.[0], smi = hit && (hit.SMILES || hit.IsomericSMILES || hit.CanonicalSMILES);
-    if (!smi) { toast(inchi ? "PubChem has no compound with that InChI." : `PubChem has no compound called "${t}". Check the spelling, or type a SMILES.`); return; }
-    $("#nameIn").blur();
-    typedName.smi = smi; typedName.name = hit.Title || "";
-    await analyse(smi, inchi ? "InChI, via PubChem" : `${cas ? "CAS " : ""}“${t}”, via PubChem`);
-    $("#strPanel").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (err) {
-    toast(isNetErr(err) || err.timeout ? "Could not reach PubChem to look up the name. Check the connection, or type a SMILES." : "PubChem could not look that up (" + (err.message || "error") + ").");
-  } finally { btn.disabled = false; btn.textContent = "Open"; }
-}
-$("#nameForm").addEventListener("submit", openTyped);
-
 /* ---------- Offline mode switch ---------- */
 function applyOffline() {
   document.body.classList.toggle("offline", OFFLINE);
@@ -1202,7 +1158,6 @@ function applyOffline() {
   $("#offSt").hidden = !OFFLINE;
   if (OFFLINE) document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.content = "#10202D");   // status bar matches the sealed header
   $("#sMode").querySelectorAll('option:not([value="device"])').forEach(o => o.disabled = OFFLINE);
-  nameNote();
 }
 $("#offTog").addEventListener("change", e => {
   store.set("sl.offline", e.target.checked);
@@ -1647,7 +1602,7 @@ async function analyse(smiles, sourceLabel) {
   const key = inchi ? RD.get_inchikey_for_inchi(inchi) : "";
   const formula = inchi ? (inchi.split("/")[1] || "") : "";
 
-  current = { smiles: canon, key, inchi, formula, desc, extra, name: typedName.take(smiles), thumb: thumbSVG(canon, 160, 120),
+  current = { smiles: canon, key, inchi, formula, desc, extra, name: knownName.take(smiles), thumb: thumbSVG(canon, 160, 120),
     input: smiles, source: sourceLabel, conf: runConf, when: Date.now(), info: {}, nn: null, typ: null, scaf: null, cmpSmi: descIn ? cmpSmi : null, descIn,
     photo: /^DECIMER/.test(sourceLabel) ? photoSnapshot() : null };
   if (current.photo) savePhoto(canon, current.photo, sourceLabel);
@@ -1660,8 +1615,9 @@ async function analyse(smiles, sourceLabel) {
 
   renderProps(desc);
 
-  // lookups (parent = largest fragment, for salts)
-  const parent = largestFragment(canon);
+  // lookups use the neutral parent: largest fragment, uncharged (a salt or an ion is filed under its parent)
+  let parent = largestFragment(canon);
+  try { const nm = RD.get_mol(neutralise(parent)); if (nm) { if (nm.is_valid()) parent = nm.get_smiles(); nm.delete(); } } catch {}
   let pKey = key;
   if (parent !== canon) { const pm = RD.get_mol(parent); const pi = pm.get_inchi(); pm.delete(); pKey = RD.get_inchikey_for_inchi(pi); }
   current.parent = parent;
@@ -1705,8 +1661,8 @@ async function knownDrugName(smi) {
   let c = smi; try { const m = RD.get_mol(smi); if (m) { if (m.is_valid()) c = m.get_smiles(); m.delete(); } } catch {}
   const i = canonIndex.get(c); return i === undefined ? "" : S.names[i];
 }
-// The title PubChem gave a typed name, kept for the structure it resolved to (used once).
-const typedName = { smi: "", name: "", take(smi) { const n = smi === this.smi ? this.name : ""; this.smi = this.name = ""; return n; } };
+// A name known before analysis (an approved drug opened from a list), kept for that structure (used once).
+const knownName = { smi: "", name: "", take(smi) { const n = smi === this.smi ? this.name : ""; this.smi = this.name = ""; return n; } };
 function titleCase(s) { return s && s === s.toUpperCase() ? s.charAt(0) + s.slice(1).toLowerCase() : s; }
 function fail(st, body, e, id = runId) {
   const svc = { "www.ebi.ac.uk": "ChEMBL or UniChem (EMBL-EBI)", "pubchem.ncbi.nlm.nih.gov": "PubChem", "query.wikidata.org": "Wikidata", "en.wikipedia.org": "Wikipedia" }[e?.host] || e?.host || "the service";
@@ -1828,7 +1784,16 @@ async function pubchem(id, key, smi) {
     return null;
   }
 
-  const cid = cids[0];
+  let cid = cids[0];
+  if (cids.length > 1) {
+    // one InChIKey can match several records (tautomers, duplicate depositions): use the one with
+    // most patents and articles, which is the main record (sildenafil: 3 records, only one has patents)
+    const rk = await getJSON(`${PUG}/compound/cid/${cids.slice(0, 10).join(",")}/property/Title,PatentCount,LiteratureCount/JSON`).catch(() => null);
+    if (id !== runId) return null;
+    const score = q => (+q.PatentCount || 0) + (+q.LiteratureCount || 0) + (q.Title ? 0.5 : 0);
+    const best = (rk?.PropertyTable?.Properties || []).reduce((a, q) => (!a || score(q) > score(a) ? q : a), null);
+    if (best) cid = best.CID;
+  }
   const [pr, syn, des] = await Promise.all([
     getJSON(`${PUG}/compound/cid/${cid}/property/Title,IUPACName,MolecularFormula,MolecularWeight,XLogP,TPSA,Complexity,Charge/JSON`),
     getJSON(`${PUG}/compound/cid/${cid}/synonyms/JSON`).catch(() => null),
@@ -2028,9 +1993,15 @@ function pcPaced(fn) {
   return new Promise(r => setTimeout(r, at - now)).then(fn);
 }
 function patentPick(ids) {
-  // prefer WO, then US, then EP publications; keep PubChem's order within each
+  // WO, then US, then EP; newest first within each. PubChem lists IDs alphabetically, which puts the
+  // oldest numbers first, and those are the ones most often matched to a compound by mistake.
   const rank = id => /^WO-/.test(id) ? 0 : /^US-/.test(id) ? 1 : /^EP-/.test(id) ? 2 : 3;
-  return [...ids].map((id, k) => [rank(id), k, id]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(x => x[2]);
+  const age = id => {
+    const d = (id.split("-")[1] || "").replace(/\D/g, "");
+    if (/^WO-/.test(id)) return +(d.length >= 10 ? d : ((+d.slice(0, 2) < 50 ? "20" : "19") + d.slice(0, 2) + d.slice(2).padStart(6, "0")));
+    return +d || 0;
+  };
+  return [...ids].map((id, k) => [rank(id), -age(id), k, id]).sort((x, y) => x[0] - y[0] || x[1] - y[1] || x[2] - y[2]).map(x => x[3]);
 }
 async function patentInfo(pid) {
   const r = await pcPaced(() => getJSON(`${PUGV}/data/patent/${encodeURIComponent(pid)}/JSON`)).catch(() => null);
@@ -2076,13 +2047,15 @@ async function patents(id, pcDone, unichemId) {
   $("#scBody").innerHTML = head + `<p class="hint"><span class="busy"></span> Fetching patent titles…</p>` + chips;
   const xr = await getJSON(`${PUG}/compound/cid/${cid}/xrefs/PatentID/JSON`).catch(() => null);
   if (id !== runId) return;
-  const ids = patentPick(xr?.InformationList?.Information?.[0]?.PatentID || []).slice(0, PAT_SHOW);
-  const docs = await Promise.all(ids.map(patentInfo));
+  // the newest filings often have no title in PubChem yet: fetch a few extra and list titled ones first
+  const ids = patentPick(xr?.InformationList?.Information?.[0]?.PatentID || []).slice(0, PAT_SHOW + 6);
+  const got = await Promise.all(ids.map(patentInfo));
+  const docs = [...got.filter(d => d.title), ...got.filter(d => !d.title)].slice(0, PAT_SHOW);
   if (id !== runId) return;
   stash(id, "sc", { docs, listed: true });
   $("#scBody").innerHTML = head + (docs.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Document</th><th>Title</th></tr></thead><tbody>
       ${docs.map(d => `<tr><td style="white-space:nowrap"><a href="${gpURL(d.id)}" target="_blank" rel="noopener">${esc(d.id)}</a><br><a class="hint" href="${scPatURL(d.id)}" target="_blank" rel="noopener">SureChEMBL</a></td><td>${esc(d.title || "—")}${d.date || d.assignee ? `<br><span class="hint">${esc([d.date, d.assignee].filter(Boolean).join(" · "))}</span>` : ""}</td></tr>`).join("")}
-    </tbody></table></div><p class="hint">${docs.length} of ${count.toLocaleString("en-GB")} documents (WO, US and EP first). Numbers open Google Patents.</p>` : "") + chips;
+    </tbody></table></div><p class="hint">${docs.length} of ${count.toLocaleString("en-GB")} documents (newest WO, US and EP first). Numbers open Google Patents.</p>` : "") + chips;
 }
 
 
@@ -2833,7 +2806,7 @@ function onCompound() {
 function openStructure(smi, label) {
   while (sheetStack.length) closeSheet(); showTab("scan");
   const i = SPACE ? SPACE.points.findIndex(p => p[2] === smi) : -1;   // approved drugs carry their name, also offline
-  if (i >= 0 && SPACE.names && SPACE.names[i]) { typedName.smi = smi; typedName.name = titleCase(SPACE.names[i]); }
+  if (i >= 0 && SPACE.names && SPACE.names[i]) { knownName.smi = smi; knownName.name = titleCase(SPACE.names[i]); }
   analyse(smi, label);
 }
 
@@ -3544,7 +3517,7 @@ async function buildPDF(onStep = () => {}) {
       ["Literature", (I.sc.lit || 0).toLocaleString("en-GB") + " articles"], ["SureChEMBL", I.sc.schembl ? L_(I.sc.schembl, schemblURL(I.sc.schembl)) : "—"]], { keyW: 32 });
     if (I.sc.docs?.length) {
       table(["Document", "Title", "Priority", "Assignee"], I.sc.docs.map(x => [L_(x.id, gpURL(x.id)), x.title || "—", x.date || "", x.assignee || ""]), [38, 82, 20, 40]);
-      text(`${I.sc.docs.length} of ${I.sc.count.toLocaleString("en-GB")} documents, WO, US and EP first. Document numbers open Google Patents.`, { size: 7.5, col: "muted", gap: 0.8 });
+      text(`${I.sc.docs.length} of ${I.sc.count.toLocaleString("en-GB")} documents, newest WO, US and EP first. Document numbers open Google Patents.`, { size: 7.5, col: "muted", gap: 0.8 });
     } else if (I.sc.count > PAT_LIST_MAX) text("Too many patents to list here; follow the link below to browse them.", { size: 8, col: "muted", gap: 0.8 });
     if (I.sc.count) text("All patents for this compound in PubChem", { size: 8, url: `https://pubchem.ncbi.nlm.nih.gov/compound/${I.sc.cid}#section=Patents`, gap: 0.4 });
     if (I.sc.schembl) text(`${I.sc.schembl} in SureChEMBL`, { size: 8, url: schemblURL(I.sc.schembl) });
@@ -3684,30 +3657,17 @@ $("#histImport").addEventListener("change", async e => {
 
 /* ---------- release notes ---------- */
 const RELEASES = [
-  { v: "1.2.0", date: "26 November 2026", groups: [
+  { v: "1.1.0", date: "26 November 2026", groups: [
     ["New", [
-      "<b>Type a name.</b> Under the photo buttons, type a drug name, trade name, CAS number, InChI or SMILES and tap Open. Names, CAS numbers and InChI are looked up in PubChem; SMILES are read on the phone.",
-      "<b>Offline mode</b> (Settings). Keeps every structure on the phone: name search and all database lookups are off, and your browser itself blocks the page from connecting anywhere except to load the app and the recognition model. The app looks sealed while it is on: a dark header with a green padlock, a lock on the Sources tab and in the name field, and a Sources page listing each blocked database. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.",
-      "<b>Approved-drug names built in.</b> The names of the 1,294 reference drugs are now in the data file, so similar drugs are named at once, and also in Offline mode.",
-      "Links and QR codes now use the site's own address, structure-lens.croftware.com.",
-      "A quieter Scan tab, with fewer notes."
-    ]]
-  ]},
-  { v: "1.1.1", date: "26 November 2026", groups: [
-    ["Changed", [
-      "<b>Hand-drawn examples.</b> Example now draws a random approved drug in pen on paper, so you can try recognition without a camera. Tap it again for another. Recognise structure reveals which drug it is.",
-      "<b>Opens empty.</b> Caffeine is no longer loaded at start. Shared links still open straight to their structure.",
-      "<b>Report buttons at the top.</b> Save PDF, Share PDF and Link and QR are above the summary on the Report tab."
-    ]]
-  ]},
-  { v: "1.1.0", date: "25 November 2026", groups: [
-    ["New", [
-      "<b>Report tab.</b> A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug.",
+      "<b>Report tab.</b> A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug, with Save PDF, Share PDF and Link and QR at the top.",
       "<b>PDF report.</b> Save or share a multi-page PDF with everything the app found: all descriptors, the radar and drug-space charts, PubChem, ChEMBL targets, Wikipedia, patents, cross-references and the input photo. A link in the PDF opens the interactive 3D model in the app.",
       "<b>Share links.</b> The address now carries the SMILES (<code>#smiles=…</code>), so a link opens straight to that structure on any device, with no photo and no model download. Add <code>&amp;tab=3d</code> (or props, src, report) to open a tab.",
       "<b>Share button.</b> Send the link through your phone's share sheet, or copy it.",
       "<b>QR codes.</b> A QR code of the link (or of the SMILES alone) for any structure, on the Report tab, in the share sheet and on the PDF. Save it as an image.",
       "<b>History files.</b> Export the history as JSON and import it on another phone. Imports merge with what is there and skip anything that isn't a valid structure.",
+      "<b>Offline mode</b> (Settings). Keeps every structure on the phone: all database lookups are off, and your browser itself blocks the page from connecting anywhere except to load the app and the recognition model. The app looks sealed while it is on: a dark header with a green padlock, a lock on the Sources tab, and a Sources page listing each blocked database. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.",
+      "<b>Hand-drawn examples.</b> Example draws a random approved drug in pen on paper, so you can try recognition without a camera. Tap it again for another; Recognise structure reveals which drug it is.",
+      "<b>Approved-drug names built in.</b> The names of the 1,294 reference drugs are in the data file, so similar drugs are named at once, also in Offline mode.",
       "<b>Release notes.</b> This page. Link to it with <code>#whats-new</code>.",
       "<b>Redesigned Properties tab.</b> A typicality score against approved drugs, a property profile showing where each property falls among 1,294 approved drugs, rule checks with every criterion, structural alerts highlighted on the structure, and descriptors grouped by kind.",
       "<b>Plane of best fit replaces Fsp3.</b> PBF (Firth, Brown and Blagg 2012) measures 3D shape from a conformer: the mean distance of the heavy atoms from their best-fit plane. It is used in the property profile, the typicality score and the drug-space map, with the reference drugs computed by the same method.",
@@ -3715,7 +3675,7 @@ const RELEASES = [
       "<b>Simpler to use.</b> Properties has jump links to each panel, pinned under the header as you scroll and highlighting the panel in view; the Sources chips stay pinned too; rule checks and complexity measures are compact rows with explanations folded away; similar drugs show six at first with Show all. The Recognise button appears once there is a photo, and tapping the empty photo box opens the camera. Model files and the connection check are folded in Settings.",
       "<b>Shorter PDF.</b> Page 1 is a summary: structure (and the scanned drawing), twelve key numbers, typicality and rule verdicts, the main identifiers and links. Similar drugs are six to a row, and the full identifiers and descriptor list are in an appendix at the end.",
       "<b>Links checked.</b> Shared links, QR codes and links in the PDF now always point to the public site, even from a copy of the page saved on the phone. A failed lookup explains that the database may be busy and offers Try again; Wikipedia no longer waits for a slow ChEMBL. Sites that ask you to sign in are marked 🔒.",
-      "<b>Salts and charged forms</b> are compared as their neutral parent (largest fragment, uncharged as RDKit's Uncharger does), the form the approved drugs are stored in. The Properties tab says so when it applies.",
+      "<b>Salts and charged forms</b> are calculated and looked up as their neutral parent (largest fragment, uncharged as RDKit's Uncharger does), the form the approved drugs and the databases file them under. The Properties tab says so when it applies. When several PubChem records share a structure (tautomers, duplicates), the best documented one is used.",
       "<b>3D conformers are built in the background</b>, so the page no longer freezes while a large molecule's shape is worked out.",
       "<b>Nearest approved drugs.</b> A separate panel lists the 12 approved drugs most similar by Morgan fingerprint, whatever their scaffold, marking those that also share the scaffold. It is in the PDF too.",
       "<b>Scanned drawing in the PDF.</b> The PDF shows the scanned drawing and the recognised structure side by side, labelled. The last eight scan photos are kept on the phone, so the drawing is still there after Safari reloads the page or when the structure is reopened from history.",
@@ -3726,9 +3686,11 @@ const RELEASES = [
     ]],
     ["Changed", [
       "Sources are now in the order Wikipedia, ChEMBL, Patents, PubChem, Other databases, in the app and in the PDF.",
-      "<b>Patents now come from PubChem.</b> SureChEMBL's new interface no longer accepts requests from other websites, so patent and literature counts, patent numbers, titles, priority dates and assignees come from PubChem. The SureChEMBL ID still links to SureChEMBL.",
+      "<b>Patents now come from PubChem.</b> SureChEMBL's new interface no longer accepts requests from other websites, so patent and literature counts, patent numbers, titles, priority dates and assignees come from PubChem, newest WO, US and EP documents first. The SureChEMBL ID still links to SureChEMBL.",
       "<b>Sharper structure drawings.</b> Atom labels stay readable on large molecules, line weights are consistent, fluorine, chlorine, sulfur and the other heteroatoms have darker colours, and the PDF draws structures at four times the resolution.",
-      "A copy of the page opened from somewhere other than the website now fetches the model and the drug-space data from the website, so recognition, the drug-space map and similar drugs still work.",
+      "A copy of the page opened from somewhere other than the website fetches the model and the drug-space data from the website, so recognition, the drug-space map and similar drugs still work.",
+      "The app opens empty, ready for a photo; shared links still open straight to their structure. The Scan tab shows a status line only while the recognition model downloads or starts.",
+      "Links and QR codes use the site's own address, structure-lens.croftware.com.",
       "History moved from the tab bar to the clock button at the top; Report takes its place in the tab bar.",
       "History now keeps up to 300 structures (was 40) and stores each InChIKey.",
       "Licences list jsPDF and QR Code Generator. Full texts are in THIRD_PARTY_LICENSES.md."

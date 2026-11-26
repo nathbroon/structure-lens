@@ -10,8 +10,8 @@ folders. Upload them one commit at a time, in order.
 
 1. On github.com create a new **public** repository, e.g. `structure-lens`.
 2. Click **uploading an existing file**. Open folder `1-site`, select
-   everything inside it (`index.html`, `.nojekyll`, `tools`) and drag it onto
-   the upload area. **Commit changes**.
+   everything inside it (`index.html`, `CNAME`, `data`, `icons`, `tools` and
+   the other files) and drag it onto the upload area. **Commit changes**.
 3. Back on the repository page: **Add file > Upload files**. Open folder
    `2-model` and drag the **`decimer` folder** (the folder itself, not its
    contents) onto the upload area. **Commit changes**.
@@ -23,6 +23,8 @@ folders. Upload them one commit at a time, in order.
    **/ (root)**, **Save**. After a minute the page is live at
    `https://<your-username>.github.io/structure-lens/`. Open it in Safari on
    the iPhone; Share > Add to Home Screen gives it an app icon.
+7. `CNAME` points GitHub Pages at `structure-lens.croftware.com`. For another
+   address, edit it or leave it out (Settings > Pages > Custom domain).
 
 The first recognition downloads the model (about 84 MB) once; after that it
 runs offline. Don't use Git LFS for the model parts: GitHub Pages does not
@@ -42,9 +44,8 @@ phone and use Recognition settings > "Load model files from phone".
 Five tabs along the bottom, three buttons along the top.
 
 - **Scan**: the photo with Take photo, Choose image and Example (a random
-  approved drug drawn by hand) below it, and a field for a name, CAS number,
-  InChI or SMILES; then the detected structure, name, formula, InChIKey and
-  SMILES.
+  approved drug drawn by hand) below it, then the detected structure, name,
+  formula, InChIKey and SMILES.
 - **Properties**, compared with 1,294 FDA-approved drugs (ClinTox):
   - *Typicality*: the Mahalanobis distance from the centre of approved-drug
     property space over eight RDKit properties, given as the share of
@@ -83,7 +84,7 @@ Five tabs along the bottom, three buttons along the top.
 - **Share** (top bar): share or copy the structure's link, and a QR code of
   the link or of the SMILES.
 - **Offline mode** (Settings; a padlock in the top bar while on): keeps every
-  structure on the phone. Name search and all database lookups are off, and a
+  structure on the phone. All database lookups are off, and a
   Content Security Policy added before anything loads makes the browser refuse
   any connection except to this site, jsDelivr (the libraries) and a custom
   model folder if one is set. Those downloads carry nothing the user scanned
@@ -103,8 +104,10 @@ downloaded copy), the page fetches them from
 `https://structure-lens.croftware.com/`.
 
 ## Updating an existing deployment
-For 1.2 upload `index.html`, `README.md`, `CHANGELOG.md` and
-`data/drugspace.json` with **Add file > Upload files** on GitHub, then commit. The model files stay as they are.
+Upload everything inside `1-site` with **Add file > Upload files** on GitHub
+and commit. Files with the same name are replaced. The model in `decimer/`
+does not change between versions, so folders `2-model` to `4-model` are only
+needed for a new repository.
 
 ## About the model
 `decimer/` is the DECIMER TFLite model, split into parts of 9.5 MB

@@ -2,28 +2,10 @@
 
 The same notes are in the app: Settings › What's new, or open the app's address with `#whats-new` at the end.
 
-## 1.2.0 · 26 November 2026
+## 1.1.0 · 26 November 2026
 
 ### New
-- **Type a name.** A field under the photo buttons takes a drug or trade name, CAS number, InChI or SMILES. SMILES are read on the phone by RDKit; names, CAS numbers and InChI are resolved by PubChem (its top match), and the source line says what was typed.
-- **Offline mode** (Settings, with a padlock in the top bar while it is on). Keeps every structure on the phone. Name search, PubChem, ChEMBL, Wikipedia, SureChEMBL and UniChem lookups are off, a recognition server is never used, and the Sources tab says why. Enforced by the browser: a Content Security Policy, added before anything else loads, refuses any connection or image except from the site itself, jsDelivr (the libraries) and a custom model folder if one is set. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF all still work. Switching it reloads the app with the current structure. While it is on, the app looks sealed: a dark, hatched header with a green padlock (and a matching phone status bar), a lock badge on the Sources tab and in the name field, a Sources page that lists each blocked database, and a Sealed tag in Settings.
-- **Approved-drug names in the data file.** `data/drugspace.json` now carries the PubChem title of each of the 1,294 reference drugs, so similar drugs are named at once and in Offline mode, without one PubChem request per drug.
-
-### Changed
-- Scan tab is quieter: no notes under the name field and no standing line about the recognition model; a status line appears only while the model downloads or starts, or if it fails.
-- Links, QR codes and the link preview use the site's own address, `https://structure-lens.croftware.com/` (the GitHub Pages address redirects there).
-
-## 1.1.1 · 26 November 2026
-
-### Changed
-- **Hand-drawn examples.** Example draws a random approved drug from the 1,294 reference drugs (one neutral component, common elements, MW 150–420, an aromatic ring, at most two stereocentres, no bridges) with RDKit's comic mode, in one pen colour on off-white paper with slight wobble, tilt and grain. Tap it again for another; Recognise structure reveals which drug it is. In testing, DECIMER read 11 of 12 such drawings exactly (the twelfth lost only an E/Z marking).
-- **Opens empty.** Caffeine is no longer loaded at start. The other tabs show "No structure yet" with a way back to Scan until something is recognised or opened. Shared links still open straight to their structure.
-- **Report buttons at the top.** Save PDF, Share PDF and Link and QR now sit above the summary on the Report tab.
-
-## 1.1.0 · 25 November 2026
-
-### New
-- **Report tab.** A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug, with a QR code that opens it again.
+- **Report tab.** A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug, with a QR code that opens it again. Save PDF, Share PDF and Link and QR sit at the top.
 - **PDF report.** Save or share a multi-page A4 PDF with everything the app found: all descriptors, typicality, ESOL and alerts, rule checks, the property profile and drug-space charts, approved drugs with the same scaffold, PubChem (description, synonyms), ChEMBL (phase, mechanism, indications, potency by target), Wikipedia, patents, UniChem cross-references, the photo the structure was read from, a link to the interactive 3D model, and a methods, references and licences page. Made on the device with jsPDF.
 - **Live links in the PDF.** PubChem, ChEMBL, SureChEMBL and Wikidata IDs, ChEMBL targets, Wikipedia, each patent (Google Patents), UniChem cross-references, each similar drug (opens in Structure Lens), reference DOIs and licences.
 - **Share links.** The address carries the SMILES (`#smiles=…`), so a link opens straight to that structure on any device with no photo and no model download. `?smiles=…` also works, and `&tab=3d` (or `props`, `src`, `report`) opens that tab.
@@ -36,7 +18,7 @@ The same notes are in the app: Settings › What's new, or open the app's addres
 - **Simpler interface.** Properties tab: jump links to each panel that stay pinned under the header while scrolling and highlight the panel in view, and the Sources chips likewise stay pinned (switching source while scrolled down starts the new one at its top), compact rule checks (only failures highlighted) and complexity rows (definitions in About these measures), similar-drug panels show six with Show all. Scan: the Recognise button appears once there is a photo; tapping the empty photo box opens the camera; the formula is no longer shown twice. Settings: model-file options and the connection check are folded. About 15% less scrolling on Properties.
 - **Shorter PDF (5 pages for caffeine, was 6).** Page 1 is a summary with twelve key numbers, typicality and rule verdicts, the main identifiers and links; similar drugs are six to a row; the full identifiers and all descriptors move to an appendix; headings no longer sit alone at the foot of a page.
 - **Checked calculations and links.** Every 2D property, ESOL, the alerts, scaffolds, Tanimoto scores, typicality and map positions match independent RDKit/numpy calculations for 18 test structures. Each kind of link (64 patterns, 217 links) was opened in a browser.
-- **Neutral parent.** Salts and charged forms are calculated as their neutral parent (largest fragment, uncharged like RDKit's Uncharger), the form the approved drugs are stored in; the Properties tab and PDF say so.
+- **Neutral parent.** Salts and charged forms are calculated and looked up as their neutral parent (largest fragment, uncharged like RDKit's Uncharger), the form the approved drugs are stored in and the databases file them under, so a salt finds its parent's PubChem record and patents; the Properties tab and PDF say so. When an InChIKey matches several PubChem records (tautomers, duplicate depositions), the one with most patents and articles is used.
 - **Links always work.** Shared links, QR codes and PDF links point to the public site even from a copy of the page opened from Files or a preview.
 - **3D conformers in the background.** Built in a Web Worker, so the page no longer freezes on large molecules (it could lock for 10-30 s on a phone).
 - **Clearer failures.** A lookup that gets no answer says the database may be down or busy and offers Try again; Wikipedia no longer waits for a slow ChEMBL; requests time out after 20 s (one retry).
@@ -49,14 +31,19 @@ The same notes are in the app: Settings › What's new, or open the app's addres
 - The page asks for `data/drugspace.json?v=<version>`, so phones fetch the new data file after an update instead of a cached copy.
 - **Typicality replaces QED.** The Mahalanobis distance from the centre of approved-drug property space over eight RDKit properties (MW, cLogP, TPSA, HBD, HBA, rotatable bonds, aromatic rings, PBF; log scale for MW, TPSA and counts), using the covariance of the approved drugs, reported as the share of approved drugs further from the centre. No fitted weights or desirability functions. QED is also gone from the ChEMBL panel and the PDF.
 - **Same-scaffold drugs.** The approved drugs shown are those with the same Bemis–Murcko scaffold as the compound (up to 12, ranked by Morgan Tanimoto similarity), with the scaffold drawn. Previously the three nearest drugs by fingerprint alone. `data/drugspace.json` now stores each drug's descriptors and scaffold (see `tools/drugspace/scaffolds.js`).
+- **Offline mode** (Settings, with a padlock in the top bar while it is on). Keeps every structure on the phone: PubChem, ChEMBL, Wikipedia, SureChEMBL and UniChem lookups are off, a recognition server is never used, and the Sources tab says why. Enforced by the browser: a Content Security Policy, added before anything else loads, refuses any connection or image except from the site itself, jsDelivr (the libraries) and a custom model folder if one is set. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF all still work. Switching it reloads the app with the current structure. While it is on, the app looks sealed: a dark, hatched header with a green padlock (and a matching phone status bar), a lock badge on the Sources tab, a Sources page that lists each blocked database, and a Sealed tag in Settings.
+- **Hand-drawn examples.** Example draws a random approved drug from the 1,294 reference drugs (one neutral component, common elements, MW 150–420, an aromatic ring, at most two stereocentres, no bridges) with RDKit's comic mode, in one pen colour on off-white paper with slight wobble, tilt and grain. Tap it again for another; Recognise structure reveals which drug it is. In testing, DECIMER read 11 of 12 such drawings exactly (the twelfth lost only an E/Z marking).
+- **Approved-drug names in the data file.** `data/drugspace.json` carries the PubChem title of each of the 1,294 reference drugs, so similar drugs are named at once and in Offline mode, without one PubChem request per drug.
 - **Release notes** in the app, with a "New" chip on the Scan tab until you have seen them.
 
 ### Changed
 - Sources are in the order Wikipedia, ChEMBL, Patents, PubChem, Other databases, in the app and the PDF.
-- **Patents come from PubChem.** SureChEMBL's new API no longer accepts requests from other websites, so the app now shows PubChem's patent, patent-family and literature counts and, for up to 10,000 patents, eight patent numbers with title, priority date and assignee (WO, US and EP first). The SureChEMBL ID from UniChem still links to SureChEMBL.
+- **Patents come from PubChem.** SureChEMBL's new API no longer accepts requests from other websites, so the app now shows PubChem's patent, patent-family and literature counts and, for up to 10,000 patents, eight patent numbers with title, priority date and assignee (newest WO, then US, then EP documents, titled ones first; PubChem's alphabetical order put the oldest numbers first, which are the ones most often linked to a compound by mistake). The SureChEMBL ID from UniChem still links to SureChEMBL.
 - **Sharper structure drawings.** Atom labels keep a readable minimum size on large molecules, line weights are consistent, and F, Cl, Br, I, S and P use darker colours. The PDF draws structures at four times the resolution.
 - PubChem requests for drug names and patent titles are spaced out to stay within PubChem's limit of five a second.
-- A copy of the page opened from somewhere other than the website (a download, another host) fetches the model and the drug-space data from https://nathbroon.github.io/structure-lens/, so recognition, the drug-space map and similar drugs still work.
+- The app opens empty, ready for a photo; shared links still open straight to their structure. The Scan tab shows a status line only while the recognition model downloads or starts, or if it fails.
+- Links, QR codes and the link preview use the site's own address, `https://structure-lens.croftware.com/` (the GitHub Pages address redirects there).
+- A copy of the page opened from somewhere other than the website (a download, another host) fetches the model and the drug-space data from https://structure-lens.croftware.com/, so recognition, the drug-space map and similar drugs still work.
 - History moved from the tab bar to the clock button in the top bar; the Report tab takes its place.
 - History keeps up to 300 structures (was 40) and stores each InChIKey.
 - Licences list jsPDF and QR Code Generator; full texts are in `THIRD_PARTY_LICENSES.md`.
@@ -68,7 +55,7 @@ The same notes are in the app: Settings › What's new, or open the app's addres
   "app": "Structure Lens 1.1.0", "exported": "2026-11-25T15:00:00.000Z", "count": 1,
   "items": [{ "smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O", "name": "Caffeine",
               "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "time": "2026-11-25T14:58:00.000Z",
-              "link": "https://nathbroon.github.io/structure-lens/#smiles=Cn1c(=O)c2c(ncn2C)n(C)c1=O" }]
+              "link": "https://structure-lens.croftware.com/#smiles=Cn1c(=O)c2c(ncn2C)n(C)c1=O" }]
 }
 ```
 Import also accepts a plain array of SMILES strings or of `{ "smiles": … }` objects.
