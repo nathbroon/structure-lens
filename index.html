@@ -372,7 +372,6 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .lookup input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
 .lookup input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .lookup .btn{min-width:72px}
-#nameNote{margin-top:-4px}
 .linkbtn{appearance:none;border:none;background:none;padding:0;font:inherit;color:var(--accent);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .offpill{appearance:none;flex:none;display:grid;place-items:center;width:34px;height:34px;margin-right:2px;padding:0;border-radius:50%;border:none;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);cursor:pointer}
 .offpill svg{width:18px!important;height:18px!important;display:block}
@@ -381,12 +380,42 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .switchrow small{font-size:.82rem;color:var(--muted);line-height:1.4}
 .switchrow input{appearance:none;flex:none;width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;margin-top:2px;transition:background .15s}
 .switchrow input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
-.switchrow input:checked{background:var(--accent)}
+.switchrow input:checked{background:var(--seal,#10202D)}
+.switchrow input:checked::after{background:var(--seal-ok,#4FD69C)}
 .switchrow input:checked::after{transform:translateX(18px)}
 .switchrow input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.switchrow input,.switchrow input::after{transition:none}}
 .offsrc{display:none}
 body.offline .offsrc{display:block}
+/* ---- Offline mode: the app looks sealed ---- */
+:root{--seal:#10202D;--seal-2:#18303F;--seal-ok:#4FD69C;--seal-ink:#EAF4F0}
+body.offline .bar{background:var(--seal) repeating-linear-gradient(135deg,transparent 0 14px,rgba(255,255,255,.035) 14px 28px);backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--seal-ink);box-shadow:inset 0 -2px 0 var(--seal-ok)}
+body.offline .bar .logo{color:#fff}
+body.offline .bar .logo polygon{stroke:#fff}
+body.offline .bar .logo circle{stroke:var(--seal-ok)}
+body.offline .bar .gear{color:var(--seal-ink)}
+body.offline .offpill{background:var(--seal-ok);color:var(--seal);box-shadow:0 0 0 4px rgba(79,214,156,.18)}
+.tb-ic{position:relative;display:block;line-height:0}
+.tb-lock{display:none}
+body.offline .tb-lock{display:grid;place-items:center;position:absolute;right:-7px;bottom:-4px;width:15px;height:15px;border-radius:50%;background:var(--seal);color:var(--seal-ok);box-shadow:0 0 0 2px var(--surface)}
+body.offline .tb-lock svg{width:9px;height:9px}
+.lookup{position:relative}
+.lookup-lock{display:none}
+body.offline .lookup-lock{display:grid;place-items:center;position:absolute;left:12px;top:0;bottom:0;color:var(--muted);pointer-events:none}
+body.offline .lookup-lock svg{width:16px;height:16px}
+body.offline .lookup input{padding-left:36px}
+.seal{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px 4px}
+.seal h2{margin:4px 0 0;font:700 1.15rem var(--f-display)}
+.seal .hint{max-width:30ch}
+.seal-ic{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--seal);color:var(--seal-ok);box-shadow:0 0 0 6px rgba(79,214,156,.18)}
+.seal-ic svg{width:30px;height:30px}
+.sealed-list{list-style:none;margin:14px 0 12px;padding:0;border-top:1px solid var(--line)}
+.sealed-list li{display:flex;align-items:center;justify-content:space-between;min-height:42px;border-bottom:1px solid var(--line);font-size:.92rem}
+.sealed-list span{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.sealed-list i{font-style:normal;display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;color:var(--ink)}
+.sealed-list i svg{width:13px;height:13px;color:var(--seal-ok);filter:brightness(.8)}
+.sealtag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:12px;background:var(--seal);color:var(--seal-ok);font:600 .75rem var(--f-body)}
+.sealtag svg{width:12px;height:12px}
 body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offline #diagPanel{display:none!important}
 .rp-foot{padding:10px 16px;border-top:1px solid var(--line);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 14px;background:var(--bg)}
 .repact{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
@@ -462,7 +491,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
 
 <!-- ============ SCAN ============ -->
 <section class="tab" id="tab-scan" role="tabpanel" aria-label="Scan">
-  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Type a name, and Offline mode ›</button>
+  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Type a name or SMILES ›</button>
   <div class="plates">
     <div class="pl" id="photoPl">
       <span class="pl-cap">Photo</span>
@@ -498,12 +527,12 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
     </button>
   </div>
   <form class="lookup" id="nameForm" role="search" autocomplete="off">
-    <input id="nameIn" type="search" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Name, CAS number or SMILES" placeholder="Or type a name, CAS number or SMILES">
+    <span class="lookup-lock" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+    <input id="nameIn" type="search" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Name, CAS number or SMILES" placeholder="Or type a name or SMILES">
     <button class="btn" type="submit" id="nameGo">Open</button>
   </form>
-  <p class="hint" id="nameNote"></p>
   <button class="btn primary" type="button" id="recBtn" disabled hidden>Recognise structure</button>
-  <p class="engine" id="engineLine"></p>
+  <p class="engine" id="engineLine" hidden></p>
   <p class="hint" id="capSt" hidden></p>
 
   <div class="plates" id="strPanel" hidden>
@@ -622,9 +651,19 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
 <section class="tab" id="tab-src" role="tabpanel" aria-label="Sources" hidden>
   <div class="mini" data-mini></div>
   <div class="card offsrc" id="offSrc">
-    <div class="ch"><h2>Offline mode is on</h2></div>
-    <p class="hint">Database lookups are off, so nothing about this structure is sent to Wikipedia, ChEMBL, SureChEMBL, PubChem or UniChem. Everything on the Properties, 3D and Report tabs is worked out on this phone.</p>
-    <button class="btn slim" type="button" data-opensettings>Change in Settings</button>
+    <div class="seal">
+      <div class="seal-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+      <h2>Sealed on this phone</h2>
+      <p class="hint">No database is contacted, so this structure never leaves the device.</p>
+    </div>
+    <ul class="sealed-list" aria-label="Blocked databases">
+      <li><span>Wikipedia</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Blocked</i></li>
+      <li><span>ChEMBL</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Blocked</i></li>
+      <li><span>SureChEMBL</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Blocked</i></li>
+      <li><span>PubChem</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Blocked</i></li>
+      <li><span>UniChem</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Blocked</i></li>
+    </ul>
+    <button class="btn slim" type="button" data-opensettings>Offline mode settings</button>
   </div>
   <div class="banner" id="netBanner" hidden role="alert">
     <b>The database lookups are being blocked</b>
@@ -682,7 +721,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
   <button type="button" role="tab" data-tab="3d" aria-selected="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="16" r="2.5"/><circle cx="17" cy="17.5" r="2"/><circle cx="12" cy="6" r="3"/><path d="M7.4 14l3.2-5.4M13.6 8.6l2.6 7M8.5 16.4l6.6.9"/></svg>3D</button>
   <button type="button" role="tab" data-tab="src" aria-selected="false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Sources</button>
+    <span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><b class="tb-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></b></span>Sources</button>
   <button type="button" role="tab" data-tab="report" aria-selected="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Report</button>
 </div></nav>
@@ -692,7 +731,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
   <div class="sheet-h"><div class="bar-in"><h2 id="sheetH">Settings</h2><button class="done" type="button" id="sheetDone">Done</button></div></div>
   <div class="wrap">
     <div class="card" id="offCard">
-      <div class="ch"><h2>Offline mode</h2><span class="st" id="offSt"></span></div>
+      <div class="ch"><h2>Offline mode</h2><span class="sealtag" id="offSt" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Sealed</span></div>
       <label class="switchrow">
         <span><b>Keep structures on this phone</b><small>Turns off name search and every database lookup. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.</small></span>
         <input type="checkbox" id="offTog" role="switch">
@@ -1108,7 +1147,7 @@ async function recognise() {
     let res = null;
     if (s.mode === "device" || OFFLINE) {
       try { await loadDecimer(); }
-      catch (e) { throw new Error("The DECIMER model could not be loaded (" + e.message.replace(/\.$/, "") + "). Check the model folder in Settings, or load the files from your phone."); }
+      catch (e) { throw new Error("The recognition model could not be loaded (" + e.message.replace(/\.$/, "") + "). Check the model folder in Settings, or load the files from your phone."); }
       setSt("#capSt", "reading structure on this phone");
       const rc = rawCrop();
       const r = await decimerPredict(rc, n => btn.innerHTML = `<span class="busy"></span> Reading… ${n} tokens`).finally(() => freeCanvas(rc));
@@ -1127,11 +1166,8 @@ $("#recBtn").addEventListener("click", recognise);
 
 /* ---------- type a name, CAS number, InChI or SMILES ---------- */
 function nameNote() {
-  $("#nameIn").placeholder = OFFLINE ? "Or type a SMILES" : "Or type a name, CAS number or SMILES";
+  $("#nameIn").placeholder = OFFLINE ? "Or type a SMILES" : "Or type a name or SMILES";
   $("#nameIn").setAttribute("aria-label", OFFLINE ? "SMILES" : "Name, CAS number or SMILES");
-  $("#nameNote").innerHTML = OFFLINE
-    ? `Offline mode: nothing you photograph or type leaves this phone. Names need PubChem, so type a SMILES. <button type="button" class="linkbtn" data-opensettings>Settings</button>`
-    : `Names and CAS numbers are looked up in PubChem. <button type="button" class="linkbtn" data-opensettings>Offline mode</button> keeps everything on this phone.`;
 }
 async function openTyped(e) {
   e.preventDefault();
@@ -1163,7 +1199,8 @@ function applyOffline() {
   document.body.classList.toggle("offline", OFFLINE);
   $("#offPill").hidden = !OFFLINE;
   $("#offTog").checked = OFFLINE;
-  $("#offSt").textContent = OFFLINE ? "on" : "";
+  $("#offSt").hidden = !OFFLINE;
+  if (OFFLINE) document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.content = "#10202D");   // status bar matches the sealed header
   $("#sMode").querySelectorAll('option:not([value="device"])').forEach(o => o.disabled = OFFLINE);
   nameNote();
 }
@@ -1329,7 +1366,7 @@ function loadDecimer() {
   if (deci) return Promise.resolve(deci);
   if (deciLoading) return deciLoading;
   deciLoading = (async () => {
-    setEngine("loading the on-device model…");
+    setEngine("loading the recognition model…");
     await loadScript(ORT_DIST + "ort.wasm.min.js");
     ort.env.wasm.wasmPaths = ORT_DIST;
     ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
@@ -1340,7 +1377,7 @@ function loadDecimer() {
     };
     const [encB, decB, vocB] = await Promise.all(MODEL_FILES.map(f => fetchModelFile(f, (g, t) => { prog[f] = [g, t]; show(); })));
     const vocab = JSON.parse(new TextDecoder().decode(vocB));
-    setEngine("starting the model…");
+    setEngine("starting the recognition model…");
     // Arena and memory pattern off: lower peak memory, which iPhone Safari enforces strictly.
     const opt = { executionProviders: ["wasm"], graphOptimizationLevel: "all", enableCpuMemArena: false, enableMemPattern: false };
     const enc = await ort.InferenceSession.create(encB, opt);
@@ -1348,17 +1385,17 @@ function loadDecimer() {
     deci = { enc, dec, vocab }; deciStored = true; updateEngineLine();
     return deci;
   })();
-  deciLoading.catch(e => { deciLoading = null; setEngine("could not load the model. " + e.message, true); });
+  deciLoading.catch(e => { deciLoading = null; setEngine("the recognition model could not load. " + e.message, true); });
   return deciLoading;
 }
-function setEngine(t, bad) { const el = $("#engineLine"); el.textContent = "On-device DECIMER: " + t; el.style.color = bad ? "var(--bad)" : ""; }
+// Shown only while the recognition model downloads or starts, or if it fails; nothing when idle.
+function setEngine(t, bad) { const el = $("#engineLine"); el.textContent = t ? t.charAt(0).toUpperCase() + t.slice(1) : ""; el.hidden = !t; el.style.color = bad ? "var(--bad)" : ""; }
 async function updateEngineLine() {
   const s = settings();
   $("#engineLine").style.color = "";
-  if (s.mode !== "device") { $("#engineLine").textContent = "Recognition: your own DECIMER server."; return; }
-  if (deci) return setEngine("ready, running on this phone.");
+  if (s.mode !== "device" || deci) return setEngine("");
   try { deciStored = await modelStored(); } catch { deciStored = false; }
-  setEngine(deciStored ? "stored on this phone, starts on first use." : "downloads once (about 84 MB) on first use, then works offline.");
+  setEngine("");
 }
 
 // Crop only, no contrast tweak: DECIMER applies its own preprocessing below.
@@ -1632,7 +1669,7 @@ async function analyse(smiles, sourceLabel) {
 
   if (OFFLINE) {
     const mw = fmt((descIn || desc).amw, 2);
-    $("#cSub").textContent = (formula ? `${formula.replace(/\./g, " · ")} · MW ${mw} · ` : "") + "Offline mode: no database lookups";
+    $("#cSub").textContent = formula ? `${formula.replace(/\./g, " · ")} · MW ${mw}` : "";
     if (current.name) $("#cName").textContent = titleCase(current.name);
     else knownDrugName(current.cmpSmi || canon).then(n => {           // an approved drug is named from the data file
       if (id !== runId || !n) return;
@@ -3650,9 +3687,10 @@ const RELEASES = [
   { v: "1.2.0", date: "26 November 2026", groups: [
     ["New", [
       "<b>Type a name.</b> Under the photo buttons, type a drug name, trade name, CAS number, InChI or SMILES and tap Open. Names, CAS numbers and InChI are looked up in PubChem; SMILES are read on the phone.",
-      "<b>Offline mode</b> (Settings, or the Offline badge in the top bar). Keeps every structure on the phone: name search and all database lookups are off, and your browser itself blocks the page from connecting anywhere except to load the app and the recognition model. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.",
+      "<b>Offline mode</b> (Settings). Keeps every structure on the phone: name search and all database lookups are off, and your browser itself blocks the page from connecting anywhere except to load the app and the recognition model. The app looks sealed while it is on: a dark header with a green padlock, a lock on the Sources tab and in the name field, and a Sources page listing each blocked database. Recognition, properties, drug space, similar drugs, 3D, the report and the PDF still work.",
       "<b>Approved-drug names built in.</b> The names of the 1,294 reference drugs are now in the data file, so similar drugs are named at once, and also in Offline mode.",
-      "Links and QR codes now use the site's own address, structure-lens.croftware.com."
+      "Links and QR codes now use the site's own address, structure-lens.croftware.com.",
+      "A quieter Scan tab, with fewer notes."
     ]]
   ]},
   { v: "1.1.1", date: "26 November 2026", groups: [
