@@ -137,6 +137,6 @@ OpenChemLib 9.25.2, jsPDF 4.2.1 and QR Code Generator 2.0.4 load from
 jsDelivr.
 
 ## Licences
-Structure Lens is BSD 3-Clause (`LICENSE`). Every component and data source
+Structure Lens is by Nathan Brown, Croftware, and is BSD 3-Clause (`LICENSE`). Every component and data source
 is listed with its licence text in `THIRD_PARTY_LICENSES.md` and in the app
 under Settings > About and licences. Release notes: `CHANGELOG.md`.

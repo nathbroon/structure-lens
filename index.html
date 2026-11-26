@@ -26,6 +26,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Structure Lens">
 <title>Structure Lens</title>
+<meta name="author" content="Nathan Brown, Croftware">
 <meta name="description" content="Photograph a drawn chemical structure. Get its properties, similar approved drugs, patents and database links, on your phone.">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -798,7 +799,7 @@ body.offline .srcbar,body.offline [data-pane],body.offline #netBanner,body.offli
       <div class="ch"><h2>About and licences</h2></div>
       <p class="hint">Structure Lens reads a drawn chemical structure from a photo on the phone, then describes it and looks it up in public databases. <span id="verLine"></span></p>
       <ul class="lic">
-        <li><b>Structure Lens</b><a href="https://github.com/nathbroon/structure-lens/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">This app. Source on <a href="https://github.com/nathbroon/structure-lens" target="_blank" rel="noopener">GitHub</a>.</span></li>
+        <li><b>Structure Lens</b><a href="https://github.com/nathbroon/structure-lens/blob/main/LICENSE" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">This app, by Nathan Brown, Croftware. Source on <a href="https://github.com/nathbroon/structure-lens" target="_blank" rel="noopener">GitHub</a>.</span></li>
         <li><b>DECIMER Image Transformer</b><a href="https://github.com/Kohulan/DECIMER-Image_Transformer/blob/master/LICENSE" target="_blank" rel="noopener">MIT</a><span class="what">Structure recognition model, converted to run in the browser. Rajan, Brinkhaus, Steinbeck et al., <a href="https://doi.org/10.1038/s41467-023-40782-0" target="_blank" rel="noopener">Nat. Commun. 2023</a>.</span></li>
         <li><b>RDKit</b><a href="https://github.com/rdkit/rdkit/blob/master/license.txt" target="_blank" rel="noopener">BSD 3-Clause</a><span class="what">Depictions, descriptors, fingerprints and InChI, via <a href="https://www.npmjs.com/package/@rdkit/rdkit" target="_blank" rel="noopener">RDKit.js</a>. Structural alerts are the Brenk et al. 2008 set used in RDKit; scaffolds follow Bemis and Murcko 1996.</span></li>
         <li><b>ONNX Runtime Web</b><a href="https://www.npmjs.com/package/onnxruntime-web" target="_blank" rel="noopener">MIT</a><span class="what">Runs the DECIMER model on the phone.</span></li>
@@ -3226,7 +3227,7 @@ async function buildPDF(onStep = () => {}) {
   onStep("Writing the PDF…");
   const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
   const addImg = (u, fmtName, ...a) => { if (!u) return false; try { doc.addImage(u, fmtName, ...a); return true; } catch (e) { console.warn("PDF figure skipped:", e.message); return false; } };
-  doc.setProperties({ title: `${nm} · Structure Lens report`, subject: `Structure report for ${c.smiles}`, creator: `Structure Lens ${APP_VERSION}`, keywords: c.key || "" });
+  doc.setProperties({ title: `${nm} · Structure Lens report`, subject: `Structure report for ${c.smiles}`, creator: `Structure Lens ${APP_VERSION}`, author: "Nathan Brown, Croftware", keywords: c.key || "" });
   const W = 210, H = 297, M = 15, CW = W - 2 * M, FOOT = 12;
   const COL = { ink: [22, 32, 43], muted: [91, 103, 115], accent: [33, 72, 192], line: [217, 223, 229], good: [30, 122, 76], warn: [163, 92, 0], bad: [180, 35, 44], band: [233, 238, 248], soft: [243, 245, 247] };
   const tc = k => doc.setTextColor(...COL[k]), dc = k => doc.setDrawColor(...COL[k]), fc = k => doc.setFillColor(...COL[k]);
@@ -3581,7 +3582,7 @@ async function buildPDF(onStep = () => {}) {
   ]) { text(t, { size: 7.5, gap: u ? 0.2 : 1.2 }); if (u) text(u, { size: 7.5, url: u, gap: 1.2 }); }
   text("Software licences", { size: 9, style: "bold", gap: 0.8 });
   text("Full licence texts for Structure Lens and the software it uses (THIRD_PARTY_LICENSES.md)", { size: 7.5, url: "https://github.com/nathbroon/structure-lens/blob/main/THIRD_PARTY_LICENSES.md", gap: 0.6 });
-  text("Structure Lens on GitHub (BSD 3-Clause)", { size: 7.5, url: "https://github.com/nathbroon/structure-lens", gap: 1.2 });
+  text("Structure Lens by Nathan Brown, Croftware, on GitHub (BSD 3-Clause)", { size: 7.5, url: "https://github.com/nathbroon/structure-lens", gap: 1.2 });
 
   /* --- footer on every page --- */
   const n = doc.getNumberOfPages();

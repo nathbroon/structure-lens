@@ -18,12 +18,12 @@ Structure Lens is released under the BSD 3-Clause licence. It loads the componen
 
 ## Structure Lens
 
-This app. BSD 3-Clause.
+This app, by Nathan Brown, Croftware. BSD 3-Clause.
 
 ```
 BSD 3-Clause License
 
-Copyright (c) 2026, nathbroon
+Copyright (c) 2026, Nathan Brown, Croftware
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
