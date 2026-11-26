@@ -345,8 +345,13 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 .rp-sec h3{margin:0;font:700 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .rp-sec p{margin:0;font-size:.9rem;max-width:65ch}
 .rp-sec ul{margin:0;padding-left:1.15em;font-size:.9rem}
+.nostr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:28px 20px}
+.nostr svg{width:36px;height:36px;color:var(--muted)}
+.nostr p{margin:0;max-width:34ch}
+.nostr .btn{margin-top:8px}
 .rp-foot{padding:10px 16px;border-top:1px solid var(--line);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 14px;background:var(--bg)}
 .repact{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px}
+.rephint{margin:-2px 0 2px}
 .repact .btn{flex-direction:column;gap:4px;min-height:60px;font-size:.82rem}
 
 /* share sheet */
@@ -416,7 +421,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
 
 <!-- ============ SCAN ============ -->
 <section class="tab" id="tab-scan" role="tabpanel" aria-label="Scan">
-  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Reports, PDF, QR codes and share links ›</button>
+  <button class="newchip" type="button" id="newChip" hidden><b>New</b> Hand-drawn examples, report buttons at the top ›</button>
   <div class="plates">
     <div class="pl" id="photoPl">
       <span class="pl-cap">Photo</span>
@@ -455,7 +460,7 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
   <p class="engine" id="engineLine"></p>
   <p class="hint" id="capSt" hidden></p>
 
-  <div class="plates" id="strPanel">
+  <div class="plates" id="strPanel" hidden>
     <div class="seam">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/></svg>
       <span id="strSrc">example</span>
@@ -589,9 +594,18 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
   <div class="card" data-pane="xr" hidden><div class="ch"><h2>Other databases</h2><span class="src">UniChem cross-references</span><span class="st" id="xrSt"></span></div><div id="xrBody"></div></div>
 </section>
 
+<!-- ============ NOTHING YET ============ -->
+<section class="tab" id="tab-none" aria-label="No structure yet" hidden>
+  <div class="card nostr">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><polygon points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/></svg>
+    <p><b>No structure yet</b></p>
+    <p class="hint">Photograph a drawn structure, choose an image or try a hand-drawn example on the Scan tab. Results appear here once it is recognised.</p>
+    <button class="btn primary" type="button" id="goScan">Go to Scan</button>
+  </div>
+</section>
+
 <!-- ============ REPORT ============ -->
 <section class="tab" id="tab-report" role="tabpanel" aria-label="Report" hidden>
-  <article class="report" id="report" aria-live="polite"></article>
   <div class="repact">
     <button class="btn primary" type="button" id="pdfBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3 3 3-3"/></svg>
@@ -603,7 +617,8 @@ button.score{appearance:none;background:none;font:inherit;color:inherit;text-ali
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h7v-4"/></svg>
       Link and QR</button>
   </div>
-  <p class="hint">The PDF has this summary plus the charts, similar drugs, bioactivity, patents, cross-references and all descriptors. Its links open each database entry and the 3D model.</p>
+  <p class="hint rephint">The PDF has this summary plus the charts, similar drugs, bioactivity, patents, cross-references and all descriptors. Its links open each database entry and the 3D model.</p>
+  <article class="report" id="report" aria-live="polite"></article>
 </section>
 
 </main>
@@ -789,7 +804,7 @@ const DEFAULTS = {
   modelBase: "decimer/"
 };
 const EXAMPLE = { smiles: "Cn1c(=O)c2c(ncn2C)n(C)c1=O", label: "example · caffeine" };
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 const JSPDF_URL = "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js";
 const QR_URL = "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.js";
 const HIST_MAX = 300;
@@ -1045,18 +1060,72 @@ async function recognise() {
 }
 $("#recBtn").addEventListener("click", recognise);
 
+/* ---------- hand-drawn example ----------
+   A random approved drug from the reference set, drawn with RDKit's comic mode
+   (wobbly strokes), in pen ink on paper, so the whole photo → DECIMER path can be
+   tried without a camera. */
+let examplePool = null, lastExample = "";
+function exampleCandidates(S) {
+  if (examplePool) return examplePool;
+  const ki = k => S.cx ? S.cx.keys.indexOf(k) : -1, iSt = ki("stereo"), iBr = ki("bridge");
+  examplePool = S.points.map(p => p[2]).filter((smi, i) => {
+    if (!smi || smi.includes(".") || /\+|-\]/.test(smi)) return false;            // one neutral component
+    if (!/^[CNOSFHcnos]*$/.test(smi.replace(/Cl|Br/g, "").replace(/[^A-Za-z]/g, ""))) return false;  // common elements only
+    const d = S.desc[i], v = S.cx && S.cx.v[i];
+    if (!d || d[0] < 150 || d[0] > 420 || d[6] < 1) return false;                // drug-sized, with an aromatic ring
+    if (v && ((iSt >= 0 && v[iSt] > 2) || (iBr >= 0 && v[iBr] > 0))) return false; // easy to draw by hand
+    return true;
+  });
+  return examplePool;
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+async function handDrawnExample() {
+  await rdReady;
+  const S = await loadSpace();
+  const pool = S ? exampleCandidates(S) : [];
+  let smi = EXAMPLE.smiles;
+  for (let k = 0; k < 6 && pool.length; k++) {
+    const c = pool[Math.floor(Math.random() * pool.length)];
+    const m = RD.get_mol(c); const ok = m && m.is_valid(); if (m) m.delete();
+    if (ok && c !== lastExample) { smi = c; break; }
+  }
+  lastExample = smi;
+  const W = 720, H = 520, inks = ["#1E2A55", "#20232A", "#1B3A73", "#2B2F3A"], ink = inks[Math.floor(Math.random() * inks.length)];
+  const m = RD.get_mol(smi);
+  let svg = m.get_svg_with_highlights(JSON.stringify({
+    width: W, height: H, comicMode: true, clearBackground: false, padding: 0.1,
+    rotate: rnd(-14, 14), bondLineWidth: rnd(2.2, 3.4), addStereoAnnotation: false
+  }));
+  m.delete();
+  svg = svg.replace(/#[0-9A-Fa-f]{6}\b/g, ink)   // one pen, not CPK colours
+    .replace(/stroke-linecap:butt/g, "stroke-linecap:round")
+    // a hand is less steady than comic mode: nudge every bond vertex, and atom letters a little
+    .replace(/<path class='(bond|atom)-[^']*' d='([^']*)'/g, (t, kind, d) => {
+      const j = kind === "bond" ? 0.7 : 0.35;
+      return t.replace(d, d.replace(/-?\d+(\.\d+)?/g, n => (+n + rnd(-j, j)).toFixed(1)));
+    });
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  // paper: warm white with uneven light and grain
+  g.fillStyle = ["#FBFAF4", "#F8F7F1", "#FAF8F2"][Math.floor(Math.random() * 3)]; g.fillRect(0, 0, W, H);
+  const light = g.createLinearGradient(rnd(0, W), 0, rnd(0, W), H);
+  light.addColorStop(0, "rgba(255,255,255,0)"); light.addColorStop(1, `rgba(60,50,30,${rnd(.04, .09).toFixed(3)})`);
+  g.fillStyle = light; g.fillRect(0, 0, W, H);
+  g.save(); g.translate(W / 2, H / 2); g.rotate(rnd(-.035, .035)); g.translate(-W / 2, -H / 2);
+  g.globalAlpha = .92; g.drawImage(img, 0, 0); g.restore();
+  const px = g.getImageData(0, 0, W, H), a = px.data;
+  for (let i = 0; i < a.length; i += 4) { const n = (Math.random() - .5) * 10; a[i] += n; a[i + 1] += n; a[i + 2] += n; }
+  g.putImageData(px, 0, 0);
+  return c;
+}
 $("#exampleBtn").addEventListener("click", async () => {
-  // Draw the example with RDKit onto a canvas so the full photo → DECIMER path can be tried without a camera.
-  await rdReady; const m = RD.get_mol(EXAMPLE.smiles);
-  const svg = m.get_svg(600, 420); m.delete();
-  const img = new Image();
-  img.onload = () => {
-    const c = document.createElement("canvas"); c.width = 600; c.height = 420;
-    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 600, 420); g.drawImage(img, 0, 0);
-    srcCanvas = c; crop = null; showPhoto(); drawView(); setSt("#capSt", ""); toast("Example photo ready. Tap Recognise structure.");
-  };
-  img.onerror = () => toast("This browser could not draw the example image.");
-  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  const b = $("#exampleBtn"); b.disabled = true;
+  try {
+    srcCanvas = await handDrawnExample(); crop = null; showPhoto(); drawView(); setSt("#capSt", "");
+    toast("A hand-drawn approved drug. Tap Recognise structure to see what it is.");
+  } catch { toast("This browser could not draw the example image."); }
+  finally { b.disabled = false; }
 });
 
 /* ---------- DECIMER on this phone (ONNX Runtime Web) ----------
@@ -1386,6 +1455,7 @@ async function analyse(smiles, sourceLabel) {
   smiles = smiles.trim();
   $("#smiIn").value = smiles;
   $("#strSrc").textContent = sourceLabel;
+  $("#strPanel").hidden = false;
 
   // multiple fragments → chips to pick one
   const frags = smiles.split(".").filter(Boolean);
@@ -1847,8 +1917,12 @@ let activeTab = "scan";
 function showTab(name) {
   activeTab = name;
   document.querySelectorAll(".tabbar button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
-  for (const t of ["scan", "props", "3d", "src", "report"]) $("#tab-" + t).hidden = t !== name;
+  // until a structure is loaded, the other tabs show one empty state
+  const empty = !current && name !== "scan";
+  for (const t of ["scan", "props", "3d", "src", "report"]) $("#tab-" + t).hidden = empty || t !== name;
+  $("#tab-none").hidden = !empty;
   window.scrollTo(0, 0);
+  if (empty) return;
   if (name === "3d") show3D();
   if (name === "props" || name === "report") ensureNeighbours();
   if (name === "props") requestAnimationFrame(() => buildJump.spy && buildJump.spy());
@@ -1856,6 +1930,7 @@ function showTab(name) {
   if (name === "report") renderReport();
 }
 document.querySelectorAll(".tabbar button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+$("#goScan").addEventListener("click", () => showTab("scan"));
 
 /* ---------- source sub-tabs ---------- */
 function showSource(k) {
@@ -1896,7 +1971,7 @@ function closeSheet(id = sheetStack[sheetStack.length - 1] || "#sheet") {
 }
 $("#gearBtn").addEventListener("click", () => openSheet("#sheet"));
 $("#histBtn").addEventListener("click", () => openSheet("#histSheet"));
-$("#shareBtn").addEventListener("click", () => openSheet("#shareSheet"));
+$("#shareBtn").addEventListener("click", () => current ? openSheet("#shareSheet") : toast("Recognise or open a structure first."));
 $("#sheetDone").addEventListener("click", () => closeSheet("#sheet"));
 document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeSheet(b.dataset.close)));
 document.addEventListener("keydown", e => { if (e.key === "Escape" && sheetStack.length) closeSheet(); });
@@ -3423,6 +3498,13 @@ $("#histImport").addEventListener("change", async e => {
 
 /* ---------- release notes ---------- */
 const RELEASES = [
+  { v: "1.1.1", date: "26 November 2026", groups: [
+    ["Changed", [
+      "<b>Hand-drawn examples.</b> Example now draws a random approved drug in pen on paper, so you can try recognition without a camera. Tap it again for another. Recognise structure reveals which drug it is.",
+      "<b>Opens empty.</b> Caffeine is no longer loaded at start. Shared links still open straight to their structure.",
+      "<b>Report buttons at the top.</b> Save PDF, Share PDF and Link and QR are above the summary on the Report tab."
+    ]]
+  ]},
   { v: "1.1.0", date: "25 November 2026", groups: [
     ["New", [
       "<b>Report tab.</b> A one-page summary of the structure: depiction, identifiers, key properties, rule checks, what it is, pharmacology, patents and the most similar approved drug.",
@@ -3493,8 +3575,10 @@ renderNotes();
 const startSmiles = hashSmiles();
 if (location.hash === "#whats-new") openSheet("#notesSheet");
 const startTab = (hashParam("tab") || "").toLowerCase();
-rdReady.then(() => analyse(startSmiles || EXAMPLE.smiles, startSmiles ? "shared link" : EXAMPLE.label))
+// Opens empty unless a link carries a structure; the Example button draws one on request.
+rdReady.then(() => startSmiles ? analyse(startSmiles, "shared link") : null)
   .then(() => { if (startSmiles && LINK_TABS.includes(startTab)) showTab(startTab); }).catch(() => {
+  $("#strPanel").hidden = false;
   $("#depict").innerHTML = `<p class="empty" style="padding:24px">RDKit could not load. Check your connection and reload.</p>`;
 });
 </script>

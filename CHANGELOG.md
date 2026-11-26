@@ -2,6 +2,13 @@
 
 The same notes are in the app: Settings › What's new, or open the app's address with `#whats-new` at the end.
 
+## 1.1.1 · 26 November 2026
+
+### Changed
+- **Hand-drawn examples.** Example draws a random approved drug from the 1,294 reference drugs (one neutral component, common elements, MW 150–420, an aromatic ring, at most two stereocentres, no bridges) with RDKit's comic mode, in one pen colour on off-white paper with slight wobble, tilt and grain. Tap it again for another; Recognise structure reveals which drug it is. In testing, DECIMER read 11 of 12 such drawings exactly (the twelfth lost only an E/Z marking).
+- **Opens empty.** Caffeine is no longer loaded at start. The other tabs show "No structure yet" with a way back to Scan until something is recognised or opened. Shared links still open straight to their structure.
+- **Report buttons at the top.** Save PDF, Share PDF and Link and QR now sit above the summary on the Report tab.
+
 ## 1.1.0 · 25 November 2026
 
 ### New
