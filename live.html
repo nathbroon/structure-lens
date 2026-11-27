@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>
+/* Offline mode, shared with the main page: when it is on, the browser refuses every connection except
+   the app, its libraries and the recognition model, so no photo or structure leaves the phone. */
+window.SL_OFFLINE = false;
+try {
+  if (JSON.parse(localStorage.getItem("sl.offline") || "false") === true) {
+    var allow = ["'self'", "https://structure-lens.croftware.com", "https://nathbroon.github.io", "https://cdn.jsdelivr.net"];
+    try { var mb = JSON.parse(localStorage.getItem("sl.settings") || "{}").modelBase || ""; if (/^https:\/\//i.test(mb)) allow.push(new URL(mb).origin); } catch (e) {}
+    var csp = document.createElement("meta");
+    csp.httpEquiv = "Content-Security-Policy";
+    csp.content = "connect-src " + allow.join(" ") + " blob: data:; img-src 'self' blob: data:; media-src 'self' blob: data:; frame-src 'none'; object-src 'none'; form-action 'none'";
+    document.head.appendChild(csp);
+    window.SL_OFFLINE = true;
+  }
+} catch (e) {}
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Structure Lens">
+<title>Structure Lens · Live</title>
+<meta name="author" content="Nathan Brown, Croftware">
+<meta name="description" content="Point your phone at drawn chemical structures and see them named, with their properties, live on the camera view.">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* One full-screen camera view. Each structure found gets corner brackets that follow it;
+   once read, a card is pinned under it. Colours follow the main app. */
+:root{
+  --ink:#16202B; --muted:#5B6773; --line:#D9DFE5; --surface:#FFFFFF;
+  --accent:#2148C0; --accent-hi:#6E92FF; --good:#1E7A4C; --good-soft:#E3F3EA;
+  --warn:#A35C00; --warn-hi:#FFB547; --bad:#B4232C; --bad-hi:#FF6B73;
+  --f-head:"Familjen Grotesk",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:#000;color:#fff;font:16px/1.35 var(--f-body);overflow:hidden;overscroll-behavior:none}
+button{font:inherit;color:inherit}
+#stage{position:fixed;inset:0;touch-action:manipulation}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+#layer{position:absolute;inset:0;pointer-events:none}
+
+/* tracked structure */
+.trk{position:absolute;left:0;top:0;will-change:transform}
+.box{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;--c:rgba(255,255,255,.85);transition:opacity .25s}
+.box i{position:absolute;width:22px;height:22px;border:3px solid var(--c);filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
+.box i:nth-child(1){left:-3px;top:-3px;border-right:0;border-bottom:0;border-top-left-radius:8px}
+.box i:nth-child(2){right:-3px;top:-3px;border-left:0;border-bottom:0;border-top-right-radius:8px}
+.box i:nth-child(3){left:-3px;bottom:-3px;border-right:0;border-top:0;border-bottom-left-radius:8px}
+.box i:nth-child(4){right:-3px;bottom:-3px;border-left:0;border-top:0;border-bottom-right-radius:8px}
+.trk.partial .box{--c:var(--warn-hi)}
+.trk.reading .box,.trk.waiting .box{--c:var(--accent-hi);animation:pulse 1s ease-in-out infinite}
+.trk.done .box{--c:#fff}
+.trk.failed .box{--c:var(--bad-hi)}
+.trk.stale{opacity:.35}
+@keyframes pulse{50%{opacity:.45}}
+.ring{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;opacity:0;transition:opacity .2s}
+.trk.seen .ring{opacity:1}
+.ring circle{fill:none;stroke-width:4}
+.ring .bg{stroke:rgba(0,0,0,.35)} .ring .fg{stroke:#fff;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+
+.chip{position:absolute;left:0;top:0;white-space:nowrap;font:500 .82rem var(--f-mono);padding:5px 10px;border-radius:999px;background:rgba(15,20,25,.78);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none}
+.trk.partial .chip{color:var(--warn-hi)} .trk.failed .chip{color:var(--bad-hi)}
+
+.card{position:absolute;left:0;top:0;width:min(280px,calc(100vw - 20px));background:var(--surface);color:var(--ink);border-radius:14px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:84px 1fr;gap:6px 10px;align-items:center;animation:pop .22s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.94)}}
+.card .hd{min-width:0}
+.card .th{width:84px;height:64px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.card .th svg{width:100%;height:100%}
+.card .nm{font:700 1.02rem/1.2 var(--f-head);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card .fm{font:500 .8rem var(--f-mono);color:var(--muted)}
+.card .fm sub{font-size:.75em}
+.card .pr{grid-column:1 / -1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-top:6px}
+.card .pr div{display:flex;flex-direction:column;align-items:center;gap:1px}
+.card .pr b{font:500 .9rem var(--f-mono)} .card .pr small{font-size:.68rem;color:var(--muted)}
+.mini{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;background:#fff;color:var(--ink);border-radius:999px;padding:5px 12px 5px 10px;white-space:nowrap;font:700 .88rem var(--f-head);box-shadow:0 4px 14px rgba(0,0,0,.4);animation:pop .22s ease-out}
+.mini span{font:500 .76rem var(--f-mono);color:var(--muted);margin-left:6px}
+.card .ft{grid-column:1 / -1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.8rem}
+.tag{padding:2px 8px;border-radius:999px;font-weight:700;font-size:.72rem}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.no{background:#FBEFD9;color:var(--warn)} .tag.lo{background:#FBE4E5;color:var(--bad)}
+.card .go{margin-left:auto;color:var(--accent);font-weight:700}
+
+/* chrome */
+.top{position:fixed;left:0;right:0;top:0;padding:calc(var(--sat) + 10px) 14px 26px;display:flex;align-items:center;gap:10px;background:linear-gradient(rgba(0,0,0,.55),transparent);z-index:5}
+.back{color:#fff;text-decoration:none;font:700 1.05rem var(--f-head);display:flex;align-items:center;gap:8px}
+.back img{width:26px;height:26px;border-radius:7px}
+.back small{font:500 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:5px;padding:2px 6px}
+.pill{margin-left:auto;font:500 .75rem var(--f-mono);padding:5px 10px;border-radius:999px;background:rgba(15,20,25,.7);max-width:55vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill.bad{color:var(--bad-hi)}
+.hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 92px);font-size:.9rem;background:rgba(15,20,25,.7);padding:7px 14px;border-radius:999px;white-space:nowrap;z-index:5;transition:opacity .3s;pointer-events:none}
+.controls{position:fixed;left:0;right:0;bottom:0;padding:24px 16px calc(var(--sab) + 16px);display:flex;justify-content:center;gap:14px;background:linear-gradient(transparent,rgba(0,0,0,.6));z-index:5}
+.cb{min-width:64px;height:56px;border-radius:16px;border:0;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;padding:0 12px}
+.cb svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cb[aria-pressed="true"]{background:#fff;color:var(--ink)} .cb[aria-pressed="true"] svg{stroke:var(--ink)}
+.cb.main{min-width:84px;background:var(--accent)}
+
+.start{position:fixed;inset:0;z-index:10;background:#0F1419;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(var(--sab) + 32px);text-align:center;gap:14px}
+.start img{width:72px;height:72px;border-radius:18px}
+.start h1{font:700 1.7rem var(--f-head);margin:6px 0 0}
+.start p{color:#B9C3CD;margin:0;max-width:330px}
+.start .go{margin-top:12px;border:0;background:var(--accent);color:#fff;font:700 1.1rem var(--f-head);padding:15px 34px;border-radius:14px}
+.start .small{font-size:.82rem;color:#8A96A3}
+.start a{color:var(--accent-hi)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--sat) + 64px);background:#fff;color:var(--ink);padding:9px 14px;border-radius:12px;font-size:.9rem;z-index:20;max-width:88vw;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#dbg{position:fixed;right:8px;top:calc(var(--sat) + 60px);width:120px;border:1px solid #fff;z-index:6;image-rendering:pixelated;display:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <div id="layer"></div>
+</div>
+
+<header class="top">
+  <a class="back" href="./" aria-label="Back to Structure Lens"><img src="icons/icon-192.png" alt="">Structure Lens <small>Live</small></a>
+  <span class="pill" id="status" role="status">Starting</span>
+</header>
+<div class="hint" id="hint">Point at a drawn structure and hold steady</div>
+<nav class="controls">
+  <button class="cb" id="clearBtn" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Clear</button>
+  <button class="cb main" id="pauseBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><span>Freeze</span></button>
+  <button class="cb" id="torchBtn" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><path d="M8 2h8l-2 7h-4zM10 9h4v13h-4z"/></svg>Light</button>
+</nav>
+<canvas id="dbg"></canvas>
+
+<div class="start" id="start">
+  <img src="icons/icon-192.png" alt="">
+  <h1>Structure Lens Live</h1>
+  <p>Point the camera at drawn structures on paper, a screen or a slide. Hold steady and each one is read and labelled where it sits.</p>
+  <button class="go" id="goBtn" type="button">Start camera</button>
+  <p class="small" id="startNote">Recognition runs on this phone with DECIMER. The model (about 84 MB) downloads once, and is shared with the main page.</p>
+  <p class="small"><a href="./">Back to Structure Lens</a></p>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@rdkit/rdkit@2026.3.6/dist/RDKit_minimal.js"></script>
+<script>
+"use strict";
+/* ================================================================
+   Structure Lens Live · Nathan Brown, Croftware
+   Pipeline per camera frame (about 12 a second):
+     1. downscale to ~360 px, adaptive threshold for dark ink on a light ground
+     2. dilate and group the ink into blobs; keep blobs shaped like line drawings,
+        reject text blocks, solid areas and anything cut off by the frame edge
+     3. track blobs across frames; when one has held still for a moment, crop it
+        from the full-resolution frame and send it to DECIMER in a worker
+     4. check the SMILES with RDKit and pin a card (name, formula, properties) to it
+   ================================================================ */
+const RDKIT_WASM = "https://cdn.jsdelivr.net/npm/@rdkit/rdkit@2026.3.6/dist/RDKit_minimal.wasm";
+const ORT_DIST = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
+const HOME_URL = "https://structure-lens.croftware.com/";
+const CACHE_NAME = "structure-lens-decimer-v1";          // same cache as the main page: one download for both
+const MODEL_FILES = ["encoder.onnx", "decoder_step.onnx", "vocab.json"];
+const OFFLINE = !!window.SL_OFFLINE;
+const DEBUG = /[?&#]debug\b/.test(location.search + location.hash);
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function toast(msg, ms) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms || Math.min(8000, 2200 + msg.length * 45)); }
+function setStatus(t, bad) { const p = $("#status"); p.textContent = t; p.classList.toggle("bad", !!bad); }
+const settings = () => { try { return JSON.parse(localStorage.getItem("sl.settings") || "{}"); } catch { return {}; } };
+
+/* ---------- RDKit ---------- */
+let RD = null;
+const rdReady = window.initRDKitModule({ locateFile: () => RDKIT_WASM }).then(m => (RD = m));
+
+/* ---------- DECIMER in a worker ----------
+   Same split ONNX model and token loop as the main page, moved off the main thread
+   so the camera and the brackets keep moving while a structure is being read. */
+const WORKER_SRC = `
+let enc = null, dec = null, vocab = null;
+const TOK_START = 13, TOK_END = 14, MAX_TOKENS = 250;
+const DECODE_MAP = { "!": "1", "$": "2", "^": "3", "<": "4", ">": "5", "?": "6", "£": "7", "¢": "8", "€": "9", "§": "0" };
+let lastPost = 0;
+async function dl(url, onp) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("Model file not found (" + r.status + "): " + url.split("/").pop());
+  const total = +r.headers.get("content-length") || 0;
+  if (!r.body || !r.body.getReader) return new Uint8Array(await r.arrayBuffer());
+  const rd = r.body.getReader(), chunks = []; let got = 0;
+  for (;;) { const { done, value } = await rd.read(); if (done) break; chunks.push(value); got += value.length; onp && onp(got, total); }
+  return join(chunks);
+}
+function join(parts) { const n = parts.reduce((a, p) => a + p.length, 0), out = new Uint8Array(n); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; } return out; }
+async function getFile(f, cache, onp) {
+  if (cache) { try { const hit = await cache.match(f.key); if (hit) return new Uint8Array(await hit.arrayBuffer()); } catch (e) {} }
+  let buf = null, lastErr = null;
+  for (const s of f.sources) {
+    try {
+      if (s.parts) {
+        const got = []; let base = 0;
+        for (const u of s.parts) { const b = await dl(u, g => onp(base + g, s.size || 0)); got.push(b); base += b.length; }
+        buf = join(got);
+        if (s.size && buf.length !== s.size) throw new Error(f.name + " is incomplete");
+      } else buf = await dl(s.url, onp);
+      break;
+    } catch (e) { lastErr = e; buf = null; }
+  }
+  if (!buf) throw lastErr || new Error("Could not download " + f.name);
+  if (cache) { try { await cache.put(f.key, new Response(buf, { headers: { "Content-Type": "application/octet-stream" } })); } catch (e) {} }
+  return buf;
+}
+async function load(m) {
+  importScripts(m.ortDist + "ort.wasm.min.js");
+  ort.env.wasm.wasmPaths = m.ortDist;
+  ort.env.wasm.numThreads = 1;
+  let cache = null; try { cache = await caches.open(m.cacheName); } catch (e) {}
+  const prog = {};
+  const report = () => {
+    const now = Date.now(); if (now - lastPost < 250) return; lastPost = now;
+    let g = 0, t = 0; for (const k in prog) { g += prog[k][0]; t += prog[k][1]; }
+    postMessage({ type: "progress", got: g, total: t });
+  };
+  const bufs = await Promise.all(m.files.map(f => getFile(f, cache, (g, t) => { prog[f.name] = [g, t]; report(); })));
+  postMessage({ type: "starting" });
+  vocab = JSON.parse(new TextDecoder().decode(bufs[2]));
+  const opt = { executionProviders: ["wasm"], graphOptimizationLevel: "all", enableCpuMemArena: false, enableMemPattern: false };
+  enc = await ort.InferenceSession.create(bufs[0], opt);
+  dec = await ort.InferenceSession.create(bufs[1], opt);
+}
+async function predict(x, id) {
+  const eo = await enc.run({ [enc.inputNames[0]]: new ort.Tensor("float32", x, [512, 512, 3]) });
+  const feat = eo[enc.outputNames[0]];
+  const tokName = dec.inputNames.find(n => /Stack|TensorList/.test(n)) || dec.inputNames[0];
+  const featName = dec.inputNames.find(n => n !== tokName);
+  const seq = [TOK_START], probs = [];
+  for (let step = 0; step < MAX_TOKENS; step++) {
+    const out = await dec.run({ [tokName]: new ort.Tensor("int32", Int32Array.from(seq), [seq.length, 1]), [featName]: feat });
+    const lg = out[dec.outputNames[0]].data, V = out[dec.outputNames[0]].dims.at(-1), off = lg.length - V;
+    let best = 0; for (let k = 1; k < V; k++) if (lg[off + k] > lg[off + best]) best = k;
+    let tot = 0, neg = false; for (let k = 0; k < V; k++) { tot += lg[off + k]; if (lg[off + k] < 0) neg = true; }
+    let pBest;
+    if (!neg && Math.abs(tot - 1) < 1e-2) pBest = lg[off + best];
+    else { let z = 0; for (let k = 0; k < V; k++) z += Math.exp(lg[off + k] - lg[off + best]); pBest = 1 / z; }
+    seq.push(best); probs.push(pBest);
+    if (best === TOK_END) break;
+    postMessage({ type: "step", id, n: step + 1 });
+  }
+  const ended = seq.at(-1) === TOK_END;
+  const ids = seq.slice(1, ended ? -1 : undefined);
+  let smi = ids.map(i => vocab[i] ?? "*").join("").replace(/[!$^<>?£¢€§]/g, ch => DECODE_MAP[ch]);
+  const p = probs.slice(0, ids.length);
+  return { smiles: smi, mean: p.reduce((a, b) => a + b, 0) / Math.max(1, p.length), min: p.length ? Math.min(...p) : 0, ended };
+}
+self.onmessage = async e => {
+  const m = e.data;
+  try {
+    if (m.type === "load") { await load(m); postMessage({ type: "ready" }); }
+    else if (m.type === "predict") postMessage({ type: "result", id: m.id, r: await predict(m.x, m.id) });
+  } catch (err) { postMessage({ type: "error", id: m.id, message: String((err && err.message) || err) }); }
+};`;
+
+function modelBase() { return settings().modelBase || "decimer/"; }
+function modelURL(f) { return new URL(f, new URL(modelBase(), location.href)).href; }
+async function modelPlan() {
+  const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
+  const bases = [new URL(modelBase(), location.href).href];
+  if (modelBase() === "decimer/" && !bases[0].startsWith(HOME_URL)) bases.push(HOME_URL + "decimer/");   // a copy hosted elsewhere
+  const mans = await Promise.all(bases.map(b => get(b + "manifest.json")));
+  return {
+    type: "load", ortDist: ORT_DIST, cacheName: CACHE_NAME,
+    files: MODEL_FILES.map(name => {
+      const sources = [];
+      bases.forEach((b, i) => {
+        const e = mans[i] && mans[i].files && mans[i].files[name];
+        if (e && e.parts) sources.push({ parts: e.parts.map(p => b + p), size: e.size || 0 });
+        sources.push({ url: b + name });
+      });
+      return { name, key: modelURL(name), sources };
+    })
+  };
+}
+
+const engine = {
+  w: null, ready: null, isReady: false, pending: new Map(), nextId: 1, onLoad: null,
+  load() {
+    if (this.ready) return this.ready;
+    this.ready = new Promise(async (res, rej) => {
+      this.onLoad = { res, rej };
+      try {
+        const plan = await modelPlan();
+        this.w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" })));
+        this.w.onmessage = e => this.msg(e.data);
+        this.w.onerror = e => { e.preventDefault && e.preventDefault(); this.fail(new Error(e.message || "The recognition worker stopped.")); };
+        setStatus("Model: preparing");
+        this.w.postMessage(plan);
+      } catch (e) { this.fail(e); }
+    });
+    this.ready.catch(() => { this.ready = null; });
+    return this.ready;
+  },
+  fail(err) {
+    if (this.onLoad) { this.onLoad.rej(err); this.onLoad = null; }
+    for (const p of this.pending.values()) p.rej(err);
+    this.pending.clear();
+    if (this.w) { this.w.terminate(); this.w = null; }
+    this.isReady = false; this.ready = null;
+    setStatus("Model could not load", true); toast("The recognition model could not load. " + err.message);
+  },
+  msg(m) {
+    if (m.type === "progress") setStatus(m.total ? `Model: downloading ${Math.round(100 * m.got / m.total)}% of ${(m.total / 1048576).toFixed(0)} MB` : `Model: downloading ${(m.got / 1048576).toFixed(0)} MB`);
+    else if (m.type === "starting") setStatus("Model: starting");
+    else if (m.type === "ready") { this.isReady = true; setStatus(OFFLINE ? "Ready · offline" : "Ready"); if (this.onLoad) { this.onLoad.res(); this.onLoad = null; } }
+    else if (m.type === "step") { const p = this.pending.get(m.id); p && p.onStep && p.onStep(m.n); }
+    else if (m.type === "result") { const p = this.pending.get(m.id); this.pending.delete(m.id); p && p.res(m.r); }
+    else if (m.type === "error") {
+      if (m.id && this.pending.has(m.id)) { const p = this.pending.get(m.id); this.pending.delete(m.id); p.rej(new Error(m.message)); }
+      else this.fail(new Error(m.message));
+    }
+  },
+  async predict(x, onStep) {
+    await this.load();
+    const id = this.nextId++;
+    return new Promise((res, rej) => { this.pending.set(id, { res, rej, onStep }); this.w.postMessage({ type: "predict", id, x }, [x.buffer]); });
+  }
+};
+
+/* ---------- image preparation (mirrors DECIMER's pre_process.decode_image, as the main page) ---------- */
+const freeCanvas = c => { if (c) { c.width = 0; c.height = 0; } };
+function grayCanvas(gray, w, h) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"), id = g.createImageData(w, h);
+  for (let i = 0; i < w * h; i++) { const v = gray[i]; id.data[4 * i] = id.data[4 * i + 1] = id.data[4 * i + 2] = v; id.data[4 * i + 3] = 255; }
+  g.putImageData(id, 0, 0); return c;
+}
+function scaled(src, w, h) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; g.drawImage(src, 0, 0, w, h); return c;
+}
+const grayOf = c => { const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data, o = new Uint8ClampedArray(c.width * c.height); for (let i = 0; i < o.length; i++) o[i] = d[4 * i]; return o; };
+function decimerInput(src) {
+  let w = src.width, h = src.height;
+  const d = src.getContext("2d").getImageData(0, 0, w, h).data;
+  let mn = 255; for (let i = 0; i < d.length; i += 4) { mn = Math.min(mn, d[i], d[i + 1], d[i + 2]); }
+  const span = Math.max(1, 255 - mn), lut = x => Math.floor((x - mn) * 255 / span);
+  let gray = new Uint8ClampedArray(w * h), sum = 0;
+  for (let i = 0; i < w * h; i++) { const v = Math.round(0.114 * lut(d[4 * i]) + 0.587 * lut(d[4 * i + 1]) + 0.299 * lut(d[4 * i + 2])); gray[i] = v; sum += v; }
+  const mean = Math.floor(sum / (w * h) + 0.5);
+  for (let i = 0; i < gray.length; i++) gray[i] = mean + 1.8 * (gray[i] - mean);
+  let c = grayCanvas(gray, w, h);
+  if (w === h && w < 512) { const c2 = scaled(c, 512, 512); freeCanvas(c); c = c2; }
+  else if (w < 512 && h < 512) { const k = 512 / Math.max(w, h); const c2 = scaled(c, Math.floor(w * k), Math.floor(h * k)); freeCanvas(c); c = c2; }
+  w = c.width; h = c.height; gray = grayOf(c);
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (gray[y * w + x] <= 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) throw new Error("blank");
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const S = Math.max(512, Math.floor(1.2 * Math.max(cw, ch)));
+  const sq = document.createElement("canvas"); sq.width = sq.height = S;
+  const sg = sq.getContext("2d"); sg.fillStyle = "#fff"; sg.fillRect(0, 0, S, S);
+  sg.drawImage(c, x0, y0, cw, ch, Math.floor((S - cw) / 2), Math.floor((S - ch) / 2), cw, ch);
+  freeCanvas(c);
+  const sqg = grayOf(sq); freeCanvas(sq); for (let i = 0; i < sqg.length; i++) sqg[i] = sqg[i] * 1.6;
+  const gc = grayCanvas(sqg, S, S), sc = scaled(gc, 512, 512); freeCanvas(gc);
+  const fin = grayOf(sc); freeCanvas(sc);
+  const out = new Float32Array(512 * 512 * 3), M = [0.485, 0.456, 0.406], SD = [0.229, 0.224, 0.225];
+  for (let i = 0; i < fin.length; i++) { const v = fin[i] / 255; for (let k = 0; k < 3; k++) out[3 * i + k] = (v - M[k]) / SD[k]; }
+  return out;
+}
+/* Camera frames have uneven light and grey paper. Divide by a smooth estimate of the paper
+   (block maxima, blurred) so the ground goes white and only the ink stays dark. */
+function flattenPaper(c) {
+  const w = c.width, h = c.height, g = c.getContext("2d"), id = g.getImageData(0, 0, w, h), p = id.data;
+  const gray = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) gray[i] = 0.299 * p[4 * i] + 0.587 * p[4 * i + 1] + 0.114 * p[4 * i + 2];
+  const B = Math.max(12, Math.round(Math.max(w, h) / 24)), bw = Math.ceil(w / B), bh = Math.ceil(h / B);
+  let bg = new Float32Array(bw * bh);
+  for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+    const vals = [];
+    for (let y = by * B; y < Math.min(h, by * B + B); y += 2) for (let x = bx * B; x < Math.min(w, bx * B + B); x += 2) vals.push(gray[y * w + x]);
+    vals.sort((a, b) => a - b); bg[by * bw + bx] = vals[Math.floor(vals.length * 0.9)] || 255;   // 90th percentile: the paper
+  }
+  for (let pass = 0; pass < 2; pass++) {                                                         // 3×3 max then mean: ink-heavy blocks borrow from neighbours
+    const nb = new Float32Array(bg.length);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      let s = 0, n = 0, mx = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const yy = by + dy, xx = bx + dx; if (yy < 0 || xx < 0 || yy >= bh || xx >= bw) continue; const v = bg[yy * bw + xx]; s += v; n++; if (v > mx) mx = v; }
+      nb[by * bw + bx] = pass === 0 ? mx : s / n;
+    }
+    bg = nb;
+  }
+  const out = new Uint8ClampedArray(w * h);
+  for (let y = 0; y < h; y++) {
+    const fy = Math.min(bh - 1, Math.max(0, (y + 0.5) / B - 0.5)), y0 = Math.floor(fy), y1 = Math.min(bh - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < w; x++) {
+      const fx = Math.min(bw - 1, Math.max(0, (x + 0.5) / B - 0.5)), x0 = Math.floor(fx), x1 = Math.min(bw - 1, x0 + 1), tx = fx - x0;
+      const b = (bg[y0 * bw + x0] * (1 - tx) + bg[y0 * bw + x1] * tx) * (1 - ty) + (bg[y1 * bw + x0] * (1 - tx) + bg[y1 * bw + x1] * tx) * ty;
+      const v = 255 * gray[y * w + x] / Math.max(40, b);
+      out[y * w + x] = v > 235 ? 255 : v * 255 / 235;                                             // near-paper goes fully white
+    }
+  }
+  for (let i = 0; i < w * h; i++) { p[4 * i] = p[4 * i + 1] = p[4 * i + 2] = out[i]; }
+  g.putImageData(id, 0, 0);
+  return c;
+}
+
+/* ---------- detector ---------- */
+const PROC = 360;                       // long side of the analysis frame
+const proc = document.createElement("canvas"), pg = proc.getContext("2d", { willReadFrequently: true });
+let REG = { sx: 0, sy: 0, k: 1, key: "" };   // on-screen part of the video frame, and video px per analysis px
+let PW = 0, PH = 0, stack = null, gray = null, prevGray = null, II = null, IK = null, ink = null, dil = null, lab = null;
+function alloc(w, h) {
+  PW = w; PH = h; const N = w * h;
+  gray = new Uint8Array(N); prevGray = new Uint8Array(N); ink = new Uint8Array(N); dil = new Uint8Array(N); lab = new Int32Array(N); stack = new Int32Array(N);
+  II = new Uint32Array((w + 1) * (h + 1)); IK = new Uint32Array((w + 1) * (h + 1));
+}
+function integral(src, out, W, H) {
+  for (let y = 0; y < H; y++) { let row = 0; for (let x = 0; x < W; x++) { row += src[y * W + x]; out[(y + 1) * (W + 1) + x + 1] = out[y * (W + 1) + x + 1] + row; } }
+}
+const rect = (I, W, x0, y0, x1, y1) => I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0];   // [x0,x1)×[y0,y1)
+
+function detect() {
+  const W = PW, H = PH, N = W * H, S = Math.min(W, H);
+  const d = pg.getImageData(0, 0, W, H).data;
+  let motion = 0;
+  [prevGray, gray] = [gray, prevGray];
+  for (let i = 0; i < N; i++) gray[i] = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8;
+  for (let i = 0; i < N; i += 7) motion += Math.abs(gray[i] - prevGray[i]);
+  motion /= N / 7;
+  // 1. ink: darker than the local mean, on a ground light enough to be paper or a screen
+  integral(gray, II, W, H);
+  const R = Math.max(6, Math.round(S / 28));
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R + 1);
+    for (let x = 0; x < W; x++) {
+      const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R + 1);
+      const m = rect(II, W, x0, y0, x1, y1) / ((x1 - x0) * (y1 - y0)), v = gray[y * W + x];
+      ink[y * W + x] = m > 80 && v < m - Math.max(14, 0.14 * m) ? 1 : 0;
+    }
+  }
+  integral(ink, IK, W, H);
+  // 2. dilate so bonds, rings and atom labels join into one blob
+  const D = 3;
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.max(0, y - D), y1 = Math.min(H, y + D + 1);
+    for (let x = 0; x < W; x++) { const x0 = Math.max(0, x - D), x1 = Math.min(W, x + D + 1); dil[y * W + x] = rect(IK, W, x0, y0, x1, y1) > 0 ? 1 : 0; }
+  }
+  // 3. connected components
+  lab.fill(0);
+  const comps = [];
+  for (let i = 0; i < N; i++) {
+    if (!dil[i] || lab[i]) continue;
+    const id = comps.length + 1; let sp = 0, area = 0, mnx = W, mny = H, mxx = 0, mxy = 0;
+    stack[sp++] = i; lab[i] = id;
+    while (sp) {
+      const j = stack[--sp], x = j % W, y = (j - x) / W; area++;
+      if (x < mnx) mnx = x; if (x > mxx) mxx = x; if (y < mny) mny = y; if (y > mxy) mxy = y;
+      if (x > 0 && dil[j - 1] && !lab[j - 1]) { lab[j - 1] = id; stack[sp++] = j - 1; }
+      if (x < W - 1 && dil[j + 1] && !lab[j + 1]) { lab[j + 1] = id; stack[sp++] = j + 1; }
+      if (y > 0 && dil[j - W] && !lab[j - W]) { lab[j - W] = id; stack[sp++] = j - W; }
+      if (y < H - 1 && dil[j + W] && !lab[j + W]) { lab[j + W] = id; stack[sp++] = j + W; }
+    }
+    comps.push({ x0: mnx, y0: mny, x1: mxx + 1, y1: mxy + 1, area });
+  }
+  // 4. group nearby blobs (a salt, a detached label, a wedge that did not touch)
+  // Words and captions (short, wide, on their own) are left out so "Figure 2" doesn't join the drawing;
+  // atom labels survive because the dilation has already joined them to their bonds.
+  const isWord = c => { const w = c.x1 - c.x0 - 2 * D, h = c.y1 - c.y0 - 2 * D; return h > 0 && h < 0.06 * S && w / h > 2.2 && w < 0.4 * S; };
+  let boxes = comps.filter(c => Math.max(c.x1 - c.x0, c.y1 - c.y0) >= 5 && !isWord(c)).sort((a, b) => b.area - a.area).slice(0, 300);
+  const gap = Math.round(0.02 * Math.max(W, H));
+  for (let changed = true; changed;) {
+    changed = false;
+    for (let a = 0; a < boxes.length && !changed; a++) for (let b = a + 1; b < boxes.length; b++) {
+      const A = boxes[a], B = boxes[b];
+      if (A.x0 - gap <= B.x1 && B.x0 - gap <= A.x1 && A.y0 - gap <= B.y1 && B.y0 - gap <= A.y1) {
+        boxes[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), area: A.area + B.area };
+        boxes.splice(b, 1); changed = true; break;
+      }
+    }
+  }
+  // 5. keep blobs that look like line drawings
+  const cands = [];
+  for (const b of boxes) {
+    const w = b.x1 - b.x0, h = b.y1 - b.y0, A = w * h;
+    if (Math.min(w, h) < 0.09 * S || Math.max(w, h) < 0.16 * S) continue;          // too small to read
+    if (w > 0.97 * W && h > 0.97 * H) continue;                                        // the whole view
+    if (Math.max(w, h) / Math.min(w, h) > 4.5) continue;                              // a line of text, a rule
+    const inkN = rect(IK, W, b.x0, b.y0, b.x1, b.y1), dens = inkN / A, fill = b.area / A;
+    if (dens < 0.012 || dens > 0.26 || fill < 0.06 || fill > 0.72) continue;          // empty, solid or a text block
+    if (isText(b, w, h)) continue;
+    const edge = b.x0 <= 2 || b.y0 <= 2 || b.x1 >= W - 2 || b.y1 >= H - 2;
+    const cx = (b.x0 + b.x1) / 2 / W - 0.5, cy = (b.y0 + b.y1) / 2 / H - 0.5;
+    cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
+  }
+  cands.sort((a, b) => b.score - a.score);
+  if (DEBUG) drawDebug(cands);
+  return { cands: cands.slice(0, 4), motion };
+}
+// Text: several ink bands of similar height separated by empty rows.
+function isText(b, w, h) {
+  const rows = []; for (let y = b.y0; y < b.y1; y++) rows.push(rect(IK, PW, b.x0, y, b.x1, y + 1) > Math.max(1, 0.01 * w));
+  const bands = []; let start = -1;
+  rows.forEach((on, i) => { if (on && start < 0) start = i; if (!on && start >= 0) { bands.push(i - start); start = -1; } });
+  if (start >= 0) bands.push(rows.length - start);
+  if (bands.length < 3) return false;
+  const m = bands.reduce((a, v) => a + v, 0) / bands.length, sd = Math.sqrt(bands.reduce((a, v) => a + (v - m) ** 2, 0) / bands.length);
+  return sd / m < 0.45 && m < 0.3 * h;
+}
+function drawDebug(cands) {
+  const c = $("#dbg"); c.style.display = "block"; c.width = PW; c.height = PH; c.style.height = (120 * PH / PW) + "px";
+  const g = c.getContext("2d"), im = g.createImageData(PW, PH);
+  for (let i = 0; i < PW * PH; i++) { const v = ink[i] ? 0 : dil[i] ? 150 : 255; im.data[4 * i] = v; im.data[4 * i + 1] = v; im.data[4 * i + 2] = ink[i] ? 0 : 255; im.data[4 * i + 3] = 255; }
+  g.putImageData(im, 0, 0); g.strokeStyle = "#f00"; g.lineWidth = 2; cands.forEach(k => g.strokeRect(k.x, k.y, k.w, k.h));
+}
+
+/* ---------- tracking ---------- */
+let tracks = [], graveyard = [], nextTrack = 1, busy = false, steadyNow = true;
+const HOLD_MS = 650;
+const iou = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); const i = Math.max(0, x1 - x0) * Math.max(0, y1 - y0); return i / (a.w * a.h + b.w * b.h - i || 1); };
+const lerpBox = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, w: a.w + (b.w - a.w) * k, h: a.h + (b.h - a.h) * k });
+function updateTracks(cands, now, motion) {
+  steadyNow = motion < 7;
+  const used = new Set();
+  for (const t of tracks) {
+    let best = null, bi = 0.2;
+    cands.forEach((c, i) => { if (used.has(i)) return; const v = iou(t.raw, c); if (v > bi) { bi = v; best = i; } });
+    if (best === null) continue;
+    used.add(best); const c = cands[best];
+    t.raw = c; t.box = lerpBox(t.box, c, 0.55); t.last = now; t.partial = c.partial;
+    t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion });
+    while (t.hist.length && now - t.hist[0].t > 1200) t.hist.shift();
+  }
+  cands.forEach((c, i) => {
+    if (used.has(i)) return;
+    // A structure that came back (camera bumped, hand passed over) keeps the reading it already had.
+    const g = graveyard.find(g => now - g.last < 5000 && iou(g.raw, c) > 0.3);
+    const t = g || { id: nextTrack++, state: "seen", born: now };
+    if (g) graveyard.splice(graveyard.indexOf(g), 1);
+    Object.assign(t, { raw: c, box: { ...c }, last: now, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion }] });
+    tracks.push(t);
+  });
+  for (const t of [...tracks]) {
+    if (now - t.last > 1500) {
+      tracks.splice(tracks.indexOf(t), 1); dropEl(t);
+      if (t.state === "done" || t.state === "reading") graveyard.push(t);
+    }
+  }
+  graveyard = graveyard.filter(g => now - g.last < 5000 || g.state === "reading");
+}
+// 0…1: how long this structure has held still (camera steady, box not moving or resizing).
+function steadiness(t, now) {
+  if (t.partial || now - t.last > 150) return 0;
+  const S = Math.min(PW, PH), tol = 0.03 * S, h = t.hist, last = h[h.length - 1];
+  let since = last.t;
+  for (let i = h.length - 1; i >= 0; i--) {
+    const p = h[i];
+    if (Math.abs(p.cx - last.cx) > tol || Math.abs(p.cy - last.cy) > tol || Math.abs(p.s / last.s - 1) > 0.1 || p.m > 9) break;
+    since = p.t;
+  }
+  return Math.min(1, (now - since) / HOLD_MS);
+}
+function schedule(now) {
+  if (busy) return;
+  const ready = tracks.filter(t => (t.state === "seen" || (t.state === "failed" && (t.fails || 0) < 2 && now > t.retryAt)) && (t.force || steadiness(t, now) >= 1));
+  if (!ready.length) return;
+  ready.sort((a, b) => (b.force ? 1 : 0) - (a.force ? 1 : 0) || b.raw.score - a.raw.score);
+  read(ready[0]);
+}
+
+/* ---------- reading one structure ---------- */
+const cam = $("#cam");
+function cropFromVideo(b) {
+  const vw = cam.videoWidth, vh = cam.videoHeight, k = REG.k;
+  const pad = 0.07 * Math.max(b.w, b.h);
+  const x0 = Math.max(0, REG.sx + (b.x - pad) * k), y0 = Math.max(0, REG.sy + (b.y - pad) * k);
+  const x1 = Math.min(vw, REG.sx + (b.x + b.w + pad) * k), y1 = Math.min(vh, REG.sy + (b.y + b.h + pad) * k);
+  const sw = x1 - x0, sh = y1 - y0, f = Math.min(1, 1024 / Math.max(sw, sh));
+  const c = document.createElement("canvas"); c.width = Math.round(sw * f); c.height = Math.round(sh * f);
+  const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(cam, x0, y0, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+async function read(t) {
+  busy = true; t.force = false; t.steps = 0;
+  t.state = engine.isReady ? "reading" : "waiting";
+  let c = null;
+  try {
+    c = flattenPaper(cropFromVideo(t.raw));
+    if (DEBUG) (window.crops = window.crops || []).push({ id: t.id, png: c.toDataURL("image/png") });
+    const x = decimerInput(c); freeCanvas(c); c = null;
+    const r = await engine.predict(x, n => { t.state = "reading"; t.steps = n; });
+    await rdReady;
+    const info = r.ended ? describe(r.smiles) : null;
+    if (DEBUG) console.log("DECIMER", t.id, r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended);
+    if (!info) { t.fails = (t.fails || 0) + 1; t.state = "failed"; t.retryAt = performance.now() + 2500; t.hist = t.hist.slice(-1); }
+    else {
+      info.conf = r; t.result = info; t.state = "done";
+      nameIt(t);
+      if (navigator.vibrate) navigator.vibrate(12);
+    }
+  } catch (e) {
+    t.fails = (t.fails || 0) + 1; t.state = "failed"; t.retryAt = performance.now() + 4000;
+    if (e.message !== "blank" && !/could not load/i.test(e.message)) console.warn(e);
+  } finally { freeCanvas(c); busy = false; }
+}
+function describe(smi) {
+  const mol = RD.get_mol(smi);
+  if (!mol || !mol.is_valid()) { mol && mol.delete(); return null; }
+  try {
+    if (JSON.parse(mol.get_descriptors()).NumHeavyAtoms < 3) return null;
+    const canon = mol.get_smiles(), inchi = mol.get_inchi() || "";
+    const parts = canon.split("."), big = parts.length > 1 ? parts.reduce((a, b) => b.length > a.length ? b : a) : canon;
+    let dm = mol; if (big !== canon) { const m2 = RD.get_mol(big); if (m2 && m2.is_valid()) dm = m2; }
+    const d = JSON.parse(dm.get_descriptors());
+    const thumb = mol.get_svg_with_highlights(JSON.stringify({ width: 168, height: 128, bondLineWidth: 1.4, fixedBondLength: 22, minFontSize: 10, maxFontSize: 16, padding: 0.06, clearBackground: false }));
+    if (dm !== mol) dm.delete();
+    let key = ""; try { key = RD.get_inchikey_for_inchi(inchi); } catch {}
+    const ro5 = [d.amw > 500, d.CrippenClogP > 5, d.NumHBD > 5, d.NumHBA > 10].filter(Boolean).length;
+    return { smiles: canon, key, formula: (inchi.split("/")[1] || ""), mw: d.amw, clogp: d.CrippenClogP, tpsa: d.tpsa, hbd: d.NumHBD, hba: d.NumHBA, rot: d.NumRotatableBonds, ro5, thumb, name: "" };
+  } finally { mol.delete(); }
+}
+
+/* names: the approved-drug list shipped with the app first, then PubChem (not in offline mode) */
+let drugIndex = null;
+async function knownDrug(smi) {
+  if (!drugIndex) drugIndex = (async () => {
+    const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
+    const S = (await get("data/drugspace.json")) || (await get(HOME_URL + "data/drugspace.json"));
+    const m = new Map();
+    if (S && Array.isArray(S.names)) S.points.forEach((p, i) => { if (!S.names[i]) return; const mol = RD.get_mol(p[2]); if (mol) { if (mol.is_valid()) m.set(mol.get_smiles(), S.names[i]); mol.delete(); } });
+    return m;
+  })();
+  return (await drugIndex).get(smi) || "";
+}
+async function nameIt(t) {
+  const r = t.result;
+  try {
+    const parts = r.smiles.split("."), big = parts.reduce((a, b) => b.length > a.length ? b : a);
+    r.name = await knownDrug(r.smiles) || await knownDrug(big);
+    if (!r.name && !OFFLINE && r.key) {
+      const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 7000);
+      const j = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${r.key}/property/Title/JSON`, { signal: ctl.signal }).then(x => x.ok ? x.json() : null).catch(() => null);
+      clearTimeout(to);
+      const title = j && j.PropertyTable && j.PropertyTable.Properties[0] && j.PropertyTable.Properties[0].Title;
+      if (title) r.name = title.length > 40 && /\d.*[\(\[]/.test(title) ? "" : title;     // skip long systematic names
+    }
+  } catch {}
+  r.named = true;
+}
+
+/* ---------- drawing ---------- */
+const layer = $("#layer");
+const fmtFormula = f => esc(f).replace(/([A-Za-z\)])(\d+)/g, "$1<sub>$2</sub>");
+const r1 = v => (Math.round(v * 10) / 10).toFixed(1);
+function view() {
+  const vw = cam.videoWidth || 1, vh = cam.videoHeight || 1, sw = innerWidth, sh = innerHeight, s = Math.max(sw / vw, sh / vh);
+  return { k: REG.k * s, ox: (REG.sx - (vw - Math.min(vw, sw / s)) / 2) * s, oy: (REG.sy - (vh - Math.min(vh, sh / s)) / 2) * s, sw, sh };
+}
+function el(t) {
+  if (t.el) return t.el;
+  const root = document.createElement("div"); root.className = "trk";
+  root.innerHTML = `<div class="box"><i></i><i></i><i></i><i></i><svg class="ring" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="13"/><circle class="fg" cx="17" cy="17" r="13" stroke-dasharray="81.7" stroke-dashoffset="81.7"/></svg></div><div class="chip" hidden></div>`;
+  layer.appendChild(root);
+  t.el = { root, box: root.querySelector(".box"), ring: root.querySelector(".fg"), chip: root.querySelector(".chip"), card: null };
+  t.el.box.addEventListener("click", () => { if (t.state !== "reading" && t.state !== "waiting") { t.state = "seen"; t.force = true; t.fails = 0; t.result = null; if (t.el.card) { t.el.card.remove(); t.el.card = null; } } });
+  return t.el;
+}
+function dropEl(t) { if (t.el) { t.el.root.remove(); t.el = null; } }
+function cardHTML(r) {
+  const lo = r.conf && (r.conf.mean < 0.8 || r.conf.min < 0.35);
+  const neg = v => String(v).replace("-", "−");
+  return `<div class="th">${r.thumb}</div>
+    <div class="hd"><div class="nm">${esc(r.name || (r.named ? "Unnamed structure" : "Looking up…"))}</div><div class="fm">${fmtFormula(r.formula)}</div></div>
+    <div class="pr"><div><b>${r1(r.mw)}</b><small>MW</small></div><div><b>${neg((+r.clogp).toFixed(1))}</b><small>cLogP</small></div><div><b>${Math.round(r.tpsa)}</b><small>TPSA</small></div><div><b>${r.hbd}/${r.hba}</b><small>HBD/HBA</small></div></div>
+    <div class="ft">${r.ro5 ? `<span class="tag no">Ro5: ${r.ro5} violation${r.ro5 > 1 ? "s" : ""}</span>` : `<span class="tag ok">Ro5 ✓</span>`}${lo ? `<span class="tag lo">Check reading</span>` : ""}<span class="go">Details ›</span></div>`;
+}
+function render(now) {
+  const v = view(), placed = [];
+  const scr = new Map(tracks.map(t => [t, { x: v.ox + t.box.x * v.k, y: v.oy + t.box.y * v.k, w: t.box.w * v.k, h: t.box.h * v.k }]));
+  for (const t of [...tracks].sort((a, b) => a.box.y - b.box.y)) {
+    const e = el(t), { x, y, w, h } = scr.get(t);
+    const stale = now - t.last > 300;
+    const st = t.partial && t.state === "seen" ? "partial" : t.state;
+    e.root.className = "trk " + st + (stale ? " stale" : "");
+    e.root.style.transform = `translate(${x}px,${y}px)`;
+    e.box.style.width = w + "px"; e.box.style.height = h + "px";
+    if (t.state === "seen" && !t.partial) e.ring.style.strokeDashoffset = 81.7 * (1 - steadiness(t, now));
+    // status chip above the box
+    const chip = st === "partial" ? "Move back to fit it in" : st === "seen" ? "" : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" ? "Couldn't read · tap to retry" : "";
+    e.chip.hidden = !chip; if (chip && e.chip.textContent !== chip) e.chip.textContent = chip;
+    if (chip) { const cw = e.chip.offsetWidth; e.chip.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - cw, w / 2 - cw / 2))}px,${y > 110 ? -36 : h + 8}px)`; }
+    // result card below the box (or above if there's no room), kept on screen
+    if (t.state === "done" && t.result) {
+      const others = tracks.filter(o => o !== t).map(o => scr.get(o));
+      const html = cardHTML(t.result);
+      if (e.card && e.card._html !== html) { e.card.innerHTML = html; e.card._html = html; }
+      if (!e.card) {
+        e.card = document.createElement("div"); e.card.className = "card"; e.card.innerHTML = html; e.card._html = html;
+        e.card.addEventListener("click", ev => { ev.stopPropagation(); openDetails(t.result.smiles); });
+        e.root.appendChild(e.card);
+      }
+      const cw = e.card.offsetWidth, chh = e.card.offsetHeight;
+      const cx = Math.max(10 - x, Math.min(v.sw - 10 - x - cw, w / 2 - cw / 2)), X = x + cx;
+      const hits = Y => placed.concat(others).find(p => X < p.x + p.w + 6 && p.x < X + cw + 6 && Y < p.y + p.h + 6 && p.y < Y + chh + 6);
+      const fits = Y => Y >= 64 && Y + chh <= v.sh - 96;
+      const spots = [y + h + 10, y - chh - 10, v.sh - 96 - chh, 64].filter(fits);
+      const Y = spots.find(Y => !hits(Y));
+      // No clear spot: a one-line label inside the bottom of its own box instead of the card.
+      const mini = Y === undefined;
+      e.card.hidden = mini;
+      if (!mini) { placed.push({ x: X, y: Y, w: cw, h: chh }); e.card.style.transform = `translate(${cx}px,${Y - y}px)`; }
+      if (mini && !e.mini) {
+        e.mini = document.createElement("div"); e.mini.className = "mini";
+        e.mini.addEventListener("click", ev => { ev.stopPropagation(); openDetails(t.result.smiles); });
+        e.root.appendChild(e.mini);
+      }
+      if (e.mini) {
+        e.mini.hidden = !mini;
+        const txt = `${esc(t.result.name || t.result.formula)}<span>MW ${Math.round(t.result.mw)} ›</span>`;
+        if (e.mini._t !== txt) { e.mini.innerHTML = txt; e.mini._t = txt; }
+        if (mini) { const mw = e.mini.offsetWidth; e.mini.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - mw, w / 2 - mw / 2))}px,${Math.max(0, h - 40)}px)`; }
+      }
+    } else {
+      if (e.card) { e.card.remove(); e.card = null; }
+      if (e.mini) { e.mini.remove(); e.mini = null; }
+    }
+  }
+  const any = tracks.length > 0, hint = $("#hint");
+  hint.textContent = paused ? "Frozen · tap a card for details" : !any ? "Point at a drawn structure" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
+  hint.style.opacity = hint.textContent ? 1 : 0;
+}
+function openDetails(smi) {
+  const enc = encodeURIComponent(smi).replace(/%(28|29|3D|2F|3A|40)/g, m => decodeURIComponent(m));
+  location.href = "./#smiles=" + enc;
+}
+
+/* ---------- camera loop ---------- */
+let stream = null, paused = false, lastProc = 0, running = false;
+function frame(now) {
+  if (!running) return;
+  if (!paused && cam.readyState >= 2 && now - lastProc > 75) {
+    lastProc = now;
+    // Only the part of the frame shown on screen (the video fills it with object-fit: cover).
+    const vw = cam.videoWidth, vh = cam.videoHeight, s = Math.max(innerWidth / vw, innerHeight / vh);
+    const visW = Math.min(vw, innerWidth / s), visH = Math.min(vh, innerHeight / s), sx = (vw - visW) / 2, sy = (vh - visH) / 2;
+    const k = PROC / Math.max(visW, visH), w = Math.round(visW * k), h = Math.round(visH * k), key = [vw, vh, w, h].join();
+    if (key !== REG.key) { alloc(w, h); proc.width = w; proc.height = h; tracks.forEach(dropEl); tracks = []; graveyard = []; }
+    REG = { sx, sy, k: visW / w, key };
+    pg.drawImage(cam, sx, sy, visW, visH, 0, 0, w, h);
+    const { cands, motion } = detect();
+    updateTracks(cands, now, motion);
+    schedule(now);
+  }
+  render(now);
+  requestAnimationFrame(frame);
+}
+async function startCamera() {
+  $("#goBtn").disabled = true; $("#goBtn").textContent = "Starting…";
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $("#startNote").textContent = location.protocol === "https:" ? "This browser can't use the camera from a web page." : "The camera needs the page to be opened over https.";
+    $("#goBtn").textContent = "Camera unavailable"; return;
+  }
+  let embedded = false; try { embedded = window.top !== window; } catch { embedded = true; }
+  try {
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } }); }
+    catch (e) { if (e.name === "NotAllowedError" || e.name === "SecurityError") throw e; stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true }); }   // simpler request if the first one is refused by the hardware
+  } catch (e) {
+    $("#startNote").textContent =
+      embedded ? "This page is running inside a preview, which isn't allowed to use the camera. Open it from your website in Safari instead (structure-lens.croftware.com/live.html)." :
+      e.name === "NotAllowedError" ? "Camera access was refused. In Safari tap aA › Website Settings › Camera › Allow, then try again." :
+      e.name === "NotReadableError" ? "Another app is using the camera. Close it and try again." :
+      `The camera could not start (${e.name}: ${e.message}).`;
+    $("#goBtn").disabled = false; $("#goBtn").textContent = "Try again"; return;
+  }
+  cam.srcObject = stream;
+  try { await cam.play(); } catch {}
+  $("#start").hidden = true;
+  setStatus("Model: preparing");
+  engine.load().catch(() => {});
+  const tr = stream.getVideoTracks()[0], caps = tr.getCapabilities ? tr.getCapabilities() : {};
+  if (caps.torch) $("#torchBtn").hidden = false;
+  try { await tr.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch {}
+  running = true; requestAnimationFrame(frame);
+}
+$("#goBtn").addEventListener("click", startCamera);
+$("#pauseBtn").addEventListener("click", () => {
+  paused = !paused; const b = $("#pauseBtn");
+  b.setAttribute("aria-pressed", paused); b.querySelector("span").textContent = paused ? "Resume" : "Freeze";
+  b.querySelector("svg").innerHTML = paused ? '<path d="M7 5l12 7-12 7z"/>' : '<path d="M9 5v14M15 5v14"/>';
+  paused ? cam.pause() : cam.play().catch(() => {});
+  if (!paused) { const n = performance.now(); tracks.forEach(t => { t.last = n; t.hist = t.hist.slice(-1); t.hist[0].t = n; }); }
+});
+$("#clearBtn").addEventListener("click", () => { tracks.forEach(dropEl); graveyard.forEach(dropEl); tracks = []; graveyard = []; });
+$("#torchBtn").addEventListener("click", async () => {
+  const b = $("#torchBtn"), on = b.getAttribute("aria-pressed") !== "true";
+  try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: on }] }); b.setAttribute("aria-pressed", on); } catch { toast("The light can't be controlled from this browser."); }
+});
+document.addEventListener("visibilitychange", () => { if (!stream) return; if (document.hidden) cam.pause(); else if (!paused) cam.play().catch(() => {}); });
+if (OFFLINE) $("#startNote").textContent += " Offline mode is on: names come only from the approved-drug list on this phone.";
+</script>
+</body>
+</html>
