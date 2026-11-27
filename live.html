@@ -417,10 +417,12 @@ function flattenPaper(c) {
 const PROC = 360;                       // long side of the analysis frame
 const proc = document.createElement("canvas"), pg = proc.getContext("2d", { willReadFrequently: true });
 let REG = { sx: 0, sy: 0, k: 1, key: "" };   // on-screen part of the video frame, and video px per analysis px
+let QW = 0, QH = 0, qa = null, qb = null, haveQ = false;
 let PW = 0, PH = 0, stack = null, gray = null, prevGray = null, II = null, IK = null, ink = null, dil = null, lab = null;
 function alloc(w, h) {
   PW = w; PH = h; const N = w * h;
   gray = new Uint8Array(N); prevGray = new Uint8Array(N); ink = new Uint8Array(N); dil = new Uint8Array(N); lab = new Int32Array(N); stack = new Int32Array(N);
+  QW = w >> 2; QH = h >> 2; qa = new Float32Array(QW * QH); qb = new Float32Array(QW * QH); haveQ = false;
   II = new Uint32Array((w + 1) * (h + 1)); IK = new Uint32Array((w + 1) * (h + 1));
 }
 function integral(src, out, W, H) {
@@ -431,11 +433,9 @@ const rect = (I, W, x0, y0, x1, y1) => I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x
 function detect() {
   const W = PW, H = PH, N = W * H, S = Math.min(W, H);
   const d = pg.getImageData(0, 0, W, H).data;
-  let motion = 0;
   [prevGray, gray] = [gray, prevGray];
   for (let i = 0; i < N; i++) gray[i] = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8;
-  for (let i = 0; i < N; i += 7) motion += Math.abs(gray[i] - prevGray[i]);
-  motion /= N / 7;
+  const { shift, motion } = cameraShift(W);
   // 1. ink: darker than the local mean, on a ground light enough to be paper or a screen
   integral(gray, II, W, H);
   const R = Math.max(6, Math.round(S / 28));
@@ -491,21 +491,42 @@ function detect() {
   const cands = [];
   for (const b of boxes) {
     const w = b.x1 - b.x0, h = b.y1 - b.y0, A = w * h;
-    if (Math.min(w, h) < 0.12 * S || Math.max(w, h) < 0.25 * S) continue;          // too small: icons, symbols, stray marks
+    if (Math.min(w, h) < 0.08 * S || Math.max(w, h) < 0.16 * S) continue;          // too small even to keep tracking
     if (w > 0.97 * W && h > 0.97 * H) continue;                                        // the whole view
     if (Math.max(w, h) / Math.min(w, h) > 4.5) continue;                              // a line of text, a rule
     const inkN = rect(IK, W, b.x0, b.y0, b.x1, b.y1), dens = inkN / A, fill = b.area / A;
     if (dens < 0.012 || dens > 0.26 || fill < 0.06 || fill > 0.72) continue;          // empty, solid or a text block
     if (inkN / b.area > 0.42) continue;                                               // thick or filled shapes, not thin bond lines
     if (isText(b, w, h)) continue;
-    if (Math.abs((b.x0 + b.x1) / 2 / W - 0.5) > 0.3 || Math.abs((b.y0 + b.y1) / 2 / H - 0.5) > 0.3) continue;   // must sit in the aiming area
     const edge = b.x0 <= 2 || b.y0 <= 2 || b.x1 >= W - 2 || b.y1 >= H - 2;
     const cx = (b.x0 + b.x1) / 2 / W - 0.5, cy = (b.y0 + b.y1) / 2 / H - 0.5;
-    cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
+    // Only a big blob in the aiming area starts a new structure (keeps icons out);
+    // a structure already found keeps being followed as it drifts or shrinks.
+    const aim = Math.abs(cx) <= 0.3 && Math.abs(cy) <= 0.3 && Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
+    cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, aim, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
   }
   cands.sort((a, b) => b.score - a.score);
   if (DEBUG) drawDebug(cands);
-  return { cands: cands.slice(0, 2), motion };
+  return { cands: cands.slice(0, 6), motion, shift };
+}
+/* How far the picture moved since the last frame (hand shake, panning), by block matching at
+   quarter resolution. Boxes follow this between detections, so a blurred or missed frame
+   doesn't lose the structure. motion = what's left after the shift: blur or a changing scene. */
+function cameraShift(W) {
+  [qa, qb] = [qb, qa];
+  for (let y = 0; y < QH; y++) for (let x = 0; x < QW; x++) {
+    let s = 0; for (let j = 0; j < 4; j++) { const o = (4 * y + j) * W + 4 * x; s += gray[o] + gray[o + 1] + gray[o + 2] + gray[o + 3]; }
+    qa[y * QW + x] = s / 16;
+  }
+  if (!haveQ) { haveQ = true; return { shift: { x: 0, y: 0 }, motion: 99 }; }
+  const R = 6; let best = Infinity, bx = 0, by = 0;
+  for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+    let s = 0, n = 0;
+    for (let y = R; y < QH - R; y += 1) for (let x = R; x < QW - R; x += 1) { s += Math.abs(qa[y * QW + x] - qb[(y - dy) * QW + x - dx]); n++; }
+    s = s / n + 0.15 * (Math.abs(dx) + Math.abs(dy));          // prefer no shift when the picture is flat
+    if (s < best) { best = s; bx = dx; by = dy; }
+  }
+  return { shift: { x: 4 * bx, y: 4 * by }, motion: best };
 }
 // Text: several ink bands of similar height separated by empty rows.
 function isText(b, w, h) {
@@ -526,46 +547,59 @@ function drawDebug(cands) {
 
 /* ---------- tracking ---------- */
 let tracks = [], graveyard = [], nextTrack = 1, busy = false, steadyNow = true;
-const HOLD_MS = 650;
+const HOLD_MS = 550;
 const iou = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); const i = Math.max(0, x1 - x0) * Math.max(0, y1 - y0); return i / (a.w * a.h + b.w * b.h - i || 1); };
 const lerpBox = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, w: a.w + (b.w - a.w) * k, h: a.h + (b.h - a.h) * k });
-function updateTracks(cands, now, motion) {
-  steadyNow = motion < 7;
-  const used = new Set();
-  for (const t of tracks) {
-    let best = null, bi = 0.2;
-    cands.forEach((c, i) => { if (used.has(i)) return; const v = iou(t.raw, c); if (v > bi) { bi = v; best = i; } });
-    if (best === null) continue;
-    used.add(best); const c = cands[best];
-    t.raw = c; t.box = lerpBox(t.box, c, 0.55); t.last = now; t.partial = c.partial;
-    t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion });
-    while (t.hist.length && now - t.hist[0].t > 1200) t.hist.shift();
+const moveBox = (b, d) => { b.x += d.x; b.y += d.y; };
+// How well a detection matches a track: overlap, or a nearby centre at a similar size (fast moves).
+function matchScore(t, c) {
+  const v = iou(t.raw, c); if (v > 0.15) return 1 + v;
+  const r = t.raw, d = Math.hypot(r.x + r.w / 2 - c.x - c.w / 2, r.y + r.h / 2 - c.y - c.h / 2), k = Math.sqrt((c.w * c.h) / (r.w * r.h));
+  return d < 0.4 * Math.max(r.w, r.h) && k > 0.6 && k < 1.6 ? 1 - d / Math.max(r.w, r.h) : 0;
+}
+const KEEP_MS = { seen: 1200, failed: 1200, ignored: 1200 };            // others (reading, done) stay 4 s
+function updateTracks(cands, now, motion, shift) {
+  steadyNow = motion < 8;
+  // everything moves with the camera first, then snaps to what was detected
+  for (const t of tracks.concat(graveyard)) { moveBox(t.raw, shift); moveBox(t.box, shift); }
+  const pairs = [];
+  tracks.forEach(t => cands.forEach((c, i) => { const v = matchScore(t, c); if (v > 0) pairs.push([v, t, i]); }));
+  pairs.sort((a, b) => b[0] - a[0]);
+  const usedT = new Set(), used = new Set();
+  for (const [, t, i] of pairs) {
+    if (usedT.has(t) || used.has(i)) continue;
+    usedT.add(t); used.add(i); const c = cands[i];
+    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.partial = c.partial;
+    t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: Math.hypot(shift.x, shift.y) });
+    while (t.hist.length && now - t.hist[0].t > 1500) t.hist.shift();
   }
   cands.forEach((c, i) => {
     if (used.has(i)) return;
     // A structure that came back (camera bumped, hand passed over) keeps the reading it already had.
-    const g = graveyard.find(g => now - g.last < 5000 && iou(g.raw, c) > 0.3);
+    let g = null, gs = 0; graveyard.forEach(x => { const v = matchScore(x, c); if (v > gs) { gs = v; g = x; } });
+    if (!g && !c.aim) return;
     const t = g || { id: nextTrack++, state: "seen", born: now };
     if (g) graveyard.splice(graveyard.indexOf(g), 1);
-    Object.assign(t, { raw: c, box: { ...c }, last: now, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion }] });
+    Object.assign(t, { raw: c, box: { ...c }, last: now, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: 0 }] });
     tracks.push(t);
   });
   for (const t of [...tracks]) {
-    if (now - t.last > 1500) {
+    const off = t.raw.x + t.raw.w < 0 || t.raw.y + t.raw.h < 0 || t.raw.x > PW || t.raw.y > PH;
+    if (now - t.last > (KEEP_MS[t.state] || 4000) || off) {
       tracks.splice(tracks.indexOf(t), 1); dropEl(t);
       if (t.state === "done" || t.state === "reading") graveyard.push(t);
     }
   }
-  graveyard = graveyard.filter(g => now - g.last < 5000 || g.state === "reading");
+  graveyard = graveyard.filter(g => now - g.last < 12000 || g.state === "reading");
 }
 // 0…1: how long this structure has held still (camera steady, box not moving or resizing).
 function steadiness(t, now) {
-  if (t.partial || now - t.last > 150) return 0;
-  const S = Math.min(PW, PH), tol = 0.03 * S, h = t.hist, last = h[h.length - 1];
+  if (t.partial || now - t.last > 400) return 0;
+  const S = Math.min(PW, PH), tol = 0.05 * S, h = t.hist, last = h[h.length - 1];
   let since = last.t;
   for (let i = h.length - 1; i >= 0; i--) {
     const p = h[i];
-    if (Math.abs(p.cx - last.cx) > tol || Math.abs(p.cy - last.cy) > tol || Math.abs(p.s / last.s - 1) > 0.1 || p.m > 9) break;
+    if (Math.abs(p.cx - last.cx) > tol || Math.abs(p.cy - last.cy) > tol || Math.abs(p.s / last.s - 1) > 0.15 || p.m > 12 || p.sh > 0.04 * S) break;
     since = p.t;
   }
   return Math.min(1, (now - since) / HOLD_MS);
@@ -689,7 +723,7 @@ function render(now) {
   const scr = new Map(tracks.map(t => [t, { x: v.ox + t.box.x * v.k, y: v.oy + t.box.y * v.k, w: t.box.w * v.k, h: t.box.h * v.k }]));
   for (const t of [...tracks].sort((a, b) => a.box.y - b.box.y)) {
     const e = el(t), { x, y, w, h } = scr.get(t);
-    const stale = now - t.last > 300;
+    const stale = now - t.last > 900;
     const st = t.partial && t.state === "seen" ? "partial" : t.state;
     e.root.className = "trk " + st + (stale ? " stale" : "");
     e.root.style.transform = `translate(${x}px,${y}px)`;
@@ -759,8 +793,8 @@ function frame(now) {
     if (key !== REG.key) { alloc(w, h); proc.width = w; proc.height = h; tracks.forEach(dropEl); tracks = []; graveyard = []; }
     REG = { sx, sy, k: visW / w, key };
     pg.drawImage(cam, sx, sy, visW, visH, 0, 0, w, h);
-    const { cands, motion } = detect();
-    updateTracks(cands, now, motion);
+    const { cands, motion, shift } = detect();
+    updateTracks(cands, now, motion, shift);
     schedule(now);
   }
   render(now);
@@ -800,7 +834,7 @@ $("#pauseBtn").addEventListener("click", () => {
   b.setAttribute("aria-pressed", paused); b.querySelector("span").textContent = paused ? "Resume" : "Freeze";
   b.querySelector("svg").innerHTML = paused ? '<path d="M7 5l12 7-12 7z"/>' : '<path d="M9 5v14M15 5v14"/>';
   paused ? cam.pause() : cam.play().catch(() => {});
-  if (!paused) { const n = performance.now(); tracks.forEach(t => { t.last = n; t.hist = t.hist.slice(-1); t.hist[0].t = n; }); }
+  if (!paused) { haveQ = false; const n = performance.now(); tracks.forEach(t => { t.last = n; t.hist = t.hist.slice(-1); t.hist[0].t = n; }); }
 });
 $("#clearBtn").addEventListener("click", () => { tracks.forEach(dropEl); graveyard.forEach(dropEl); tracks = []; graveyard = []; });
 $("#torchBtn").addEventListener("click", async () => {
