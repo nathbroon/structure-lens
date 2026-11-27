@@ -62,6 +62,14 @@ button{font:inherit;color:inherit}
 .trk.done .box{--c:#fff}
 .trk.failed .box{--c:var(--bad-hi)}
 .trk.stale{opacity:.35}
+.trk.ignored{display:none}
+.aim{position:fixed;left:20%;right:20%;top:20%;bottom:20%;pointer-events:none;z-index:1}
+.aim i{position:absolute;width:28px;height:28px;border:2px solid rgba(255,255,255,.55)}
+.aim i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-top-left-radius:10px}
+.aim i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-top-right-radius:10px}
+.aim i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-bottom-left-radius:10px}
+.aim i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-bottom-right-radius:10px}
+body.locked .aim{opacity:0;transition:opacity .3s}
 @keyframes pulse{50%{opacity:.45}}
 .ring{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;opacity:0;transition:opacity .2s}
 .trk.seen .ring{opacity:1}
@@ -117,6 +125,7 @@ button{font:inherit;color:inherit}
 <body>
 <div id="stage">
   <video id="cam" playsinline muted autoplay></video>
+  <div class="aim" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div id="layer"></div>
 </div>
 
@@ -124,7 +133,7 @@ button{font:inherit;color:inherit}
   <a class="back" href="./" aria-label="Back to Structure Lens"><img src="icons/icon-192.png" alt="">Structure Lens <small>Live</small></a>
   <span class="pill" id="status" role="status">Starting</span>
 </header>
-<div class="hint" id="hint">Point at a drawn structure and hold steady</div>
+<div class="hint" id="hint">Centre one structure in the frame</div>
 <nav class="controls">
   <button class="cb" id="clearBtn" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Clear</button>
   <button class="cb main" id="pauseBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><span>Freeze</span></button>
@@ -482,19 +491,21 @@ function detect() {
   const cands = [];
   for (const b of boxes) {
     const w = b.x1 - b.x0, h = b.y1 - b.y0, A = w * h;
-    if (Math.min(w, h) < 0.09 * S || Math.max(w, h) < 0.16 * S) continue;          // too small to read
+    if (Math.min(w, h) < 0.12 * S || Math.max(w, h) < 0.25 * S) continue;          // too small: icons, symbols, stray marks
     if (w > 0.97 * W && h > 0.97 * H) continue;                                        // the whole view
     if (Math.max(w, h) / Math.min(w, h) > 4.5) continue;                              // a line of text, a rule
     const inkN = rect(IK, W, b.x0, b.y0, b.x1, b.y1), dens = inkN / A, fill = b.area / A;
     if (dens < 0.012 || dens > 0.26 || fill < 0.06 || fill > 0.72) continue;          // empty, solid or a text block
+    if (inkN / b.area > 0.42) continue;                                               // thick or filled shapes, not thin bond lines
     if (isText(b, w, h)) continue;
+    if (Math.abs((b.x0 + b.x1) / 2 / W - 0.5) > 0.3 || Math.abs((b.y0 + b.y1) / 2 / H - 0.5) > 0.3) continue;   // must sit in the aiming area
     const edge = b.x0 <= 2 || b.y0 <= 2 || b.x1 >= W - 2 || b.y1 >= H - 2;
     const cx = (b.x0 + b.x1) / 2 / W - 0.5, cy = (b.y0 + b.y1) / 2 / H - 0.5;
     cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
   }
   cands.sort((a, b) => b.score - a.score);
   if (DEBUG) drawDebug(cands);
-  return { cands: cands.slice(0, 4), motion };
+  return { cands: cands.slice(0, 2), motion };
 }
 // Text: several ink bands of similar height separated by empty rows.
 function isText(b, w, h) {
@@ -589,9 +600,9 @@ async function read(t) {
     const x = decimerInput(c); freeCanvas(c); c = null;
     const r = await engine.predict(x, n => { t.state = "reading"; t.steps = n; });
     await rdReady;
-    const info = r.ended ? describe(r.smiles) : null;
+    const info = r.ended && r.mean >= 0.6 ? describe(r.smiles) : null;
     if (DEBUG) console.log("DECIMER", t.id, r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended);
-    if (!info) { t.fails = (t.fails || 0) + 1; t.state = "failed"; t.retryAt = performance.now() + 2500; t.hist = t.hist.slice(-1); }
+    if (!info) { t.fails = (t.fails || 0) + 1; t.state = t.fails >= 2 || r.mean < 0.45 ? "ignored" : "failed"; t.retryAt = performance.now() + 2500; t.hist = t.hist.slice(-1); }
     else {
       info.conf = r; t.result = info; t.state = "done";
       nameIt(t);
@@ -725,7 +736,9 @@ function render(now) {
     }
   }
   const any = tracks.length > 0, hint = $("#hint");
-  hint.textContent = paused ? "Frozen · tap a card for details" : !any ? "Point at a drawn structure" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
+  const live = tracks.filter(t => t.state !== "ignored");
+  document.body.classList.toggle("locked", live.length > 0);
+  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? "Centre one structure, close enough to fill the frame" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
   hint.style.opacity = hint.textContent ? 1 : 0;
 }
 function openDetails(smi) {
