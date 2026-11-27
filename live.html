@@ -62,7 +62,7 @@ button{font:inherit;color:inherit}
 .trk.done .box{--c:#fff}
 .trk.failed .box{--c:var(--bad-hi)}
 .trk.stale{opacity:.35}
-.trk.ignored{display:none}
+.trk.ignored .box{--c:var(--bad-hi)} .trk.ignored .chip{color:var(--bad-hi)}
 .aim{position:fixed;left:20%;right:20%;top:20%;bottom:20%;pointer-events:none;z-index:1}
 .aim i{position:absolute;width:28px;height:28px;border:2px solid rgba(255,255,255,.55)}
 .aim i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-top-left-radius:10px}
@@ -569,6 +569,7 @@ function updateTracks(cands, now, motion, shift) {
   for (const [, t, i] of pairs) {
     if (usedT.has(t) || used.has(i)) continue;
     usedT.add(t); used.add(i); const c = cands[i];
+    accrue(t, c, now, motion, shift);
     t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.partial = c.partial;
     t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: Math.hypot(shift.x, shift.y) });
     while (t.hist.length && now - t.hist[0].t > 1500) t.hist.shift();
@@ -580,6 +581,7 @@ function updateTracks(cands, now, motion, shift) {
     if (!g && !c.aim) return;
     const t = g || { id: nextTrack++, state: "seen", born: now };
     if (g) graveyard.splice(graveyard.indexOf(g), 1);
+    if (!g) { t.prog = 0; t.upd = now; }
     Object.assign(t, { raw: c, box: { ...c }, last: now, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: 0 }] });
     tracks.push(t);
   });
@@ -592,8 +594,24 @@ function updateTracks(cands, now, motion, shift) {
   }
   graveyard = graveyard.filter(g => now - g.last < 12000 || g.state === "reading");
 }
-// 0…1: how long this structure has held still (camera steady, box not moving or resizing).
+/* Hold-steady progress, 0…1. Builds up while the camera is roughly still and the box roughly
+   the same; a wobble only takes some of it back. Real phone cameras flicker and shake far more
+   than a still image, so nothing here resets to zero on a single bad frame. */
+function accrue(t, c, now, motion, shift) {
+  const S = Math.min(PW, PH), dt = Math.min(200, now - (t.upd || now)), r = t.raw;
+  const move = Math.hypot(r.x + r.w / 2 - c.x - c.w / 2, r.y + r.h / 2 - c.y - c.h / 2) + Math.hypot(shift.x, shift.y);
+  const size = Math.abs(Math.sqrt((c.w * c.h) / (r.w * r.h)) - 1);
+  const ok = !c.partial && move < 0.06 * S && size < 0.25 && motion < 40;
+  t.prog = Math.max(0, Math.min(1, (t.prog || 0) + (ok ? dt / HOLD_MS : -dt / (3 * HOLD_MS))));
+  t.upd = now;
+  if (DEBUG) t.dbg = `mv ${(move / S * 100).toFixed(0)}% sz ${(size * 100).toFixed(0)}% m ${motion.toFixed(0)}`;
+}
 function steadiness(t, now) {
+  if (t.partial) return 0;
+  if (now - t.born > 2500 && now - t.last < 800) return 1;          // in the frame long enough: read it anyway
+  return t.prog || 0;
+}
+function steadinessOld(t, now) {
   if (t.partial || now - t.last > 400) return 0;
   const S = Math.min(PW, PH), tol = 0.05 * S, h = t.hist, last = h[h.length - 1];
   let since = last.t;
@@ -635,7 +653,7 @@ async function read(t) {
     const r = await engine.predict(x, n => { t.state = "reading"; t.steps = n; });
     await rdReady;
     const info = r.ended && r.mean >= 0.6 ? describe(r.smiles) : null;
-    if (DEBUG) console.log("DECIMER", t.id, r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended);
+    if (DEBUG) { console.log("DECIMER", t.id, r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended); t.tried = `${r.smiles.slice(0, 28)} p=${r.mean.toFixed(2)}`; }
     if (!info) { t.fails = (t.fails || 0) + 1; t.state = t.fails >= 2 || r.mean < 0.45 ? "ignored" : "failed"; t.retryAt = performance.now() + 2500; t.hist = t.hist.slice(-1); }
     else {
       info.conf = r; t.result = info; t.state = "done";
@@ -730,7 +748,7 @@ function render(now) {
     e.box.style.width = w + "px"; e.box.style.height = h + "px";
     if (t.state === "seen" && !t.partial) e.ring.style.strokeDashoffset = 81.7 * (1 - steadiness(t, now));
     // status chip above the box
-    const chip = st === "partial" ? "Move back to fit it in" : st === "seen" ? "" : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" ? "Couldn't read · tap to retry" : "";
+    const chip = DEBUG && st === "seen" ? `${Math.round(100 * steadiness(t, now))}% · ${t.dbg || ""}` : st === "partial" ? "Move back to fit it in" : st === "seen" ? (now - t.born > 1200 ? "Hold steady · or tap to read" : "") : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" || st === "ignored" ? (DEBUG && t.tried ? t.tried : st === "failed" ? "Couldn't read · tap to retry" : "Not recognised · tap to retry") : "";
     e.chip.hidden = !chip; if (chip && e.chip.textContent !== chip) e.chip.textContent = chip;
     if (chip) { const cw = e.chip.offsetWidth; e.chip.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - cw, w / 2 - cw / 2))}px,${y > 110 ? -36 : h + 8}px)`; }
     // result card below the box (or above if there's no room), kept on screen
