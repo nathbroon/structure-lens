@@ -414,7 +414,7 @@ function flattenPaper(c) {
 }
 
 /* ---------- detector ---------- */
-const PROC = 360;                       // long side of the analysis frame
+const PROC_SHORT = 240, PROC_LONG = 560;   // analysis frame: short side, capped long side
 const proc = document.createElement("canvas"), pg = proc.getContext("2d", { willReadFrequently: true });
 let REG = { sx: 0, sy: 0, k: 1, key: "" };   // on-screen part of the video frame, and video px per analysis px
 let QW = 0, QH = 0, qa = null, qb = null, haveQ = false;
@@ -447,6 +447,7 @@ function detect() {
       ink[y * W + x] = m > 80 && v < m - Math.max(14, 0.14 * m) ? 1 : 0;
     }
   }
+  removeLines(W, H, S);
   integral(ink, IK, W, H);
   // 2. dilate so bonds, rings and atom labels join into one blob
   const D = 3;
@@ -469,7 +470,7 @@ function detect() {
       if (y > 0 && dil[j - W] && !lab[j - W]) { lab[j - W] = id; stack[sp++] = j - W; }
       if (y < H - 1 && dil[j + W] && !lab[j + W]) { lab[j + W] = id; stack[sp++] = j + W; }
     }
-    comps.push({ x0: mnx, y0: mny, x1: mxx + 1, y1: mxy + 1, area });
+    comps.push({ x0: mnx, y0: mny, x1: mxx + 1, y1: mxy + 1, area, ids: [id] });
   }
   // 4. group nearby blobs (a salt, a detached label, a wedge that did not touch)
   // Words and captions (short, wide, on their own) are left out so "Figure 2" doesn't join the drawing;
@@ -479,15 +480,18 @@ function detect() {
   // background; it is kept on its own and never merged into a structure next to it.
   const offEdge = c => c.x0 <= 1 || c.y0 <= 1 || c.x1 >= W - 1 || c.y1 >= H - 1;
   let boxes = comps.filter(c => Math.max(c.x1 - c.x0, c.y1 - c.y0) >= 5 && !isWord(c)).sort((a, b) => b.area - a.area).slice(0, 300);
-  boxes.forEach(c => c.edge = offEdge(c));
+  boxes.forEach(c => { c.edge = offEdge(c); const w = c.x1 - c.x0 - 2 * D, h = c.y1 - c.y0 - 2 * D; c.line = Math.max(w, h) > 5 * Math.max(1, Math.min(w, h)) && Math.max(w, h) > 0.08 * S; });
   const gap = Math.round(0.02 * Math.max(W, H));
   for (let changed = true; changed;) {
     changed = false;
     for (let a = 0; a < boxes.length && !changed; a++) for (let b = a + 1; b < boxes.length; b++) {
       const A = boxes[a], B = boxes[b];
-      if (A.edge || B.edge) continue;
+      if (A.edge || B.edge || A.line || B.line) continue;
+      // only a small piece (an atom label, a counter-ion) joins a bigger one, so separate
+      // things in a row (icons, neighbouring structures) can't chain together
+      if (Math.min(A.area, B.area) > 0.35 * Math.max(A.area, B.area) && Math.min(A.area, B.area) > 0.002 * W * H) continue;
       if (A.x0 - gap <= B.x1 && B.x0 - gap <= A.x1 && A.y0 - gap <= B.y1 && B.y0 - gap <= A.y1) {
-        boxes[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), area: A.area + B.area, edge: false };
+        boxes[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), area: A.area + B.area, edge: false, line: false, ids: A.ids.concat(B.ids) };
         boxes.splice(b, 1); changed = true; break;
       }
     }
@@ -498,6 +502,7 @@ function detect() {
     const w = b.x1 - b.x0, h = b.y1 - b.y0, A = w * h;
     if (Math.min(w, h) < 0.08 * S || Math.max(w, h) < 0.16 * S) continue;          // too small even to keep tracking
     if (w > 0.97 * W && h > 0.97 * H) continue;                                        // the whole view
+    if (b.edge && (w > 0.75 * W || h > 0.75 * H)) continue;                           // something big running off the picture: background
     if (Math.max(w, h) / Math.min(w, h) > 4.5) continue;                              // a line of text, a rule
     const inkN = rect(IK, W, b.x0, b.y0, b.x1, b.y1), dens = inkN / A, fill = b.area / A;
     if (dens < 0.012 || dens > 0.26 || fill < 0.06 || fill > 0.72) continue;          // empty, solid or a text block
@@ -508,7 +513,7 @@ function detect() {
     // Only a big blob in the aiming area starts a new structure (keeps icons out);
     // a structure already found keeps being followed as it drifts or shrinks.
     const aim = Math.abs(cx) <= 0.3 && Math.abs(cy) <= 0.3 && Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
-    cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, aim, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
+    cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, aim, ids: b.ids, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
   }
   cands.sort((a, b) => b.score - a.score);
   if (DEBUG) drawDebug(cands);
@@ -532,6 +537,34 @@ function cameraShift(W) {
     if (s < best) { best = s; bx = dx; by = dy; }
   }
   return { shift: { x: 4 * bx, y: 4 * by }, motion: best };
+}
+/* Long straight lines (table and poster grids, rules, underlines, screen and paper edges) are
+   erased from the ink before anything else, so a structure next to one isn't joined to it.
+   Traced with a little drift allowed, as photographed lines are rarely exactly level. */
+function removeLines(W, H, S) {
+  const L = Math.round(0.2 * S), kill = new Uint8Array(W * H), at = (x, y) => x >= 0 && y >= 0 && x < W && y < H && ink[y * W + x];
+  for (const vert of [false, true]) {
+    const A = vert ? H : W, B = vert ? W : H;                     // walk along a, drift across b
+    const seen = new Uint8Array(W * H), px = [];
+    const get = (a, b) => vert ? at(b, a) : at(a, b), idx = (a, b) => vert ? a * W + b : b * W + a;
+    for (let b0 = 0; b0 < B; b0++) for (let a0 = 0; a0 < A; a0++) {
+      if (!get(a0, b0) || seen[idx(a0, b0)] || get(a0 - 1, b0)) continue;
+      px.length = 0; let a = a0, b = b0, gap = 0, since = 9;
+      while (a < A) {
+        let nb = null;
+        if (get(a, b)) nb = b; else if (since >= 4 && get(a, b - 1)) nb = b - 1; else if (since >= 4 && get(a, b + 1)) nb = b + 1;
+        if (nb === null) { if (++gap > 1) break; a++; continue; }
+        since = nb === b ? since + 1 : 0; b = nb; gap = 0;
+        px.push(idx(a, b)); seen[idx(a, b)] = 1; a++;
+      }
+      if (px.length >= L) for (const i of px) {
+        kill[i] = 1;
+        if (vert) { if (i % W > 0) kill[i - 1] = 1; if (i % W < W - 1) kill[i + 1] = 1; }
+        else { if (i >= W) kill[i - W] = 1; if (i < W * (H - 1)) kill[i + W] = 1; }
+      }
+    }
+  }
+  for (let i = 0; i < W * H; i++) if (kill[i]) ink[i] = 0;
 }
 // Text: several ink bands of similar height separated by empty rows.
 function isText(b, w, h) {
@@ -575,7 +608,7 @@ function updateTracks(cands, now, motion, shift) {
     if (usedT.has(t) || used.has(i)) continue;
     usedT.add(t); used.add(i); const c = cands[i];
     accrue(t, c, now, motion, shift);
-    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.partial = c.partial;
+    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.partial = c.partial; if (c.partial) t.wasPartial = now;
     t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: Math.hypot(shift.x, shift.y) });
     while (t.hist.length && now - t.hist[0].t > 1500) t.hist.shift();
   }
@@ -613,7 +646,7 @@ function accrue(t, c, now, motion, shift) {
 }
 function steadiness(t, now) {
   if (t.partial) return 0;
-  if (now - t.born > 2500 && now - t.last < 800) return 1;          // in the frame long enough: read it anyway
+  if (now - t.born > 2500 && now - t.last < 800 && now - (t.wasPartial || 0) > 1000) return 1;   // in the frame long enough: read it anyway
   return t.prog || 0;
 }
 function steadinessOld(t, now) {
@@ -645,6 +678,25 @@ function cropFromVideo(b) {
   const sw = x1 - x0, sh = y1 - y0, f = Math.min(1, 1024 / Math.max(sw, sh));
   const c = document.createElement("canvas"); c.width = Math.round(sw * f); c.height = Math.round(sh * f);
   const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(cam, x0, y0, sw, sh, 0, 0, c.width, c.height);
+  c._map = { x0, y0, f };
+  return c;
+}
+/* Blank everything in the crop that isn't this structure's own ink (grid lines, a neighbouring
+   structure, captions), using the blobs the detector grouped for it in this frame. */
+function isolate(c, ids) {
+  const W = PW, H = PH, R = 3, set = new Set(ids), m = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) if (set.has(lab[i])) m[i] = 1;
+  const I = new Uint32Array((W + 1) * (H + 1)); integral(m, I, W, H);
+  const { x0, y0, f } = c._map, g = c.getContext("2d"), id = g.getImageData(0, 0, c.width, c.height), p = id.data;
+  for (let y = 0; y < c.height; y++) {
+    const py = Math.round((y0 + y / f - REG.sy) / REG.k);
+    for (let x = 0; x < c.width; x++) {
+      const px = Math.round((x0 + x / f - REG.sx) / REG.k);
+      const ax = Math.max(0, px - R), ay = Math.max(0, py - R), bx = Math.min(W, px + R + 1), by = Math.min(H, py + R + 1);
+      if (bx <= ax || by <= ay || rect(I, W, ax, ay, bx, by) === 0) { const o = 4 * (y * c.width + x); p[o] = p[o + 1] = p[o + 2] = 255; }
+    }
+  }
+  g.putImageData(id, 0, 0);
   return c;
 }
 async function read(t) {
@@ -653,6 +705,7 @@ async function read(t) {
   let c = null;
   try {
     c = flattenPaper(cropFromVideo(t.raw));
+    if (t.last === lastDetect && t.raw.ids) isolate(c, t.raw.ids);
     if (DEBUG) (window.crops = window.crops || []).push({ id: t.id, png: c.toDataURL("image/png") });
     const x = decimerInput(c); freeCanvas(c); c = null;
     const r = await engine.predict(x, n => { t.state = "reading"; t.steps = n; });
@@ -804,7 +857,7 @@ function openDetails(smi) {
 }
 
 /* ---------- camera loop ---------- */
-let stream = null, paused = false, lastProc = 0, running = false;
+let stream = null, paused = false, lastProc = 0, running = false, lastDetect = -1;
 function frame(now) {
   if (!running) return;
   if (!paused && cam.readyState >= 2 && now - lastProc > 75) {
@@ -812,11 +865,12 @@ function frame(now) {
     // Only the part of the frame shown on screen (the video fills it with object-fit: cover).
     const vw = cam.videoWidth, vh = cam.videoHeight, s = Math.max(innerWidth / vw, innerHeight / vh);
     const visW = Math.min(vw, innerWidth / s), visH = Math.min(vh, innerHeight / s), sx = (vw - visW) / 2, sy = (vh - visH) / 2;
-    const k = PROC / Math.max(visW, visH), w = Math.round(visW * k), h = Math.round(visH * k), key = [vw, vh, w, h].join();
+    const k = Math.min(PROC_SHORT / Math.min(visW, visH), PROC_LONG / Math.max(visW, visH)), w = Math.round(visW * k), h = Math.round(visH * k), key = [vw, vh, w, h].join();
     if (key !== REG.key) { alloc(w, h); proc.width = w; proc.height = h; tracks.forEach(dropEl); tracks = []; graveyard = []; }
     REG = { sx, sy, k: visW / w, key };
     pg.drawImage(cam, sx, sy, visW, visH, 0, 0, w, h);
     const { cands, motion, shift } = detect();
+    lastDetect = now;
     updateTracks(cands, now, motion, shift);
     schedule(now);
   }
