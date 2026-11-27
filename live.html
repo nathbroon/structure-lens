@@ -475,14 +475,19 @@ function detect() {
   // Words and captions (short, wide, on their own) are left out so "Figure 2" doesn't join the drawing;
   // atom labels survive because the dilation has already joined them to their bonds.
   const isWord = c => { const w = c.x1 - c.x0 - 2 * D, h = c.y1 - c.y0 - 2 * D; return h > 0 && h < 0.06 * S && w / h > 2.2 && w < 0.4 * S; };
+  // Anything running off the picture (paper or screen edge, desk, shadow, a line of text) is
+  // background; it is kept on its own and never merged into a structure next to it.
+  const offEdge = c => c.x0 <= 1 || c.y0 <= 1 || c.x1 >= W - 1 || c.y1 >= H - 1;
   let boxes = comps.filter(c => Math.max(c.x1 - c.x0, c.y1 - c.y0) >= 5 && !isWord(c)).sort((a, b) => b.area - a.area).slice(0, 300);
+  boxes.forEach(c => c.edge = offEdge(c));
   const gap = Math.round(0.02 * Math.max(W, H));
   for (let changed = true; changed;) {
     changed = false;
     for (let a = 0; a < boxes.length && !changed; a++) for (let b = a + 1; b < boxes.length; b++) {
       const A = boxes[a], B = boxes[b];
+      if (A.edge || B.edge) continue;
       if (A.x0 - gap <= B.x1 && B.x0 - gap <= A.x1 && A.y0 - gap <= B.y1 && B.y0 - gap <= A.y1) {
-        boxes[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), area: A.area + B.area };
+        boxes[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), area: A.area + B.area, edge: false };
         boxes.splice(b, 1); changed = true; break;
       }
     }
@@ -748,7 +753,7 @@ function render(now) {
     e.box.style.width = w + "px"; e.box.style.height = h + "px";
     if (t.state === "seen" && !t.partial) e.ring.style.strokeDashoffset = 81.7 * (1 - steadiness(t, now));
     // status chip above the box
-    const chip = DEBUG && st === "seen" ? `${Math.round(100 * steadiness(t, now))}% · ${t.dbg || ""}` : st === "partial" ? "Move back to fit it in" : st === "seen" ? (now - t.born > 1200 ? "Hold steady · or tap to read" : "") : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" || st === "ignored" ? (DEBUG && t.tried ? t.tried : st === "failed" ? "Couldn't read · tap to retry" : "Not recognised · tap to retry") : "";
+    const chip = DEBUG && st === "seen" ? `${Math.round(100 * steadiness(t, now))}% · ${t.dbg || ""}` : st === "partial" ? "Move back a little" : st === "seen" ? (now - t.born > 1200 ? "Hold steady · or tap to read" : "") : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" || st === "ignored" ? (DEBUG && t.tried ? t.tried : st === "failed" ? "Couldn't read · tap to retry" : "Not recognised · tap to retry") : "";
     e.chip.hidden = !chip; if (chip && e.chip.textContent !== chip) e.chip.textContent = chip;
     if (chip) { const cw = e.chip.offsetWidth; e.chip.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - cw, w / 2 - cw / 2))}px,${y > 110 ? -36 : h + 8}px)`; }
     // result card below the box (or above if there's no room), kept on screen
@@ -790,7 +795,7 @@ function render(now) {
   const any = tracks.length > 0, hint = $("#hint");
   const live = tracks.filter(t => t.state !== "ignored");
   document.body.classList.toggle("locked", live.length > 0);
-  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? "Centre one structure, close enough to fill the frame" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
+  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? "Centre one structure inside the corners" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
   hint.style.opacity = hint.textContent ? 1 : 0;
 }
 function openDetails(smi) {
