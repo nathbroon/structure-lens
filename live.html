@@ -62,6 +62,11 @@ button{font:inherit;color:inherit}
 .trk.done .box{--c:#fff}
 .trk.failed .box{--c:var(--bad-hi)}
 .trk.stale{opacity:.35}
+.trk.quiet{display:none}
+body.all .dot,body.all .aim{display:none}
+.dot{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:2}
+.dot::before,.dot::after{content:"";position:absolute;background:#fff;box-shadow:0 0 3px rgba(0,0,0,.7);border-radius:2px}
+.dot::before{left:12px;top:0;width:2px;height:26px} .dot::after{top:12px;left:0;height:2px;width:26px}
 .trk.ignored .box{--c:var(--bad-hi)} .trk.ignored .chip{color:var(--bad-hi)}
 .aim{position:fixed;left:20%;right:20%;top:20%;bottom:20%;pointer-events:none;z-index:1}
 .aim i{position:absolute;width:28px;height:28px;border:2px solid rgba(255,255,255,.55)}
@@ -126,6 +131,7 @@ body.locked .aim{opacity:0;transition:opacity .3s}
 <div id="stage">
   <video id="cam" playsinline muted autoplay></video>
   <div class="aim" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="dot" aria-hidden="true"></div>
   <div id="layer"></div>
 </div>
 
@@ -137,6 +143,7 @@ body.locked .aim{opacity:0;transition:opacity .3s}
 <nav class="controls">
   <button class="cb" id="clearBtn" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Clear</button>
   <button class="cb main" id="pauseBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><span>Freeze</span></button>
+  <button class="cb" id="modeBtn" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>One</span></button>
   <button class="cb" id="torchBtn" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><path d="M8 2h8l-2 7h-4zM10 9h4v13h-4z"/></svg>Light</button>
 </nav>
 <canvas id="dbg"></canvas>
@@ -170,6 +177,7 @@ const HOME_URL = "https://structure-lens.croftware.com/";
 const CACHE_NAME = "structure-lens-decimer-v1";          // same cache as the main page: one download for both
 const MODEL_FILES = ["encoder.onnx", "decoder_step.onnx", "vocab.json"];
 const OFFLINE = !!window.SL_OFFLINE;
+let MODE = (() => { try { return localStorage.getItem("sl.liveMode") === "all" ? "all" : "one"; } catch { return "one"; } })();
 const DEBUG = /[?&#]debug\b/.test(location.search + location.hash);
 
 const $ = s => document.querySelector(s);
@@ -236,13 +244,13 @@ async function load(m) {
   enc = await ort.InferenceSession.create(bufs[0], opt);
   dec = await ort.InferenceSession.create(bufs[1], opt);
 }
-async function predict(x, id) {
+async function predict(x, id, maxTok) {
   const eo = await enc.run({ [enc.inputNames[0]]: new ort.Tensor("float32", x, [512, 512, 3]) });
   const feat = eo[enc.outputNames[0]];
   const tokName = dec.inputNames.find(n => /Stack|TensorList/.test(n)) || dec.inputNames[0];
   const featName = dec.inputNames.find(n => n !== tokName);
   const seq = [TOK_START], probs = [];
-  for (let step = 0; step < MAX_TOKENS; step++) {
+  for (let step = 0; step < maxTok; step++) {
     const out = await dec.run({ [tokName]: new ort.Tensor("int32", Int32Array.from(seq), [seq.length, 1]), [featName]: feat });
     const lg = out[dec.outputNames[0]].data, V = out[dec.outputNames[0]].dims.at(-1), off = lg.length - V;
     let best = 0; for (let k = 1; k < V; k++) if (lg[off + k] > lg[off + best]) best = k;
@@ -264,7 +272,7 @@ self.onmessage = async e => {
   const m = e.data;
   try {
     if (m.type === "load") { await load(m); postMessage({ type: "ready" }); }
-    else if (m.type === "predict") postMessage({ type: "result", id: m.id, r: await predict(m.x, m.id) });
+    else if (m.type === "predict") postMessage({ type: "result", id: m.id, r: await predict(m.x, m.id, m.max || MAX_TOKENS) });
   } catch (err) { postMessage({ type: "error", id: m.id, message: String((err && err.message) || err) }); }
 };`;
 
@@ -329,7 +337,7 @@ const engine = {
   async predict(x, onStep) {
     await this.load();
     const id = this.nextId++;
-    return new Promise((res, rej) => { this.pending.set(id, { res, rej, onStep }); this.w.postMessage({ type: "predict", id, x }, [x.buffer]); });
+    return new Promise((res, rej) => { this.pending.set(id, { res, rej, onStep }); this.w.postMessage({ type: "predict", id, x, max: 160 }, [x.buffer]); });
   }
 };
 
@@ -512,12 +520,17 @@ function detect() {
     const cx = (b.x0 + b.x1) / 2 / W - 0.5, cy = (b.y0 + b.y1) / 2 / H - 0.5;
     // Only a big blob in the aiming area starts a new structure (keeps icons out);
     // a structure already found keeps being followed as it drifts or shrinks.
-    const aim = Math.abs(cx) <= 0.3 && Math.abs(cy) <= 0.3 && Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
+    const tol = 0.06 * S, onCentre = b.x0 - tol <= W / 2 && W / 2 <= b.x1 + tol && b.y0 - tol <= H / 2 && H / 2 <= b.y1 + tol;
+    const big = MODE === "all" ? Math.min(w, h) >= 0.1 * S && Math.max(w, h) >= 0.2 * S : Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
+    const inBand = Math.abs(cy) <= 0.36 && Math.abs(cx) <= 0.42;              // not in toolbars and docks at the top and bottom
+    const aim = (MODE === "all" ? inBand : onCentre) && big && !edge;
     cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, aim, ids: b.ids, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
   }
   cands.sort((a, b) => b.score - a.score);
+  // one target: only the best blob under the centre dot may start a new structure
+  if (MODE === "one") { let first = true; for (const c of cands) if (c.aim) { if (!first) c.aim = false; first = false; } }
   if (DEBUG) drawDebug(cands);
-  return { cands: cands.slice(0, 6), motion, shift };
+  return { cands: cands.slice(0, MODE === "all" ? 12 : 6), motion, shift };
 }
 /* How far the picture moved since the last frame (hand shake, panning), by block matching at
    quarter resolution. Boxes follow this between detections, so a blurred or missed frame
@@ -608,7 +621,7 @@ function updateTracks(cands, now, motion, shift) {
     if (usedT.has(t) || used.has(i)) continue;
     usedT.add(t); used.add(i); const c = cands[i];
     accrue(t, c, now, motion, shift);
-    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.partial = c.partial; if (c.partial) t.wasPartial = now;
+    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.hits = (t.hits || 0) + 1; t.partial = c.partial; if (c.partial) t.wasPartial = now;
     t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: Math.hypot(shift.x, shift.y) });
     while (t.hist.length && now - t.hist[0].t > 1500) t.hist.shift();
   }
@@ -620,7 +633,7 @@ function updateTracks(cands, now, motion, shift) {
     const t = g || { id: nextTrack++, state: "seen", born: now };
     if (g) graveyard.splice(graveyard.indexOf(g), 1);
     if (!g) { t.prog = 0; t.upd = now; }
-    Object.assign(t, { raw: c, box: { ...c }, last: now, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: 0 }] });
+    Object.assign(t, { raw: c, box: { ...c }, last: now, hits: g ? 9 : 1, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: 0 }] });
     tracks.push(t);
   });
   for (const t of [...tracks]) {
@@ -662,9 +675,11 @@ function steadinessOld(t, now) {
 }
 function schedule(now) {
   if (busy) return;
-  const ready = tracks.filter(t => (t.state === "seen" || (t.state === "failed" && (t.fails || 0) < 2 && now > t.retryAt)) && (t.force || steadiness(t, now) >= 1));
+  const S = Math.min(PW, PH), tol = 0.06 * S;
+  const centred = t => { const r = t.raw; return r.x - tol <= PW / 2 && PW / 2 <= r.x + r.w + tol && r.y - tol <= PH / 2 && PH / 2 <= r.y + r.h + tol; };
+  const ready = tracks.filter(t => (t.state === "seen" || (t.state === "failed" && (t.fails || 0) < 2 && now > t.retryAt)) && (t.force || ((t.hits || 0) >= (MODE === "all" ? 8 : 4) && (MODE === "all" || centred(t)) && steadiness(t, now) >= 1)));
   if (!ready.length) return;
-  ready.sort((a, b) => (b.force ? 1 : 0) - (a.force ? 1 : 0) || b.raw.score - a.raw.score);
+  ready.sort((a, b) => (b.force ? 1 : 0) - (a.force ? 1 : 0) || b.raw.score - a.raw.score);   // biggest and most central first
   read(ready[0]);
 }
 
@@ -801,7 +816,8 @@ function render(now) {
     const e = el(t), { x, y, w, h } = scr.get(t);
     const stale = now - t.last > 900;
     const st = t.partial && t.state === "seen" ? "partial" : t.state;
-    e.root.className = "trk " + st + (stale ? " stale" : "");
+    const quiet = MODE === "all" ? ((st === "seen" || st === "partial") && ((t.hits || 0) < 8 || !t.raw.aim)) || st === "ignored" || st === "failed" : (st === "seen" || st === "partial") && ((t.hits || 0) < 4 || !(t.raw.aim || t.hits >= 4 && Math.abs(t.raw.x + t.raw.w / 2 - PW / 2) < t.raw.w / 2 + 0.06 * Math.min(PW, PH) && Math.abs(t.raw.y + t.raw.h / 2 - PH / 2) < t.raw.h / 2 + 0.06 * Math.min(PW, PH)));
+    e.root.className = "trk " + st + (stale ? " stale" : "") + (quiet ? " quiet" : "");
     e.root.style.transform = `translate(${x}px,${y}px)`;
     e.box.style.width = w + "px"; e.box.style.height = h + "px";
     if (t.state === "seen" && !t.partial) e.ring.style.strokeDashoffset = 81.7 * (1 - steadiness(t, now));
@@ -846,9 +862,9 @@ function render(now) {
     }
   }
   const any = tracks.length > 0, hint = $("#hint");
-  const live = tracks.filter(t => t.state !== "ignored");
+  const live = tracks.filter(t => t.state !== "ignored" && !(t.el && t.el.root.classList.contains("quiet")));
   document.body.classList.toggle("locked", live.length > 0);
-  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? "Centre one structure inside the corners" : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
+  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? (MODE === "all" ? "Point at a page of structures" : "Put the cross on a structure") : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
   hint.style.opacity = hint.textContent ? 1 : 0;
 }
 function openDetails(smi) {
@@ -913,6 +929,18 @@ $("#pauseBtn").addEventListener("click", () => {
   paused ? cam.pause() : cam.play().catch(() => {});
   if (!paused) { haveQ = false; const n = performance.now(); tracks.forEach(t => { t.last = n; t.hist = t.hist.slice(-1); t.hist[0].t = n; }); }
 });
+function applyMode() {
+  const b = $("#modeBtn"), all = MODE === "all";
+  b.querySelector("span").textContent = all ? "All" : "One";
+  b.querySelector("svg").innerHTML = all ? '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>' : '<path d="M12 5v14M5 12h14"/>';
+  document.body.classList.toggle("all", all);
+}
+$("#modeBtn").addEventListener("click", () => {
+  MODE = MODE === "all" ? "one" : "all";
+  try { localStorage.setItem("sl.liveMode", MODE); } catch {}
+  applyMode(); toast(MODE === "all" ? "All: every structure in view is read, nearest the centre first" : "One: only the structure under the cross is read", 2600);
+});
+applyMode();
 $("#clearBtn").addEventListener("click", () => { tracks.forEach(dropEl); graveyard.forEach(dropEl); tracks = []; graveyard = []; });
 $("#torchBtn").addEventListener("click", async () => {
   const b = $("#torchBtn"), on = b.getAttribute("aria-pressed") !== "true";
