@@ -25,15 +25,15 @@ try {
 <meta name="apple-mobile-web-app-title" content="Structure Lens">
 <title>Structure Lens · Live</title>
 <meta name="author" content="Nathan Brown, Croftware">
-<meta name="description" content="Point your phone at drawn chemical structures and see them named, with their properties, live on the camera view.">
+<meta name="description" content="Point your phone at a drawn chemical structure, hold steady, and see it named with its properties.">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* One full-screen camera view. Each structure found gets corner brackets that follow it;
-   once read, a card is pinned under it. Colours follow the main app. */
+/* Calm layout: the camera image, a fixed cross with a ring that fills while you hold steady,
+   and results docked at the bottom. Nothing floats or follows the camera. */
 :root{
   --ink:#16202B; --muted:#5B6773; --line:#D9DFE5; --surface:#FFFFFF;
   --accent:#2148C0; --accent-hi:#6E92FF; --good:#1E7A4C; --good-soft:#E3F3EA;
@@ -45,76 +45,60 @@ try {
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:#000;color:#fff;font:16px/1.35 var(--f-body);overflow:hidden;overscroll-behavior:none}
 button{font:inherit;color:inherit}
-#stage{position:fixed;inset:0;touch-action:manipulation}
+#stage{position:fixed;inset:0}
 #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
-#layer{position:absolute;inset:0;pointer-events:none}
+#frame{position:absolute;left:0;top:0;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .2s}
+#frame.on{opacity:1}
 
-/* tracked structure */
-.trk{position:absolute;left:0;top:0;will-change:transform}
-.box{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;--c:rgba(255,255,255,.85);transition:opacity .25s}
-.box i{position:absolute;width:22px;height:22px;border:3px solid var(--c);filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
-.box i:nth-child(1){left:-3px;top:-3px;border-right:0;border-bottom:0;border-top-left-radius:8px}
-.box i:nth-child(2){right:-3px;top:-3px;border-left:0;border-bottom:0;border-top-right-radius:8px}
-.box i:nth-child(3){left:-3px;bottom:-3px;border-right:0;border-top:0;border-bottom-left-radius:8px}
-.box i:nth-child(4){right:-3px;bottom:-3px;border-left:0;border-top:0;border-bottom-right-radius:8px}
-.trk.partial .box{--c:var(--warn-hi)}
-.trk.reading .box,.trk.waiting .box{--c:var(--accent-hi);animation:pulse 1s ease-in-out infinite}
-.trk.done .box{--c:#fff}
-.trk.failed .box{--c:var(--bad-hi)}
-.trk.stale{opacity:.35}
-.trk.quiet{display:none}
-body.all .dot,body.all .aim{display:none}
-.dot{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:2}
-.dot::before,.dot::after{content:"";position:absolute;background:#fff;box-shadow:0 0 3px rgba(0,0,0,.7);border-radius:2px}
-.dot::before{left:12px;top:0;width:2px;height:26px} .dot::after{top:12px;left:0;height:2px;width:26px}
-.trk.ignored .box{--c:var(--bad-hi)} .trk.ignored .chip{color:var(--bad-hi)}
-.aim{position:fixed;left:20%;right:20%;top:20%;bottom:20%;pointer-events:none;z-index:1}
-.aim i{position:absolute;width:28px;height:28px;border:2px solid rgba(255,255,255,.55)}
-.aim i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-top-left-radius:10px}
-.aim i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-top-right-radius:10px}
-.aim i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-bottom-left-radius:10px}
-.aim i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-bottom-right-radius:10px}
-body.locked .aim{opacity:0;transition:opacity .3s}
-@keyframes pulse{50%{opacity:.45}}
-.ring{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;opacity:0;transition:opacity .2s}
-.trk.seen .ring{opacity:1}
-.ring circle{fill:none;stroke-width:4}
-.ring .bg{stroke:rgba(0,0,0,.35)} .ring .fg{stroke:#fff;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+/* the cross and its ring: fixed in the middle of the screen */
+.aim{position:fixed;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;pointer-events:none;z-index:2}
+.aim svg{width:100%;height:100%;overflow:visible}
+.aim .x{stroke:#fff;stroke-width:2.5;stroke-linecap:round;filter:drop-shadow(0 0 2px rgba(0,0,0,.8))}
+.aim .bg{fill:none;stroke:rgba(0,0,0,.35);stroke-width:5}
+.aim .fg{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .1s linear}
+.aim.found .x{stroke:var(--accent-hi)} .aim.found .fg{stroke:var(--accent-hi)}
+.aim.edge .fg{stroke:var(--warn-hi)}
+.aim.busy .fg{stroke:var(--accent-hi);stroke-dasharray:60 180!important;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(270deg)}}
 
-.chip{position:absolute;left:0;top:0;white-space:nowrap;font:500 .82rem var(--f-mono);padding:5px 10px;border-radius:999px;background:rgba(15,20,25,.78);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none}
-.trk.partial .chip{color:var(--warn-hi)} .trk.failed .chip{color:var(--bad-hi)}
-
-.card{position:absolute;left:0;top:0;width:min(280px,calc(100vw - 20px));background:var(--surface);color:var(--ink);border-radius:14px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;display:grid;grid-template-columns:84px 1fr;gap:6px 10px;align-items:center;animation:pop .22s ease-out}
-@keyframes pop{from{opacity:0;transform:scale(.94)}}
-.card .hd{min-width:0}
-.card .th{width:84px;height:64px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
-.card .th svg{width:100%;height:100%}
-.card .nm{font:700 1.02rem/1.2 var(--f-head);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.card .fm{font:500 .8rem var(--f-mono);color:var(--muted)}
-.card .fm sub{font-size:.75em}
-.card .pr{grid-column:1 / -1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-top:6px}
-.card .pr div{display:flex;flex-direction:column;align-items:center;gap:1px}
-.card .pr b{font:500 .9rem var(--f-mono)} .card .pr small{font-size:.68rem;color:var(--muted)}
-.mini{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;background:#fff;color:var(--ink);border-radius:999px;padding:5px 12px 5px 10px;white-space:nowrap;font:700 .88rem var(--f-head);box-shadow:0 4px 14px rgba(0,0,0,.4);animation:pop .22s ease-out}
-.mini span{font:500 .76rem var(--f-mono);color:var(--muted);margin-left:6px}
-.card .ft{grid-column:1 / -1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.8rem}
-.tag{padding:2px 8px;border-radius:999px;font-weight:700;font-size:.72rem}
-.tag.ok{background:var(--good-soft);color:var(--good)} .tag.no{background:#FBEFD9;color:var(--warn)} .tag.lo{background:#FBE4E5;color:var(--bad)}
-.card .go{margin-left:auto;color:var(--accent);font-weight:700}
-
-/* chrome */
 .top{position:fixed;left:0;right:0;top:0;padding:calc(var(--sat) + 10px) 14px 26px;display:flex;align-items:center;gap:10px;background:linear-gradient(rgba(0,0,0,.55),transparent);z-index:5}
 .back{color:#fff;text-decoration:none;font:700 1.05rem var(--f-head);display:flex;align-items:center;gap:8px}
 .back img{width:26px;height:26px;border-radius:7px}
 .back small{font:500 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:5px;padding:2px 6px}
 .pill{margin-left:auto;font:500 .75rem var(--f-mono);padding:5px 10px;border-radius:999px;background:rgba(15,20,25,.7);max-width:55vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill.bad{color:var(--bad-hi)}
-.hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 92px);font-size:.9rem;background:rgba(15,20,25,.7);padding:7px 14px;border-radius:999px;white-space:nowrap;z-index:5;transition:opacity .3s;pointer-events:none}
-.controls{position:fixed;left:0;right:0;bottom:0;padding:24px 16px calc(var(--sab) + 16px);display:flex;justify-content:center;gap:14px;background:linear-gradient(transparent,rgba(0,0,0,.6));z-index:5}
-.cb{min-width:64px;height:56px;border-radius:16px;border:0;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;padding:0 12px}
+
+/* bottom: hint, results dock, controls */
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:0 0 calc(var(--sab) + 12px);background:linear-gradient(transparent,rgba(0,0,0,.7) 30%)}
+.hint{display:block;width:max-content;max-width:90vw;margin:0 auto 10px;font-size:.92rem;background:rgba(15,20,25,.75);padding:7px 14px;border-radius:999px;text-align:center}
+.hint.warn{color:var(--warn-hi)} .hint.busy{color:var(--accent-hi)}
+.dock{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 14px 12px;scrollbar-width:none}
+.dock::-webkit-scrollbar{display:none}
+.card{flex:0 0 min(300px,calc(100vw - 48px));scroll-snap-align:center;background:var(--surface);color:var(--ink);border-radius:14px;padding:10px;display:grid;grid-template-columns:84px 1fr;gap:6px 10px;align-items:center;cursor:pointer;animation:pop .22s ease-out}
+.dock .card:only-child{margin:0 auto}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.card .th{width:84px;height:64px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.card .th svg,.card .th img{width:100%;height:100%;object-fit:contain}
+.card .hd{min-width:0}
+.card .nm{font:700 1.02rem/1.2 var(--f-head);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card .fm{font:500 .8rem var(--f-mono);color:var(--muted)} .card .fm sub{font-size:.75em}
+.card .pr{grid-column:1 / -1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-top:6px}
+.card .pr div{display:flex;flex-direction:column;align-items:center;gap:1px}
+.card .pr b{font:500 .9rem var(--f-mono)} .card .pr small{font-size:.68rem;color:var(--muted)}
+.card .ft{grid-column:1 / -1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.8rem}
+.card.fail{grid-template-columns:84px 1fr}
+.card.fail .nm{color:var(--bad)} .card.fail .msg{font-size:.84rem;color:var(--muted)}
+.tag{padding:2px 8px;border-radius:999px;font-weight:700;font-size:.72rem}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.no{background:#FBEFD9;color:var(--warn)} .tag.lo{background:#FBE4E5;color:var(--bad)}
+.card .go{margin-left:auto;color:var(--accent);font-weight:700}
+.controls{display:flex;justify-content:center;align-items:center;gap:26px;padding-top:4px}
+.cb{width:58px;height:58px;border-radius:50%;border:0;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.66rem}
 .cb svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cb[aria-pressed="true"]{background:#fff;color:var(--ink)} .cb[aria-pressed="true"] svg{stroke:var(--ink)}
-.cb.main{min-width:84px;background:var(--accent)}
+.shutter{width:76px;height:76px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.25);padding:0}
+.shutter i{display:block;width:58px;height:58px;margin:0 auto;border-radius:50%;background:#fff;transition:transform .12s}
+.shutter:active i{transform:scale(.88)}
+.shutter:disabled{opacity:.5}
 
 .start{position:fixed;inset:0;z-index:10;background:#0F1419;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(var(--sab) + 32px);text-align:center;gap:14px}
 .start img{width:72px;height:72px;border-radius:18px}
@@ -130,28 +114,32 @@ body.locked .aim{opacity:0;transition:opacity .3s}
 <body>
 <div id="stage">
   <video id="cam" playsinline muted autoplay></video>
-  <div class="aim" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-  <div class="dot" aria-hidden="true"></div>
-  <div id="layer"></div>
+  <div id="frame"></div>
+</div>
+<div class="aim" id="aim" aria-hidden="true">
+  <svg viewBox="0 0 84 84"><circle class="bg" cx="42" cy="42" r="36"/><circle class="fg" id="ring" cx="42" cy="42" r="36" stroke-dasharray="226.2" stroke-dashoffset="226.2"/><path class="x" d="M42 30v24M30 42h24"/></svg>
 </div>
 
 <header class="top">
   <a class="back" href="./" aria-label="Back to Structure Lens"><img src="icons/icon-192.png" alt="">Structure Lens <small>Live</small></a>
   <span class="pill" id="status" role="status">Starting</span>
 </header>
-<div class="hint" id="hint">Centre one structure in the frame</div>
-<nav class="controls">
-  <button class="cb" id="clearBtn" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Clear</button>
-  <button class="cb main" id="pauseBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg><span>Freeze</span></button>
-  <button class="cb" id="modeBtn" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>One</span></button>
-  <button class="cb" id="torchBtn" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><path d="M8 2h8l-2 7h-4zM10 9h4v13h-4z"/></svg>Light</button>
-</nav>
+
+<div class="bottom">
+  <div class="hint" id="hint">Put the cross on a structure</div>
+  <div class="dock" id="dock"></div>
+  <nav class="controls">
+    <button class="cb" id="clearBtn" type="button" aria-label="Clear results"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+    <button class="shutter" id="shutter" type="button" aria-label="Read the structure under the cross"><i></i></button>
+    <button class="cb" id="torchBtn" type="button" aria-pressed="false" aria-label="Light"><svg viewBox="0 0 24 24"><path d="M8 2h8l-2 7h-4zM10 9h4v13h-4z"/></svg></button>
+  </nav>
+</div>
 <canvas id="dbg"></canvas>
 
 <div class="start" id="start">
   <img src="icons/icon-192.png" alt="">
   <h1>Structure Lens Live</h1>
-  <p>Point the camera at drawn structures on paper, a screen or a slide. Hold steady and each one is read and labelled where it sits.</p>
+  <p>Put the cross on a drawn structure, on paper or a screen, and hold steady. It's read and its card appears at the bottom. Move the cross to the next one.</p>
   <button class="go" id="goBtn" type="button">Start camera</button>
   <p class="small" id="startNote">Recognition runs on this phone with DECIMER. The model (about 84 MB) downloads once, and is shared with the main page.</p>
   <p class="small"><a href="./">Back to Structure Lens</a></p>
@@ -163,13 +151,9 @@ body.locked .aim{opacity:0;transition:opacity .3s}
 "use strict";
 /* ================================================================
    Structure Lens Live · Nathan Brown, Croftware
-   Pipeline per camera frame (about 12 a second):
-     1. downscale to ~360 px, adaptive threshold for dark ink on a light ground
-     2. dilate and group the ink into blobs; keep blobs shaped like line drawings,
-        reject text blocks, solid areas and anything cut off by the frame edge
-     3. track blobs across frames; when one has held still for a moment, crop it
-        from the full-resolution frame and send it to DECIMER in a worker
-     4. check the SMILES with RDKit and pin a card (name, formula, properties) to it
+   Put the cross on a drawn structure and hold steady: the structure under the cross is found,
+   cropped from the full-resolution frame with everything else blanked, read by DECIMER in a
+   worker, checked with RDKit, and shown as a card docked at the bottom.
    ================================================================ */
 const RDKIT_WASM = "https://cdn.jsdelivr.net/npm/@rdkit/rdkit@2026.3.6/dist/RDKit_minimal.wasm";
 const ORT_DIST = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
@@ -177,7 +161,6 @@ const HOME_URL = "https://structure-lens.croftware.com/";
 const CACHE_NAME = "structure-lens-decimer-v1";          // same cache as the main page: one download for both
 const MODEL_FILES = ["encoder.onnx", "decoder_step.onnx", "vocab.json"];
 const OFFLINE = !!window.SL_OFFLINE;
-let MODE = (() => { try { return localStorage.getItem("sl.liveMode") === "all" ? "all" : "one"; } catch { return "one"; } })();
 const DEBUG = /[?&#]debug\b/.test(location.search + location.hash);
 
 const $ = s => document.querySelector(s);
@@ -521,16 +504,16 @@ function detect() {
     // Only a big blob in the aiming area starts a new structure (keeps icons out);
     // a structure already found keeps being followed as it drifts or shrinks.
     const tol = 0.06 * S, onCentre = b.x0 - tol <= W / 2 && W / 2 <= b.x1 + tol && b.y0 - tol <= H / 2 && H / 2 <= b.y1 + tol;
-    const big = MODE === "all" ? Math.min(w, h) >= 0.1 * S && Math.max(w, h) >= 0.2 * S : Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
+    const big = Math.min(w, h) >= 0.12 * S && Math.max(w, h) >= 0.25 * S;
     const inBand = Math.abs(cy) <= 0.36 && Math.abs(cx) <= 0.42;              // not in toolbars and docks at the top and bottom
-    const aim = (MODE === "all" ? inBand : onCentre) && big && !edge;
+    const aim = onCentre && big;
     cands.push({ x: b.x0, y: b.y0, w, h, partial: edge, aim, ids: b.ids, score: Math.sqrt(A) * (1 - 0.8 * Math.hypot(cx, cy)) });
   }
   cands.sort((a, b) => b.score - a.score);
   // one target: only the best blob under the centre dot may start a new structure
-  if (MODE === "one") { let first = true; for (const c of cands) if (c.aim) { if (!first) c.aim = false; first = false; } }
+  let first = true; for (const c of cands) if (c.aim) { if (!first) c.aim = false; first = false; }
   if (DEBUG) drawDebug(cands);
-  return { cands: cands.slice(0, MODE === "all" ? 12 : 6), motion, shift };
+  return { cands: cands.slice(0, 6), motion, shift };
 }
 /* How far the picture moved since the last frame (hand shake, panning), by block matching at
    quarter resolution. Boxes follow this between detections, so a blurred or missed frame
@@ -596,93 +579,6 @@ function drawDebug(cands) {
   g.putImageData(im, 0, 0); g.strokeStyle = "#f00"; g.lineWidth = 2; cands.forEach(k => g.strokeRect(k.x, k.y, k.w, k.h));
 }
 
-/* ---------- tracking ---------- */
-let tracks = [], graveyard = [], nextTrack = 1, busy = false, steadyNow = true;
-const HOLD_MS = 550;
-const iou = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); const i = Math.max(0, x1 - x0) * Math.max(0, y1 - y0); return i / (a.w * a.h + b.w * b.h - i || 1); };
-const lerpBox = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, w: a.w + (b.w - a.w) * k, h: a.h + (b.h - a.h) * k });
-const moveBox = (b, d) => { b.x += d.x; b.y += d.y; };
-// How well a detection matches a track: overlap, or a nearby centre at a similar size (fast moves).
-function matchScore(t, c) {
-  const v = iou(t.raw, c); if (v > 0.15) return 1 + v;
-  const r = t.raw, d = Math.hypot(r.x + r.w / 2 - c.x - c.w / 2, r.y + r.h / 2 - c.y - c.h / 2), k = Math.sqrt((c.w * c.h) / (r.w * r.h));
-  return d < 0.4 * Math.max(r.w, r.h) && k > 0.6 && k < 1.6 ? 1 - d / Math.max(r.w, r.h) : 0;
-}
-const KEEP_MS = { seen: 1200, failed: 1200, ignored: 1200 };            // others (reading, done) stay 4 s
-function updateTracks(cands, now, motion, shift) {
-  steadyNow = motion < 8;
-  // everything moves with the camera first, then snaps to what was detected
-  for (const t of tracks.concat(graveyard)) { moveBox(t.raw, shift); moveBox(t.box, shift); }
-  const pairs = [];
-  tracks.forEach(t => cands.forEach((c, i) => { const v = matchScore(t, c); if (v > 0) pairs.push([v, t, i]); }));
-  pairs.sort((a, b) => b[0] - a[0]);
-  const usedT = new Set(), used = new Set();
-  for (const [, t, i] of pairs) {
-    if (usedT.has(t) || used.has(i)) continue;
-    usedT.add(t); used.add(i); const c = cands[i];
-    accrue(t, c, now, motion, shift);
-    t.raw = c; t.box = lerpBox(t.box, c, 0.4); t.last = now; t.hits = (t.hits || 0) + 1; t.partial = c.partial; if (c.partial) t.wasPartial = now;
-    t.hist.push({ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: Math.hypot(shift.x, shift.y) });
-    while (t.hist.length && now - t.hist[0].t > 1500) t.hist.shift();
-  }
-  cands.forEach((c, i) => {
-    if (used.has(i)) return;
-    // A structure that came back (camera bumped, hand passed over) keeps the reading it already had.
-    let g = null, gs = 0; graveyard.forEach(x => { const v = matchScore(x, c); if (v > gs) { gs = v; g = x; } });
-    if (!g && !c.aim) return;
-    const t = g || { id: nextTrack++, state: "seen", born: now };
-    if (g) graveyard.splice(graveyard.indexOf(g), 1);
-    if (!g) { t.prog = 0; t.upd = now; }
-    Object.assign(t, { raw: c, box: { ...c }, last: now, hits: g ? 9 : 1, partial: c.partial, hist: [{ t: now, cx: c.x + c.w / 2, cy: c.y + c.h / 2, s: Math.sqrt(c.w * c.h), m: motion, sh: 0 }] });
-    tracks.push(t);
-  });
-  for (const t of [...tracks]) {
-    const off = t.raw.x + t.raw.w < 0 || t.raw.y + t.raw.h < 0 || t.raw.x > PW || t.raw.y > PH;
-    if (now - t.last > (KEEP_MS[t.state] || 4000) || off) {
-      tracks.splice(tracks.indexOf(t), 1); dropEl(t);
-      if (t.state === "done" || t.state === "reading") graveyard.push(t);
-    }
-  }
-  graveyard = graveyard.filter(g => now - g.last < 12000 || g.state === "reading");
-}
-/* Hold-steady progress, 0…1. Builds up while the camera is roughly still and the box roughly
-   the same; a wobble only takes some of it back. Real phone cameras flicker and shake far more
-   than a still image, so nothing here resets to zero on a single bad frame. */
-function accrue(t, c, now, motion, shift) {
-  const S = Math.min(PW, PH), dt = Math.min(200, now - (t.upd || now)), r = t.raw;
-  const move = Math.hypot(r.x + r.w / 2 - c.x - c.w / 2, r.y + r.h / 2 - c.y - c.h / 2) + Math.hypot(shift.x, shift.y);
-  const size = Math.abs(Math.sqrt((c.w * c.h) / (r.w * r.h)) - 1);
-  const ok = !c.partial && move < 0.06 * S && size < 0.25 && motion < 40;
-  t.prog = Math.max(0, Math.min(1, (t.prog || 0) + (ok ? dt / HOLD_MS : -dt / (3 * HOLD_MS))));
-  t.upd = now;
-  if (DEBUG) t.dbg = `mv ${(move / S * 100).toFixed(0)}% sz ${(size * 100).toFixed(0)}% m ${motion.toFixed(0)}`;
-}
-function steadiness(t, now) {
-  if (t.partial) return 0;
-  if (now - t.born > 2500 && now - t.last < 800 && now - (t.wasPartial || 0) > 1000) return 1;   // in the frame long enough: read it anyway
-  return t.prog || 0;
-}
-function steadinessOld(t, now) {
-  if (t.partial || now - t.last > 400) return 0;
-  const S = Math.min(PW, PH), tol = 0.05 * S, h = t.hist, last = h[h.length - 1];
-  let since = last.t;
-  for (let i = h.length - 1; i >= 0; i--) {
-    const p = h[i];
-    if (Math.abs(p.cx - last.cx) > tol || Math.abs(p.cy - last.cy) > tol || Math.abs(p.s / last.s - 1) > 0.15 || p.m > 12 || p.sh > 0.04 * S) break;
-    since = p.t;
-  }
-  return Math.min(1, (now - since) / HOLD_MS);
-}
-function schedule(now) {
-  if (busy) return;
-  const S = Math.min(PW, PH), tol = 0.06 * S;
-  const centred = t => { const r = t.raw; return r.x - tol <= PW / 2 && PW / 2 <= r.x + r.w + tol && r.y - tol <= PH / 2 && PH / 2 <= r.y + r.h + tol; };
-  const ready = tracks.filter(t => (t.state === "seen" || (t.state === "failed" && (t.fails || 0) < 2 && now > t.retryAt)) && (t.force || ((t.hits || 0) >= (MODE === "all" ? 8 : 4) && (MODE === "all" || centred(t)) && steadiness(t, now) >= 1)));
-  if (!ready.length) return;
-  ready.sort((a, b) => (b.force ? 1 : 0) - (a.force ? 1 : 0) || b.raw.score - a.raw.score);   // biggest and most central first
-  read(ready[0]);
-}
-
 /* ---------- reading one structure ---------- */
 const cam = $("#cam");
 function cropFromVideo(b) {
@@ -714,30 +610,6 @@ function isolate(c, ids) {
   g.putImageData(id, 0, 0);
   return c;
 }
-async function read(t) {
-  busy = true; t.force = false; t.steps = 0;
-  t.state = engine.isReady ? "reading" : "waiting";
-  let c = null;
-  try {
-    c = flattenPaper(cropFromVideo(t.raw));
-    if (t.last === lastDetect && t.raw.ids) isolate(c, t.raw.ids);
-    if (DEBUG) (window.crops = window.crops || []).push({ id: t.id, png: c.toDataURL("image/png") });
-    const x = decimerInput(c); freeCanvas(c); c = null;
-    const r = await engine.predict(x, n => { t.state = "reading"; t.steps = n; });
-    await rdReady;
-    const info = r.ended && r.mean >= 0.6 ? describe(r.smiles) : null;
-    if (DEBUG) { console.log("DECIMER", t.id, r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended); t.tried = `${r.smiles.slice(0, 28)} p=${r.mean.toFixed(2)}`; }
-    if (!info) { t.fails = (t.fails || 0) + 1; t.state = t.fails >= 2 || r.mean < 0.45 ? "ignored" : "failed"; t.retryAt = performance.now() + 2500; t.hist = t.hist.slice(-1); }
-    else {
-      info.conf = r; t.result = info; t.state = "done";
-      nameIt(t);
-      if (navigator.vibrate) navigator.vibrate(12);
-    }
-  } catch (e) {
-    t.fails = (t.fails || 0) + 1; t.state = "failed"; t.retryAt = performance.now() + 4000;
-    if (e.message !== "blank" && !/could not load/i.test(e.message)) console.warn(e);
-  } finally { freeCanvas(c); busy = false; }
-}
 function describe(smi) {
   const mol = RD.get_mol(smi);
   if (!mol || !mol.is_valid()) { mol && mol.delete(); return null; }
@@ -767,8 +639,125 @@ async function knownDrug(smi) {
   })();
   return (await drugIndex).get(smi) || "";
 }
-async function nameIt(t) {
-  const r = t.result;
+
+/* ================================================================
+   Calm interface. Every frame (about 12 a second) the detector looks for a structure under
+   the cross. While one is there and the camera is steady, the ring fills; when it's full
+   (or the shutter is pressed) the picture freezes, the structure is outlined, DECIMER reads
+   it, and its card goes to the front of the dock. Then the camera carries on.
+   ================================================================ */
+const HOLD_MS = 800;                  // steady time before an automatic read
+let stream = null, running = false, lastProc = 0, phase = "aim";
+let recent = [], lastGood = null, lastAny = null, lastDetectN = 0;
+let prog = 0, lastT = 0, target = null, edgeOnly = false, movedSince = 1e9, lastBox = null;
+const iou = (a, b) => { const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.min(a.y + a.h, b.y + b.h); const i = Math.max(0, x1 - x0) * Math.max(0, y1 - y0); return i / (a.w * a.h + b.w * b.h - i || 1); };
+let results = [];
+
+const fmtFormula = f => esc(f).replace(/([A-Za-z\)])(\d+)/g, "$1<sub>$2</sub>");
+const r1 = v => (Math.round(v * 10) / 10).toFixed(1);
+function setHint(t, cls) { const h = $("#hint"); if (h.textContent !== t) h.textContent = t; h.className = "hint" + (cls ? " " + cls : ""); }
+function setRing(p, cls) {
+  $("#ring").style.strokeDashoffset = 226.2 * (1 - Math.max(0, Math.min(1, p)));
+  $("#aim").className = "aim" + (cls ? " " + cls : "");
+}
+// analysis-frame box → screen rectangle (the video is shown with object-fit: cover)
+function toScreen(b) {
+  const vw = cam.videoWidth || 1, vh = cam.videoHeight || 1, s = Math.max(innerWidth / vw, innerHeight / vh);
+  const ox = (innerWidth - vw * s) / 2, oy = (innerHeight - vh * s) / 2, k = REG.k * s;
+  return { x: ox + REG.sx * s + b.x * k, y: oy + REG.sy * s + b.y * k, w: b.w * k, h: b.h * k };
+}
+function showFrame(b) {
+  const f = $("#frame");
+  if (!b) { f.classList.remove("on"); return; }
+  const r = toScreen(b), pad = 8;
+  Object.assign(f.style, { left: r.x - pad + "px", top: r.y - pad + "px", width: r.w + 2 * pad + "px", height: r.h + 2 * pad + "px" });
+  f.classList.add("on");
+}
+
+function frame(now) {
+  if (!running) return;
+  if (phase === "aim" && cam.readyState >= 2 && !cam.paused && now - lastProc > 75) {
+    const dt = Math.min(200, now - (lastT || now)); lastT = now; lastProc = now;
+    const vw = cam.videoWidth, vh = cam.videoHeight, s = Math.max(innerWidth / vw, innerHeight / vh);
+    const visW = Math.min(vw, innerWidth / s), visH = Math.min(vh, innerHeight / s), sx = (vw - visW) / 2, sy = (vh - visH) / 2;
+    const k = Math.min(PROC_SHORT / Math.min(visW, visH), PROC_LONG / Math.max(visW, visH)), w = Math.round(visW * k), h = Math.round(visH * k), key = [vw, vh, w, h].join();
+    if (key !== REG.key) { alloc(w, h); proc.width = w; proc.height = h; }
+    REG = { sx, sy, k: visW / w, key };
+    pg.drawImage(cam, sx, sy, visW, visH, 0, 0, w, h);
+    const { cands, motion, shift } = detect();
+    const S = Math.min(PW, PH), move = Math.hypot(shift.x, shift.y);
+    movedSince += move;
+    // Judge the last few frames together, so a structure that flickers in and out (shake, glare)
+    // still counts as found.
+    const hit = cands.find(c => c.aim);
+    recent.push(hit ? (hit.partial ? 2 : 1) : 0); if (hit) hit.frame = lastDetectN; if (recent.length > 8) recent.shift();
+    if (hit && !hit.partial) { lastGood = hit; lastGood.at = now; }
+    if (hit) { lastAny = hit; lastAny.at = now; lastAny.frame = lastDetectN; }
+    lastDetectN++;
+    if (lastGood) { lastGood.x += hit ? 0 : shift.x; lastGood.y += hit ? 0 : shift.y; }
+    const nGood = recent.filter(v => v === 1).length, nEdge = recent.filter(v => v === 2).length;
+    target = nGood >= recent.length / 2 && lastGood && now - lastGood.at < 500 ? lastGood : null;
+    edgeOnly = !target && nEdge >= recent.length / 2;
+    const steady = move < 0.03 * S && motion < 40;
+    if (lastBox) { lastBox.x += shift.x; lastBox.y += shift.y; if (target && iou(target, lastBox) >= 0.3) lastBox = { x: target.x, y: target.y, w: target.w, h: target.h }; }
+    const fresh = !lastBox || (target && iou(target, lastBox) < 0.3);   // the structure just read doesn't get read again until you move on
+    if (DEBUG) (window.__f = window.__f || []).push([!!hit, !!(hit && hit.partial), +move.toFixed(1), +motion.toFixed(1), !!fresh]);
+    if (target && steady && fresh) prog += dt / HOLD_MS; else prog -= dt / (target ? 2 * HOLD_MS : 500);
+    prog = Math.max(0, Math.min(1, prog));
+    setRing(prog, edgeOnly ? "edge" : target ? "found" : "");
+    if (edgeOnly) setHint("Move back a little: it runs off the screen", "warn");
+    else if (!target) setHint(results.length ? "Put the cross on the next structure" : "Put the cross on a structure");
+    else if (!fresh) setHint("Done · move to the next structure");
+    else setHint("Hold steady…");
+    if (prog >= 1) capture();
+  }
+  requestAnimationFrame(frame);
+}
+
+// Freeze, outline, read. With no structure under the cross (shutter pressed), the middle of the view is read.
+async function capture() {
+  if (phase !== "aim" || !cam.videoWidth) return;
+  phase = "reading"; prog = 0;
+  const S = Math.min(PW, PH);
+  // the structure under the cross; when the shutter is pressed, whatever was last seen there
+  const near = !target && lastAny && performance.now() - lastAny.at < 600 ? lastAny : null;
+  const pick = target || near;
+  const b = pick || { x: PW / 2 - 0.32 * S, y: PH / 2 - 0.32 * S, w: 0.64 * S, h: 0.64 * S };
+  let c = null, thumb = "";
+  try {
+    c = flattenPaper(cropFromVideo(b));
+    if (pick && pick.ids && pick.frame === lastDetectN - 1) isolate(c, pick.ids);   // blob ids are only valid for the latest frame
+    thumb = c.toDataURL("image/jpeg", 0.7);
+    if (DEBUG) (window.crops = window.crops || []).push({ id: results.length + 1, png: c.toDataURL("image/png") });
+  } catch (e) { console.warn(e); }
+  cam.pause();
+  showFrame(b); setRing(0, "busy"); $("#shutter").disabled = true;
+  setHint(engine.isReady ? "Reading…" : "Loading the recognition model…", "busy");
+  let res = null;
+  try {
+    if (!c) throw new Error("no image");
+    const x = decimerInput(c); freeCanvas(c); c = null;
+    const r = await engine.predict(x, n => setHint(`Reading · ${n} tokens`, "busy"));
+    await rdReady;
+    if (DEBUG) console.log("DECIMER", r.smiles, r.mean.toFixed(2), r.min.toFixed(2), r.ended);
+    const info = r.ended && r.mean >= 0.6 ? describe(r.smiles) : null;
+    if (info) { info.conf = r; res = info; }
+    else res = { fail: true, thumb, why: r.ended ? "That doesn't look like a structure I can read." : "That one was too long or unclear to read." };
+  } catch (e) {
+    res = { fail: true, thumb, why: /blank/.test(e.message) ? "Nothing to read there." : /load/i.test(e.message) ? "The recognition model isn't loaded." : "Something went wrong reading it." };
+  } finally { freeCanvas(c); }
+  results.unshift(res); results = results.slice(0, 20);
+  renderDock();
+  if (!res.fail) { nameIt(res); if (navigator.vibrate) navigator.vibrate(12); }
+  setTimeout(() => {                       // let the outline sit for a moment, then carry on
+    showFrame(null); setRing(0); $("#shutter").disabled = false;
+    movedSince = 0; lastBox = { ...b }; recent = []; lastGood = null; prog = 0; lastT = 0; haveQ = false;
+    phase = "aim"; cam.play().catch(() => {});
+  }, 700);
+}
+
+/* names: the approved-drug list shipped with the app first, then PubChem (not in offline mode) */
+async function nameIt(r) {
   try {
     const parts = r.smiles.split("."), big = parts.reduce((a, b) => b.length > a.length ? b : a);
     r.name = await knownDrug(r.smiles) || await knownDrug(big);
@@ -777,122 +766,35 @@ async function nameIt(t) {
       const j = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/${r.key}/property/Title/JSON`, { signal: ctl.signal }).then(x => x.ok ? x.json() : null).catch(() => null);
       clearTimeout(to);
       const title = j && j.PropertyTable && j.PropertyTable.Properties[0] && j.PropertyTable.Properties[0].Title;
-      if (title) r.name = title.length > 40 && /\d.*[\(\[]/.test(title) ? "" : title;     // skip long systematic names
+      if (title) r.name = title.length > 40 && /\d.*[\(\[]/.test(title) ? "" : title;
     }
   } catch {}
   r.named = true;
+  renderDock();
 }
 
-/* ---------- drawing ---------- */
-const layer = $("#layer");
-const fmtFormula = f => esc(f).replace(/([A-Za-z\)])(\d+)/g, "$1<sub>$2</sub>");
-const r1 = v => (Math.round(v * 10) / 10).toFixed(1);
-function view() {
-  const vw = cam.videoWidth || 1, vh = cam.videoHeight || 1, sw = innerWidth, sh = innerHeight, s = Math.max(sw / vw, sh / vh);
-  return { k: REG.k * s, ox: (REG.sx - (vw - Math.min(vw, sw / s)) / 2) * s, oy: (REG.sy - (vh - Math.min(vh, sh / s)) / 2) * s, sw, sh };
-}
-function el(t) {
-  if (t.el) return t.el;
-  const root = document.createElement("div"); root.className = "trk";
-  root.innerHTML = `<div class="box"><i></i><i></i><i></i><i></i><svg class="ring" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="13"/><circle class="fg" cx="17" cy="17" r="13" stroke-dasharray="81.7" stroke-dashoffset="81.7"/></svg></div><div class="chip" hidden></div>`;
-  layer.appendChild(root);
-  t.el = { root, box: root.querySelector(".box"), ring: root.querySelector(".fg"), chip: root.querySelector(".chip"), card: null };
-  t.el.box.addEventListener("click", () => { if (t.state !== "reading" && t.state !== "waiting") { t.state = "seen"; t.force = true; t.fails = 0; t.result = null; if (t.el.card) { t.el.card.remove(); t.el.card = null; } } });
-  return t.el;
-}
-function dropEl(t) { if (t.el) { t.el.root.remove(); t.el = null; } }
-function cardHTML(r) {
-  const lo = r.conf && (r.conf.mean < 0.8 || r.conf.min < 0.35);
-  const neg = v => String(v).replace("-", "−");
-  return `<div class="th">${r.thumb}</div>
+function cardHTML(r, i) {
+  if (r.fail) return `<div class="card fail" data-i="${i}"><div class="th">${r.thumb ? `<img src="${r.thumb}" alt="">` : ""}</div>
+    <div class="hd"><div class="nm">Not read</div><div class="msg">${esc(r.why)} Move closer or tap the shutter to try again.</div></div></div>`;
+  const lo = r.conf && (r.conf.mean < 0.8 || r.conf.min < 0.35), neg = v => String(v).replace("-", "−");
+  return `<div class="card" data-i="${i}"><div class="th">${r.thumb}</div>
     <div class="hd"><div class="nm">${esc(r.name || (r.named ? "Unnamed structure" : "Looking up…"))}</div><div class="fm">${fmtFormula(r.formula)}</div></div>
     <div class="pr"><div><b>${r1(r.mw)}</b><small>MW</small></div><div><b>${neg((+r.clogp).toFixed(1))}</b><small>cLogP</small></div><div><b>${Math.round(r.tpsa)}</b><small>TPSA</small></div><div><b>${r.hbd}/${r.hba}</b><small>HBD/HBA</small></div></div>
-    <div class="ft">${r.ro5 ? `<span class="tag no">Ro5: ${r.ro5} violation${r.ro5 > 1 ? "s" : ""}</span>` : `<span class="tag ok">Ro5 ✓</span>`}${lo ? `<span class="tag lo">Check reading</span>` : ""}<span class="go">Details ›</span></div>`;
+    <div class="ft">${r.ro5 ? `<span class="tag no">Ro5: ${r.ro5} violation${r.ro5 > 1 ? "s" : ""}</span>` : `<span class="tag ok">Ro5 ✓</span>`}${lo ? `<span class="tag lo">Check reading</span>` : ""}<span class="go">Details ›</span></div></div>`;
 }
-function render(now) {
-  const v = view(), placed = [];
-  const scr = new Map(tracks.map(t => [t, { x: v.ox + t.box.x * v.k, y: v.oy + t.box.y * v.k, w: t.box.w * v.k, h: t.box.h * v.k }]));
-  for (const t of [...tracks].sort((a, b) => a.box.y - b.box.y)) {
-    const e = el(t), { x, y, w, h } = scr.get(t);
-    const stale = now - t.last > 900;
-    const st = t.partial && t.state === "seen" ? "partial" : t.state;
-    const quiet = MODE === "all" ? ((st === "seen" || st === "partial") && ((t.hits || 0) < 8 || !t.raw.aim)) || st === "ignored" || st === "failed" : (st === "seen" || st === "partial") && ((t.hits || 0) < 4 || !(t.raw.aim || t.hits >= 4 && Math.abs(t.raw.x + t.raw.w / 2 - PW / 2) < t.raw.w / 2 + 0.06 * Math.min(PW, PH) && Math.abs(t.raw.y + t.raw.h / 2 - PH / 2) < t.raw.h / 2 + 0.06 * Math.min(PW, PH)));
-    e.root.className = "trk " + st + (stale ? " stale" : "") + (quiet ? " quiet" : "");
-    e.root.style.transform = `translate(${x}px,${y}px)`;
-    e.box.style.width = w + "px"; e.box.style.height = h + "px";
-    if (t.state === "seen" && !t.partial) e.ring.style.strokeDashoffset = 81.7 * (1 - steadiness(t, now));
-    // status chip above the box
-    const chip = DEBUG && st === "seen" ? `${Math.round(100 * steadiness(t, now))}% · ${t.dbg || ""}` : st === "partial" ? "Move back a little" : st === "seen" ? (now - t.born > 1200 ? "Hold steady · or tap to read" : "") : st === "waiting" ? "Model loading…" : st === "reading" ? (t.steps ? `Reading · ${t.steps} tokens` : "Reading…") : st === "failed" || st === "ignored" ? (DEBUG && t.tried ? t.tried : st === "failed" ? "Couldn't read · tap to retry" : "Not recognised · tap to retry") : "";
-    e.chip.hidden = !chip; if (chip && e.chip.textContent !== chip) e.chip.textContent = chip;
-    if (chip) { const cw = e.chip.offsetWidth; e.chip.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - cw, w / 2 - cw / 2))}px,${y > 110 ? -36 : h + 8}px)`; }
-    // result card below the box (or above if there's no room), kept on screen
-    if (t.state === "done" && t.result) {
-      const others = tracks.filter(o => o !== t).map(o => scr.get(o));
-      const html = cardHTML(t.result);
-      if (e.card && e.card._html !== html) { e.card.innerHTML = html; e.card._html = html; }
-      if (!e.card) {
-        e.card = document.createElement("div"); e.card.className = "card"; e.card.innerHTML = html; e.card._html = html;
-        e.card.addEventListener("click", ev => { ev.stopPropagation(); openDetails(t.result.smiles); });
-        e.root.appendChild(e.card);
-      }
-      const cw = e.card.offsetWidth, chh = e.card.offsetHeight;
-      const cx = Math.max(10 - x, Math.min(v.sw - 10 - x - cw, w / 2 - cw / 2)), X = x + cx;
-      const hits = Y => placed.concat(others).find(p => X < p.x + p.w + 6 && p.x < X + cw + 6 && Y < p.y + p.h + 6 && p.y < Y + chh + 6);
-      const fits = Y => Y >= 64 && Y + chh <= v.sh - 96;
-      const spots = [y + h + 10, y - chh - 10, v.sh - 96 - chh, 64].filter(fits);
-      const Y = spots.find(Y => !hits(Y));
-      // No clear spot: a one-line label inside the bottom of its own box instead of the card.
-      const mini = Y === undefined;
-      e.card.hidden = mini;
-      if (!mini) { placed.push({ x: X, y: Y, w: cw, h: chh }); e.card.style.transform = `translate(${cx}px,${Y - y}px)`; }
-      if (mini && !e.mini) {
-        e.mini = document.createElement("div"); e.mini.className = "mini";
-        e.mini.addEventListener("click", ev => { ev.stopPropagation(); openDetails(t.result.smiles); });
-        e.root.appendChild(e.mini);
-      }
-      if (e.mini) {
-        e.mini.hidden = !mini;
-        const txt = `${esc(t.result.name || t.result.formula)}<span>MW ${Math.round(t.result.mw)} ›</span>`;
-        if (e.mini._t !== txt) { e.mini.innerHTML = txt; e.mini._t = txt; }
-        if (mini) { const mw = e.mini.offsetWidth; e.mini.style.transform = `translate(${Math.max(8 - x, Math.min(v.sw - 8 - x - mw, w / 2 - mw / 2))}px,${Math.max(0, h - 40)}px)`; }
-      }
-    } else {
-      if (e.card) { e.card.remove(); e.card = null; }
-      if (e.mini) { e.mini.remove(); e.mini = null; }
-    }
-  }
-  const any = tracks.length > 0, hint = $("#hint");
-  const live = tracks.filter(t => t.state !== "ignored" && !(t.el && t.el.root.classList.contains("quiet")));
-  document.body.classList.toggle("locked", live.length > 0);
-  hint.textContent = paused ? "Frozen · tap a card for details" : !live.length ? (MODE === "all" ? "Point at a page of structures" : "Put the cross on a structure") : tracks.some(t => t.state === "seen" && !t.partial) ? "Hold steady…" : "";
-  hint.style.opacity = hint.textContent ? 1 : 0;
+function renderDock() {
+  const d = $("#dock"), html = results.map(cardHTML).join("");
+  if (d._html === html) return;
+  d._html = html; d.innerHTML = html; d.scrollTo({ left: 0 });
 }
-function openDetails(smi) {
-  const enc = encodeURIComponent(smi).replace(/%(28|29|3D|2F|3A|40)/g, m => decodeURIComponent(m));
+$("#dock").addEventListener("click", e => {
+  const c = e.target.closest(".card"); if (!c) return;
+  const r = results[+c.dataset.i]; if (!r || r.fail) return;
+  const enc = encodeURIComponent(r.smiles).replace(/%(28|29|3D|2F|3A|40)/g, m => decodeURIComponent(m));
   location.href = "./#smiles=" + enc;
-}
+});
 
-/* ---------- camera loop ---------- */
-let stream = null, paused = false, lastProc = 0, running = false, lastDetect = -1;
-function frame(now) {
-  if (!running) return;
-  if (!paused && cam.readyState >= 2 && now - lastProc > 75) {
-    lastProc = now;
-    // Only the part of the frame shown on screen (the video fills it with object-fit: cover).
-    const vw = cam.videoWidth, vh = cam.videoHeight, s = Math.max(innerWidth / vw, innerHeight / vh);
-    const visW = Math.min(vw, innerWidth / s), visH = Math.min(vh, innerHeight / s), sx = (vw - visW) / 2, sy = (vh - visH) / 2;
-    const k = Math.min(PROC_SHORT / Math.min(visW, visH), PROC_LONG / Math.max(visW, visH)), w = Math.round(visW * k), h = Math.round(visH * k), key = [vw, vh, w, h].join();
-    if (key !== REG.key) { alloc(w, h); proc.width = w; proc.height = h; tracks.forEach(dropEl); tracks = []; graveyard = []; }
-    REG = { sx, sy, k: visW / w, key };
-    pg.drawImage(cam, sx, sy, visW, visH, 0, 0, w, h);
-    const { cands, motion, shift } = detect();
-    lastDetect = now;
-    updateTracks(cands, now, motion, shift);
-    schedule(now);
-  }
-  render(now);
-  requestAnimationFrame(frame);
-}
+/* ---------- camera ---------- */
 async function startCamera() {
   $("#goBtn").disabled = true; $("#goBtn").textContent = "Starting…";
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -902,7 +804,7 @@ async function startCamera() {
   let embedded = false; try { embedded = window.top !== window; } catch { embedded = true; }
   try {
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } }); }
-    catch (e) { if (e.name === "NotAllowedError" || e.name === "SecurityError") throw e; stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true }); }   // simpler request if the first one is refused by the hardware
+    catch (e) { if (e.name === "NotAllowedError" || e.name === "SecurityError") throw e; stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true }); }
   } catch (e) {
     $("#startNote").textContent =
       embedded ? "This page is running inside a preview, which isn't allowed to use the camera. Open it from your website in Safari instead (structure-lens.croftware.com/live.html)." :
@@ -916,37 +818,20 @@ async function startCamera() {
   $("#start").hidden = true;
   setStatus("Model: preparing");
   engine.load().catch(() => {});
+  rdReady.then(() => knownDrug("C")).catch(() => {});            // build the drug-name index early
   const tr = stream.getVideoTracks()[0], caps = tr.getCapabilities ? tr.getCapabilities() : {};
-  if (caps.torch) $("#torchBtn").hidden = false;
+  $("#torchBtn").hidden = !caps.torch;
   try { await tr.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch {}
   running = true; requestAnimationFrame(frame);
 }
 $("#goBtn").addEventListener("click", startCamera);
-$("#pauseBtn").addEventListener("click", () => {
-  paused = !paused; const b = $("#pauseBtn");
-  b.setAttribute("aria-pressed", paused); b.querySelector("span").textContent = paused ? "Resume" : "Freeze";
-  b.querySelector("svg").innerHTML = paused ? '<path d="M7 5l12 7-12 7z"/>' : '<path d="M9 5v14M15 5v14"/>';
-  paused ? cam.pause() : cam.play().catch(() => {});
-  if (!paused) { haveQ = false; const n = performance.now(); tracks.forEach(t => { t.last = n; t.hist = t.hist.slice(-1); t.hist[0].t = n; }); }
-});
-function applyMode() {
-  const b = $("#modeBtn"), all = MODE === "all";
-  b.querySelector("span").textContent = all ? "All" : "One";
-  b.querySelector("svg").innerHTML = all ? '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>' : '<path d="M12 5v14M5 12h14"/>';
-  document.body.classList.toggle("all", all);
-}
-$("#modeBtn").addEventListener("click", () => {
-  MODE = MODE === "all" ? "one" : "all";
-  try { localStorage.setItem("sl.liveMode", MODE); } catch {}
-  applyMode(); toast(MODE === "all" ? "All: every structure in view is read, nearest the centre first" : "One: only the structure under the cross is read", 2600);
-});
-applyMode();
-$("#clearBtn").addEventListener("click", () => { tracks.forEach(dropEl); graveyard.forEach(dropEl); tracks = []; graveyard = []; });
+$("#shutter").addEventListener("click", () => capture());
+$("#clearBtn").addEventListener("click", () => { results = []; renderDock(); lastBox = null; });
 $("#torchBtn").addEventListener("click", async () => {
   const b = $("#torchBtn"), on = b.getAttribute("aria-pressed") !== "true";
   try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: on }] }); b.setAttribute("aria-pressed", on); } catch { toast("The light can't be controlled from this browser."); }
 });
-document.addEventListener("visibilitychange", () => { if (!stream) return; if (document.hidden) cam.pause(); else if (!paused) cam.play().catch(() => {}); });
+document.addEventListener("visibilitychange", () => { if (!stream) return; if (document.hidden) cam.pause(); else if (phase === "aim") cam.play().catch(() => {}); });
 if (OFFLINE) $("#startNote").textContent += " Offline mode is on: names come only from the approved-drug list on this phone.";
 </script>
 </body>
